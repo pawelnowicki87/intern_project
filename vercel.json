@@ -1,0 +1,8 @@
+{
+  "projects": [
+    {
+      "name": "client_app",
+      "rootDirectory": "apps/client_app"
+    }
+  ]
+}
