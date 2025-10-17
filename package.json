@@ -14,7 +14,10 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "db:migrate": "turbo run db:migrate",
-    "db:seed": "turbo run db:seed"
+    "db:seed": "turbo run db:seed",
+
+    "start:infra": "docker compose up -d --remove-orphans",
+    "start:all": "npm run start:infra && turbo run dev --parallel --filter=core_microservice --filter=auth_microservice --filter=notifications_consumer_microservice --filter=client_app"
   },
   "devDependencies": {
     "turbo": "^1.10.0",
