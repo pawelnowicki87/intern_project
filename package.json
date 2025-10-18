@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "start:dev": "turbo run start:dev --filter=core_microservice",
+    "build": "turbo run build",
     "start:infra": "docker compose up -d --remove-orphans",
     "stop:infra": "docker compose down",
     "start:all": "npm run start:infra && turbo run dev --parallel --filter=core_microservice --filter=auth_microservice --filter=notifications_consumer_microservice --filter=client_app",
