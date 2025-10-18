@@ -11,7 +11,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { LikePost } from '../../likes-posts/entities/like-post.entity';
-import { File } from '../../files/entities/file.entity';
+import { PostAsset } from '../../post-assets/entities/post-asset.entity';
 
 @Entity('posts')
 export class Post {
@@ -49,6 +49,6 @@ export class Post {
   @OneToMany(() => LikePost, (likePost) => likePost.post)
   likes: LikePost[];
 
-  @OneToMany(() => File, (file) => file.post)
-  files: File[];
+  @OneToMany(() => PostAsset, (pa) => pa.post)
+  assets: PostAsset[];
 }

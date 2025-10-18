@@ -4,11 +4,12 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
-  OneToMany,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { File } from '../../files/entities/file.entity';
+import { MessageAsset } from '../../message-assets/entities/message-asset.entity';
+import { Chat } from '../../chats/entities/chat.entity';
 
 @Entity('messages')
 export class Message {
@@ -20,6 +21,9 @@ export class Message {
 
   @Column({ name: 'receiver_id', type: 'int', nullable: false })
   receiverId: number;
+
+  @Column({ name: 'chat_id', type: 'int', nullable: true })
+  chatId?: number;
 
   @Column({ type: 'varchar', nullable: true })
   title?: string;
@@ -33,7 +37,7 @@ export class Message {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  // relations
+  // 🔗 RELATIONS
 
   @ManyToOne(() => User, (user) => user.sentMessages)
   @JoinColumn({ name: 'sender_id' })
@@ -43,6 +47,10 @@ export class Message {
   @JoinColumn({ name: 'receiver_id' })
   receiver: User;
 
-  @OneToMany(() => File, (file) => file.message)
-  files: File[];
+  @ManyToOne(() => Chat, (chat) => chat.messages, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'chat_id' })
+  chat?: Chat;
+
+  @OneToMany(() => MessageAsset, (ma) => ma.message)
+  assets: MessageAsset[];
 }

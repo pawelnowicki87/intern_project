@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryColumn,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('follows')
