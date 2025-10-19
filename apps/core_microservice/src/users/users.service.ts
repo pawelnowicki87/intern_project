@@ -21,6 +21,16 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  async findByEmail(email: string): Promise<UserResponseDto | null> {
+  this.logger.log(`Fetching user by email=${email}`);
+  const user = await this.userRepository.findOne({ where: { email } });
+  if (!user) return null;
+
+  const { firstName, lastName, email: userEmail, phone } = user;
+  return { firstName, lastName, email: userEmail, phone };
+}
+
+
   async findAll(): Promise<UserResponseDto[]> {
     this.logger.log('Fetching all users...');
     const users = await this.userRepository.find();
@@ -47,31 +57,33 @@ export class UsersService {
   }
 
   async create(data: CreateUserDto): Promise<UserResponseDto> {
-    this.logger.log(`Creating new user with email=${data.email}`);
-    try {
-      const passwordHash = await bcrypt.hash(data.password, 10);
+  this.logger.log(`Creating new user with email=${data.email}`);
 
-      const user = this.userRepository.create({
-        ...data,
-        passwordHash,
-      });
+  try {
+    const { password, ...rest } = data;
+    const passwordHash = await bcrypt.hash(password, 10);
 
-      const savedUser = await this.userRepository.save(user);
-      this.logger.debug(`User created with ID=${savedUser.id}`);
+    const user = this.userRepository.create({
+      ...rest,
+      passwordHash,
+    });
 
-      const { firstName, lastName, email, phone } = savedUser;
-      return { firstName, lastName, email, phone };
-    } catch (error: unknown) {
-      this.logger.error(
-        `Error creating user: ${error instanceof Error ? error.message : error}`,
-      );
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? `Error while creating user: ${error.message}`
-          : 'Unexpected error while creating user.',
-      );
-    }
+    const savedUser = await this.userRepository.save(user);
+    this.logger.debug(`User created with ID=${savedUser.id}`);
+
+    const { firstName, lastName, email, phone } = savedUser;
+    return { firstName, lastName, email, phone };
+  } catch (error: unknown) {
+    this.logger.error(
+      `Error creating user: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    throw new InternalServerErrorException(
+      error instanceof Error
+        ? `Error while creating user: ${error.message}`
+        : 'Unexpected error while creating user.',
+    );
   }
+}
 
   async update(id: number, data: UpdateUserDto): Promise<UserResponseDto> {
     this.logger.log(`Updating user with ID=${id}`);
@@ -125,4 +137,9 @@ export class UsersService {
     this.logger.log(`User with ID=${id} deleted successfully.`);
     return { deleted: true };
   }
+
+  async findByEmailForAuth(email: string): Promise<User | null> {
+  this.logger.log(`Fetching user by email for AuthService = ${email}`);
+  return this.userRepository.findOne({ where: { email } });
+}
 }

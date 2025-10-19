@@ -6,6 +6,7 @@ import {
   Body,
   Delete,
   Patch,
+  Query,
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -17,11 +18,30 @@ import { User } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // query param email
   @Get()
-  async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.usersService.findAll();
-    return users;
+  async find(
+    @Query('email') email?: string,
+  ): Promise<UserResponseDto | UserResponseDto[]> {
+    if (email) {
+      const user = await this.usersService.findByEmail(email);
+      if (!user) {
+        throw new NotFoundException(`User with email ${email} not found`);
+      }
+      return user;
+    }
+    return this.usersService.findAll();
   }
+
+  @Get('auth')
+  async findForAuth(@Query('email') email: string): Promise<User> {
+    const user = await this.usersService.findByEmailForAuth(email);
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return user;
+  }
+
 
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<UserResponseDto> {
@@ -38,7 +58,10 @@ export class UsersController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() data: Partial<User>): Promise<UserResponseDto> {
+  async update(
+    @Param('id') id: number,
+    @Body() data: Partial<User>,
+  ): Promise<UserResponseDto> {
     const updatedUser = await this.usersService.update(id, data);
     if (!updatedUser) {
       throw new NotFoundException(`User with ID ${id} not found`);
