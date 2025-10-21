@@ -26,6 +26,6 @@
       "@/types/*": ["./packages/types/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "test-cloudinary.cjs"],
   "exclude": ["node_modules", "dist", "build", ".next"]
 }

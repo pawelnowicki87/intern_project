@@ -19,22 +19,24 @@ export class FilesService {
       order: { createdAt: 'DESC' },
     });
 
-    return files.map(({ id, url, fileType, ownerId, commentId, createdAt, owner, comment }) => ({
-      id,
-      url,
-      fileType,
-      ownerId,
-      commentId,
-      createdAt,
-      owner: owner
-        ? {
-            firstName: owner.firstName,
-            lastName: owner.lastName,
-            email: owner.email,
-          }
-        : undefined,
-      commentBody: comment?.body,
-    }));
+    return files.map(
+      ({ id, url, fileType, ownerId, commentId, createdAt, owner, comment }) => ({
+        id,
+        url,
+        fileType,
+        ownerId,
+        commentId,
+        createdAt,
+        owner: owner
+          ? {
+              firstName: owner.firstName,
+              lastName: owner.lastName,
+              email: owner.email,
+            }
+          : undefined,
+        commentBody: comment?.body,
+      }),
+    );
   }
 
   async findOne(id: number): Promise<FileResponseDto> {
@@ -74,7 +76,8 @@ export class FilesService {
 
     if (!full) throw new NotFoundException('File not found after creation');
 
-    const { id, url, fileType, ownerId, commentId, createdAt, owner, comment } = full;
+    const { id, url, fileType, ownerId, commentId, createdAt, owner, comment } =
+      full;
     return {
       id,
       url,
@@ -107,7 +110,8 @@ export class FilesService {
 
     if (!updated) throw new NotFoundException('Updated file not found');
 
-    const { url, fileType, ownerId, commentId, createdAt, owner, comment } = updated;
+    const { url, fileType, ownerId, commentId, createdAt, owner, comment } =
+      updated;
     return {
       id: updated.id,
       url,
