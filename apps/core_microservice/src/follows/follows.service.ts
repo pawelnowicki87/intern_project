@@ -101,4 +101,52 @@ export class FollowsService {
     return { deleted: true };
   }
 
+  async acceptFollow(followerId: number, followedId: number): Promise<{ accepted: boolean}> {
+    const follow = await this.followsRepo.findOne(followerId, followedId);
+
+    if(!follow) throw new NotFoundException('Follow not found')
+
+    follow.status = FollowStatus.ACCEPTED;
+
+    await this.notificationSender.sendNotification(
+    follow.followerId,
+    follow.followedId,
+    NotificationAction.FOLLOW_ACCEPTED, 
+    follow.followedId
+    );
+
+    await this.followsRepo.updateStatus(followerId, followedId, follow.status)
+
+    return { accepted: true };
+  }
+
+  async rejectFollow(followerId: number, followedId: number): Promise<{ accepted: boolean}> {
+    const follow = await this.followsRepo.findOne(followerId, followedId);
+
+    if(!follow) throw new NotFoundException('Follow not found')
+
+    follow.status = FollowStatus.REJECTED;
+
+    await this.notificationSender.sendNotification(
+    follow.followerId,
+    follow.followedId,
+    NotificationAction.FOLLOW_REJECTED, 
+    follow.followedId
+    );
+
+    await this.followsRepo.updateStatus(followerId, followedId, follow.status)
+
+    return { accepted: true };
+  }
+
+  async getFollowers(userId: number): Promise<FollowResponseDto[]> {
+    const followersList = await this.followsRepo.findFollowersByUserId(userId);
+
+    return followersList.map((f) => this.toResponseDto(f));
+  }
+
+  async getFollowing(userId: number): Promise<FollowResponseDto[]> {
+  const followingList = await this.followsRepo.findFollowingByUserId(userId);
+  return followingList.map((f) => this.toResponseDto(f));
+  }
 }

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Follow, FollowStatus } from './entities/follow.entity';
 import { CreateFollowDto } from './dto/create-follow.dto';
+import { FollowResponseDto } from './dto/follow-response.dto';
 
 @Injectable()
 export class FollowsRepository {
@@ -66,15 +67,38 @@ export class FollowsRepository {
   followedId: number,
   status: FollowStatus,
   ): Promise<boolean> {
-  try {
-    const result = await this.repo.update(
-      { followerId, followedId },
-      { status },
-    );
-    return (result.affected ?? 0) > 0;
-  } catch (error) {
-    this.logger.error(error.message);
-    return false;
+    try {
+      const result = await this.repo.update(
+        { followerId, followedId },
+        { status },
+      );
+      return (result.affected ?? 0) > 0;
+    } catch (error) {
+      this.logger.error(error.message);
+      return false;
+    }
   }
+
+  async findFollowersByUserId(userId: number): Promise<Follow[]> {
+    return await this.repo.find({
+      where: { 
+        followedId: userId,
+        status: FollowStatus.ACCEPTED
+      },
+      relations: ['follower', 'followed'],
+      order: { createdAt: 'DESC'}
+    })
   }
+
+  async findFollowingByUserId(userId: number): Promise<Follow[]> {
+  return this.repo.find({
+    where: { 
+      followerId: userId,
+      status: FollowStatus.ACCEPTED
+    },
+    relations: ['follower', 'followed'],
+    order: { createdAt: 'DESC' },
+  });
+}
+
 }

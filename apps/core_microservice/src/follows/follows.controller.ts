@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, Patch } from '@nestjs/common';
 import { FollowsService } from './follows.service';
 import { CreateFollowDto } from './dto/create-follow.dto';
 import { FollowResponseDto } from './dto/follow-response.dto';
@@ -32,4 +32,35 @@ export class FollowsController {
   ): Promise<{ deleted: boolean}> {
     return this.followsService.remove(followerId, followedId);
   }
+
+  @Patch(':followerId/:followedId/accept')
+  async acceptFollow(
+    @Param('followerId') followerId: number,
+    @Param('followedId') followedId: number
+  ): Promise<{ accepted: boolean}> {
+    const result = await this.followsService.acceptFollow(followerId, followedId);
+
+    return result;
+  }
+
+  @Patch(':followerId/:followedId/reject')
+  async rejectFollow(
+    @Param('followerId') followerId: number,
+    @Param('followedId') followedId: number
+  ): Promise<{ accepted: boolean}> {
+    const result = await this.followsService.rejectFollow(followerId, followedId);
+
+    return result;
+  }
+
+  @Get(':userId/followers')
+  getFollowers(@Param('userId') userId: number): Promise<FollowResponseDto[]> {
+    return this.followsService.getFollowers(userId);
+  }
+
+  @Get(':userId/following')
+  getFollowing(@Param('userId') userId: number): Promise<FollowResponseDto[]> {
+    return this.followsService.getFollowing(userId);
+  }
+
 }
