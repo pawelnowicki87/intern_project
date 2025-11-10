@@ -1,5 +1,11 @@
-import { Entity, PrimaryColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, CreateDateColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+
+export enum FollowStatus {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
+}
 
 @Entity('follows')
 export class Follow {
@@ -8,6 +14,15 @@ export class Follow {
 
   @PrimaryColumn({ name: 'followed_id', type: 'int' })
   followedId: number;
+
+  @Column({ type: 'enum', enum: FollowStatus, default: FollowStatus.ACCEPTED })
+  status: FollowStatus;
+
+  @Column({ name: 'approved_at', type: 'timestamp', nullable: true })
+  approvedAt?: Date;
+
+  @Column({ name: 'rejected_at', type: 'timestamp', nullable: true })
+  rejectedAt?: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

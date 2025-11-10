@@ -1,87 +1,104 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Follow } from './entities/follow.entity';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+  Inject,
+} from '@nestjs/common';
+import { FollowsRepository } from './follows.repository';
 import { CreateFollowDto } from './dto/create-follow.dto';
 import { FollowResponseDto } from './dto/follow-response.dto';
+import { Follow, FollowStatus } from './entities/follow.entity';
+import { NOTIFICATIONS_SENDER, USERS_READER } from './ports/tokens';
+import { INotificationSender } from './ports/notification-sender.port';
+import { NotificationAction } from 'src/notifications/entities/notification-acion.enum';
+import { IUsersReader } from './ports/users-reader.port';
 
 @Injectable()
 export class FollowsService {
   constructor(
-    @InjectRepository(Follow)
-    private readonly followRepo: Repository<Follow>,
+    private readonly followsRepo: FollowsRepository,
+    @Inject(NOTIFICATIONS_SENDER)
+    private readonly notificationSender: INotificationSender,
+    @Inject(USERS_READER)
+    private readonly userReader: IUsersReader
   ) {}
 
-  async findAll(): Promise<FollowResponseDto[]> {
-    const follows = await this.followRepo.find({
-      relations: ['follower', 'followed'],
-      order: { createdAt: 'DESC' },
-    });
+  private toResponseDto(f: Follow): FollowResponseDto {
+    return {
+      followerId: f.followerId,
+      followedId: f.followedId,
+      createdAt: f.createdAt,
+      followerFirstName: f.follower.firstName,
+      followerLastName: f.follower.lastName,
+      followedFirstName: f.followed.firstName,
+      followedLastName: f.followed.lastName,
+    };
+  }
 
-    return follows.map(({ followerId, followedId, createdAt, follower, followed }) => ({
-      followerId,
-      followedId,
-      createdAt,
-      followerFirstName: follower?.firstName,
-      followerLastName: follower?.lastName,
-      followedFirstName: followed?.firstName,
-      followedLastName: followed?.lastName,
-    }));
+  async findAll(): Promise<FollowResponseDto[]> {
+    const follows = await this.followsRepo.findAll();
+    return follows.map((f) => this.toResponseDto(f));
   }
 
   async findOne(followerId: number, followedId: number): Promise<FollowResponseDto> {
-    const follow = await this.followRepo.findOne({
-      where: { followerId, followedId },
-      relations: ['follower', 'followed'],
-    });
-
+    const follow = await this.followsRepo.findOne(followerId, followedId);
     if (!follow) throw new NotFoundException('Follow relation not found');
-
-    const { createdAt, follower, followed } = follow;
-    return {
-      followerId,
-      followedId,
-      createdAt,
-      followerFirstName: follower?.firstName,
-      followerLastName: follower?.lastName,
-      followedFirstName: followed?.firstName,
-      followedLastName: followed?.lastName,
-    };
+    return this.toResponseDto(follow);
   }
 
   async create(data: CreateFollowDto): Promise<FollowResponseDto> {
-    const follow = this.followRepo.create(data);
-    const saved = await this.followRepo.save(follow);
+    const created = await this.followsRepo.create(data);
 
-    const full = await this.followRepo.findOne({
-      where: { followerId: saved.followerId, followedId: saved.followedId },
-      relations: ['follower', 'followed'],
-    });
+    if (!created) {
+      throw new InternalServerErrorException('Failed to create follow relation');
+    }
 
-    if (!full)
-      throw new NotFoundException(
-        `Follow relation (followerId=${saved.followerId}, followedId=${saved.followedId}) not found after creation.`,
+    const user = await this.userReader.findById(created.followedId);
+
+    if(!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    if (user.isPrivate) {
+      created.status = FollowStatus.PENDING;
+
+      await this.notificationSender.sendNotification(
+        created.followedId, 
+        created.followerId, 
+        NotificationAction.FOLLOW_REQUEST, 
+        created.followerId
+      )
+    } else {
+      created.status = FollowStatus.ACCEPTED;
+
+      await this.notificationSender.sendNotification(
+        created.followerId,
+        created.followedId,
+        NotificationAction.FOLLOW_ACCEPTED, 
+        created.followedId
       );
+    }
 
-    const { followerId, followedId, createdAt, follower, followed } = full;
-    return {
-      followerId,
-      followedId,
-      createdAt,
-      followerFirstName: follower?.firstName,
-      followerLastName: follower?.lastName,
-      followedFirstName: followed?.firstName,
-      followedLastName: followed?.lastName,
-    };
+    await this.followsRepo.updateStatus(
+      created.followerId,
+      created.followedId,
+      created.status,
+    );
+
+    const follow = await this.followsRepo.findOne(
+      created.followerId, 
+      created.followedId);
+    if (!follow) {
+      throw new NotFoundException('Follow relation not found after creation');
+    }
+
+    return this.toResponseDto(follow);
   }
 
-  async remove(followerId: number, followedId: number): Promise<{ message: string }> {
-    const follow = await this.followRepo.findOne({ where: { followerId, followedId } });
-    if (!follow) throw new NotFoundException('Follow relation not found');
-
-    await this.followRepo.remove(follow);
-    return {
-      message: `Follow relation (followerId=${followerId}, followedId=${followedId}) removed successfully.`,
-    };
+  async remove(followerId: number, followedId: number): Promise<{ deleted: boolean }> {
+    const success = await this.followsRepo.delete(followerId, followedId);
+    if (!success) throw new NotFoundException('Follow relation not found');
+    return { deleted: true };
   }
+
 }

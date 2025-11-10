@@ -1,141 +1,78 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Comment } from './entities/comment.entity';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { CommentsRepository } from './comments.repository';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
 
 @Injectable()
 export class CommentsService {
-  constructor(
-    @InjectRepository(Comment)
-    private readonly commentRepository: Repository<Comment>,
-  ) {}
+  constructor(private readonly commentsRepo: CommentsRepository) {}
 
-  async findAll(): Promise<CommentResponseDto[]> {
-    const comments = await this.commentRepository.find({
-      relations: ['user', 'post'],
-      order: { createdAt: 'DESC' },
-    });
-
-    return comments.map(({ id, body, createdAt, updatedAt, user, post }) => ({
-      id,
-      body,
-      createdAt,
-      updatedAt,
+  private toResponseDto(comment: any): CommentResponseDto {
+    return {
+      id: comment.id,
+      body: comment.body,
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
       user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
+        id: comment.user.id,
+        firstName: comment.user.firstName,
+        lastName: comment.user.lastName,
+        email: comment.user.email,
       },
       post: {
-        id: post.id,
-        title: post.title,
+        id: comment.post.id,
+        title: comment.post.title,
       },
-    }));
+    };
+  }
+
+  async findAll(): Promise<CommentResponseDto[]> {
+    const comments = await this.commentsRepo.findAll();
+    return comments.map((c) => this.toResponseDto(c));
   }
 
   async findOne(id: number): Promise<CommentResponseDto> {
-    const comment = await this.commentRepository.findOne({
-      where: { id },
-      relations: ['user', 'post'],
-    });
+    const comment = await this.commentsRepo.findById(id);
+    if (!comment) throw new NotFoundException(`Comment ${id} not found`);
 
-    if (!comment) throw new NotFoundException(`Comment with ID ${id} not found`);
-
-    const { body, createdAt, updatedAt, user, post } = comment;
-    return {
-      id,
-      body,
-      createdAt,
-      updatedAt,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-      },
-      post: {
-        id: post.id,
-        title: post.title,
-      },
-    };
+    return this.toResponseDto(comment);
   }
 
   async create(data: CreateCommentDto): Promise<CommentResponseDto> {
-    try {
-      const comment = this.commentRepository.create(data);
-      const saved = await this.commentRepository.save(comment);
+    const created = await this.commentsRepo.create(data);
 
-      const full = await this.commentRepository.findOne({
-        where: { id: saved.id },
-        relations: ['user', 'post'],
-      });
-
-      if (!full) throw new NotFoundException('Comment not found after creation.');
-
-      const { id, body, createdAt, updatedAt, user, post } = full;
-      return {
-        id,
-        body,
-        createdAt,
-        updatedAt,
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-        },
-        post: {
-          id: post.id,
-          title: post.title,
-        },
-      };
-    } catch (error: unknown) {
-      throw new InternalServerErrorException(
-        error instanceof Error ? error.message : 'Error creating comment.',
-      );
+    if (!created) {
+      throw new InternalServerErrorException('Failed to create comment');
     }
+
+    const comment = await this.commentsRepo.findById(created.id);
+    if (!comment) {
+      throw new NotFoundException('Comment not found after creation');
+    }
+
+    return this.toResponseDto(comment);
   }
 
   async update(id: number, data: UpdateCommentDto): Promise<CommentResponseDto> {
-    const existing = await this.commentRepository.findOne({ where: { id } });
-    if (!existing) throw new NotFoundException(`Comment with ID ${id} not found`);
+    const updated = await this.commentsRepo.update(id, data);
 
-    Object.assign(existing, data);
-    await this.commentRepository.save(existing);
+    if (!updated) {
+      throw new NotFoundException(`Comment ${id} not found`);
+    }
 
-    const updated = await this.commentRepository.findOne({
-      where: { id },
-      relations: ['user', 'post'],
-    });
-
-    if (!updated) throw new NotFoundException('Updated comment not found.');
-
-    const { body, createdAt, updatedAt, user, post } = updated;
-    return {
-      id,
-      body,
-      createdAt,
-      updatedAt,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-      },
-      post: {
-        id: post.id,
-        title: post.title,
-      },
-    };
+    return this.toResponseDto(updated);
   }
 
   async remove(id: number): Promise<{ deleted: boolean }> {
-    const result = await this.commentRepository.delete(id);
-    if (!result.affected) throw new NotFoundException(`Comment with ID ${id} not found`);
+    const success = await this.commentsRepo.delete(id);
+
+    if (!success) throw new NotFoundException(`Comment ${id} not found`);
+
     return { deleted: true };
   }
 }

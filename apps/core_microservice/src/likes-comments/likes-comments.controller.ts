@@ -29,7 +29,7 @@ export class LikesCommentsController {
   remove(
     @Param('userId') userId: number,
     @Param('commentId') commentId: number,
-  ): Promise<{ message: string }> {
+  ): Promise<{ deleted: boolean }> {
     return this.likesCommentsService.remove(userId, commentId);
   }
 }

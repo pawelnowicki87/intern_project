@@ -13,7 +13,7 @@ export class PostAsset {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @ManyToOne(() => Post, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Post, (post) => post.assets, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
   post: Post;
 
@@ -21,3 +21,4 @@ export class PostAsset {
   @JoinColumn({ name: 'file_id' })
   file: File;
 }
+

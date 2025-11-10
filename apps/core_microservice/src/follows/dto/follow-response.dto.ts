@@ -3,8 +3,8 @@ export class FollowResponseDto {
   followedId: number;
   createdAt: Date;
 
-  followerFirstName?: string;
-  followerLastName?: string;
-  followedFirstName?: string;
-  followedLastName?: string;
+  followerFirstName: string;
+  followerLastName: string;
+  followedFirstName: string;
+  followedLastName: string;
 }

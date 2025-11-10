@@ -19,63 +19,111 @@ import type { Response } from 'express';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // Register a new user
+  // --- Register ---
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(@Body() registerDto: RegisterDto, @Res() res: Response) {
+    const { accessToken, refreshToken, user } = await this.authService.register(registerDto);
+
+    // refresh token → cookie (httpOnly, JS nie widzi)
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dni
+    });
+
+    // access token → frontend zapisze w localStorage
+    return res.json({
+      message: 'User registered successfully',
+      accessToken,
+      user,
+    });
   }
 
-  // Standard login
+  // --- Login ---
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    const { email, password } = loginDto
+  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
+    const { accessToken, refreshToken } = await this.authService.login(user);
 
-    const user = await this.authService.validateUser(
-      email,
-      password,
-    );
-    return this.authService.login(user);
+    // refresh cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // access token → do localStorage na froncie
+    return res.json({ accessToken, user });
   }
 
-  // Refresh access token
+  // --- Refresh access token ---
   @Post('refresh')
-  async refresh(@Body() body: { userId: string; refreshToken: string }) {
-    return this.authService.refresh(body.userId, body.refreshToken);
+  async refresh(@Req() req, @Res() res: Response) {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) throw new UnauthorizedException('No refresh token');
+
+    const { accessToken, newRefreshToken } = await this.authService.refresh(refreshToken);
+
+    // zaktualizuj refresh cookie
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({ accessToken });
   }
 
-  // Logout user
+  // --- Logout ---
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Req() req: any) {
+  async logout(@Req() req, @Res() res: Response) {
     const userId = req.user?.sub;
     if (!userId) throw new UnauthorizedException('Invalid user');
+
     await this.authService.logout(userId);
-    return { message: 'Logged out' };
+
+    // usuń refresh cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    });
+
+    return res.json({ message: 'Logged out' });
   }
 
-  // Step 1: redirect user to Google
+  // --- Google OAuth ---
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {
-    // Passport handles redirection
-  }
+  async googleAuth() {}
 
-  // Step 2: handle callback from Google, issue tokens, and redirect to frontend
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const user = req.user;
-
-    // Generate tokens using AuthService
     const { accessToken, refreshToken } = await this.authService.generateTokens({
       id: user.id,
       email: user.email,
     });
 
-    // Redirect to frontend
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
-    return res.redirect(
-      `${clientUrl}?accessToken=${accessToken}&refreshToken=${refreshToken}`,
-    );
+    // refresh cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // access → frontend sam zapisze w localStorage
+    return res.json({ accessToken });
   }
 }

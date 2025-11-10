@@ -14,6 +14,7 @@
     "start:infra": "docker compose up -d --remove-orphans",
     "stop:infra": "docker compose down",
     "start:all": "npm run start:infra && turbo run dev --parallel --filter=core_microservice --filter=auth_microservice --filter=notifications_consumer_microservice --filter=client_app",
+    "dev:all": "turbo run dev --parallel --filter=core_microservice --filter=auth_microservice --filter=notifications_consumer_microservice --filter=client_app",
     "start": "npm run start:all",
     "migration:create": "cd apps/core_microservice && npx typeorm-ts-node-commonjs migration:create ./src/migrations/%npm_config_name% -d ./src/data-source.ts",
     "migration:generate": "cd apps/core_microservice && npx typeorm-ts-node-commonjs migration:generate ./src/migrations/%npm_config_name% -d ./src/data-source.ts",
@@ -44,6 +45,7 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "prettier": "^3.4.2",
+    "tsconfig-paths": "^4.2.0",
     "turbo": "^1.13.4",
     "typescript": "^5.9.3"
   },

@@ -1,4 +1,4 @@
-export type JwtPayloadDto = Record<string, any> & {
-  sub: string | number;
+export interface JwtPayloadDto {
+  sub: string;
   email: string;
-};
+}

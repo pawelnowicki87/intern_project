@@ -1,0 +1,1 @@
+export const FOLLOWS_READER = Symbol('FOLLOWS_READER')

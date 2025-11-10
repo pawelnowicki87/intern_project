@@ -33,7 +33,7 @@ export class ChatParticipantsController {
   remove(
     @Param('chatId') chatId: number,
     @Param('userId') userId: number,
-  ): Promise<{ message: string }> {
+  ): Promise<{ deleted: boolean }> {
     return this.chatParticipantsService.remove(chatId, userId);
   }
 }

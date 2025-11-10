@@ -1,84 +1,61 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ChatParticipant } from './entities/chat-participant.entity';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { ChatParticipantsRepository } from './chat-participants.repository';
 import { CreateChatParticipantDto } from './dto/create-chat-participant.dto';
 import { ChatParticipantResponseDto } from './dto/chat-participant-response.dto';
 
 @Injectable()
 export class ChatParticipantsService {
-  constructor(
-    @InjectRepository(ChatParticipant)
-    private readonly participantRepo: Repository<ChatParticipant>,
-  ) {}
+  constructor(private readonly participantsRepo: ChatParticipantsRepository) {}
+
+  private toResponseDto(p: any): ChatParticipantResponseDto {
+    return {
+      chatId: p.chatId,
+      userId: p.userId,
+      joinedAt: p.joinedAt,
+      userFirstName: p.user?.firstName,
+      userLastName: p.user?.lastName,
+      userEmail: p.user?.email,
+    };
+  }
 
   async findAll(): Promise<ChatParticipantResponseDto[]> {
-    const participants = await this.participantRepo.find({
-      relations: ['chat', 'user'],
-      order: { joinedAt: 'DESC' },
-    });
-
-    return participants.map(({ chatId, userId, joinedAt, user }) => ({
-      chatId,
-      userId,
-      joinedAt,
-      userFirstName: user?.firstName,
-      userLastName: user?.lastName,
-      userEmail: user?.email,
-    }));
+    const participants = await this.participantsRepo.findAll();
+    return participants.map((p) => this.toResponseDto(p));
   }
 
   async findOne(chatId: number, userId: number): Promise<ChatParticipantResponseDto> {
-    const participant = await this.participantRepo.findOne({
-      where: { chatId, userId },
-      relations: ['chat', 'user'],
-    });
-
+    const participant = await this.participantsRepo.findOne(chatId, userId);
     if (!participant) throw new NotFoundException('Participant not found');
-
-    const { joinedAt, user } = participant;
-    return {
-      chatId,
-      userId,
-      joinedAt,
-      userFirstName: user?.firstName,
-      userLastName: user?.lastName,
-      userEmail: user?.email,
-    };
+    return this.toResponseDto(participant);
   }
 
   async create(data: CreateChatParticipantDto): Promise<ChatParticipantResponseDto> {
-    const participant = this.participantRepo.create(data);
-    const saved = await this.participantRepo.save(participant);
+    const created = await this.participantsRepo.create(data);
 
-    const full = await this.participantRepo.findOne({
-      where: { chatId: saved.chatId, userId: saved.userId },
-      relations: ['chat', 'user'],
-    });
+    if (!created) {
+      throw new InternalServerErrorException('Failed to add participant');
+    }
 
-    if (!full)
-      throw new NotFoundException(
-        `Participant (chatId=${saved.chatId}, userId=${saved.userId}) not found after creation.`,
-      );
+    const participant = await this.participantsRepo.findOne(
+      created.chatId,
+      created.userId,
+    );
+    if (!participant) {
+      throw new NotFoundException('Participant not found after creation');
+    }
 
-    const { joinedAt, user } = full;
-    return {
-      chatId: saved.chatId,
-      userId: saved.userId,
-      joinedAt,
-      userFirstName: user?.firstName,
-      userLastName: user?.lastName,
-      userEmail: user?.email,
-    };
+    return this.toResponseDto(participant);
   }
 
-  async remove(chatId: number, userId: number): Promise<{ message: string }> {
-    const participant = await this.participantRepo.findOne({ where: { chatId, userId } });
-    if (!participant) throw new NotFoundException('Participant not found');
+  async remove(chatId: number, userId: number): Promise<{ deleted: boolean }> {
+    const success = await this.participantsRepo.delete(chatId, userId);
 
-    await this.participantRepo.remove(participant);
-    return {
-      message: `Participant (chatId=${chatId}, userId=${userId}) removed successfully.`,
-    };
+    if (!success) throw new NotFoundException('Participant not found');
+
+    return { deleted: true };
   }
 }

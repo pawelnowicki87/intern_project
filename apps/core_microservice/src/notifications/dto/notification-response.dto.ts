@@ -1,8 +1,10 @@
+import { NotificationAction } from "../entities/notification-acion.enum";
+
 export class NotificationResponseDto {
   id: number;
   recipientId: number;
   senderId: number;
-  action: string;
+  action: NotificationAction;
   targetId: number;
   isRead: boolean;
   createdAt: Date;

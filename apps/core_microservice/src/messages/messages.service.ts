@@ -1,192 +1,84 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Message } from './entities/message.entity';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import { MessagesRepository } from './messages.repository';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { MessageResponseDto } from './dto/message-response.dto';
 
 @Injectable()
 export class MessagesService {
-  constructor(
-    @InjectRepository(Message)
-    private readonly messageRepo: Repository<Message>,
-  ) {}
+  private readonly logger = new Logger(MessagesService.name);
 
-  async findAll(): Promise<MessageResponseDto[]> {
-    const messages = await this.messageRepo.find({
-      relations: ['sender', 'receiver', 'assets'],
-      order: { createdAt: 'DESC' },
-    });
+  constructor(private readonly messagesRepo: MessagesRepository) {}
 
-    return messages.map(({ id, senderId, receiverId, title, body, isRead, createdAt, sender, receiver, assets }) => ({
-      id,
-      senderId,
-      receiverId,
-      title,
-      body,
-      isRead,
-      createdAt,
-      sender: sender
+  private toResponseDto(message): MessageResponseDto {
+    return {
+      id: message.id,
+      senderId: message.senderId,
+      receiverId: message.receiverId,
+      title: message.title,
+      body: message.body,
+      isRead: message.isRead,
+      createdAt: message.createdAt,
+      sender: message.sender
         ? {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: sender.email,
+            firstName: message.sender.firstName,
+            lastName: message.sender.lastName,
+            email: message.sender.email,
           }
         : undefined,
-      receiver: receiver
+      receiver: message.receiver
         ? {
-            firstName: receiver.firstName,
-            lastName: receiver.lastName,
-            email: receiver.email,
+            firstName: message.receiver.firstName,
+            lastName: message.receiver.lastName,
+            email: message.receiver.email,
           }
         : undefined,
-      assets: assets
-        ? assets.map((a) => ({
+      assets: message.assets
+        ? message.assets.map((a) => ({
             id: a.fileId,
             url: a.file?.url ?? '',
           }))
         : [],
-    }));
+    };
+  }
+
+  async findAll(): Promise<MessageResponseDto[]> {
+    const messages = await this.messagesRepo.findAll();
+    return messages.map((m) => this.toResponseDto(m));
   }
 
   async findOne(id: number): Promise<MessageResponseDto> {
-    const message = await this.messageRepo.findOne({
-      where: { id },
-      relations: ['sender', 'receiver', 'assets', 'assets.file'],
-    });
-
-    if (!message) throw new NotFoundException('Message not found');
-
-    const { senderId, receiverId, title, body, isRead, createdAt, sender, receiver, assets } = message;
-
-    return {
-      id,
-      senderId,
-      receiverId,
-      title,
-      body,
-      isRead,
-      createdAt,
-      sender: sender
-        ? {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: sender.email,
-          }
-        : undefined,
-      receiver: receiver
-        ? {
-            firstName: receiver.firstName,
-            lastName: receiver.lastName,
-            email: receiver.email,
-          }
-        : undefined,
-      assets: assets
-        ? assets.map((a) => ({
-            id: a.fileId,
-            url: a.file?.url ?? '',
-          }))
-        : [],
-    };
+    const message = await this.messagesRepo.findById(id);
+    if (!message) throw new NotFoundException(`Message ${id} not found`);
+    return this.toResponseDto(message);
   }
 
   async create(data: CreateMessageDto): Promise<MessageResponseDto> {
-    const message = this.messageRepo.create(data);
-    const saved = await this.messageRepo.save(message);
+    const created = await this.messagesRepo.create(data);
+    if (!created) throw new InternalServerErrorException('Failed to create message');
 
-    const full = await this.messageRepo.findOne({
-      where: { id: saved.id },
-      relations: ['sender', 'receiver', 'assets', 'assets.file'],
-    });
+    const message = await this.messagesRepo.findById(created.id);
+    if (!message) throw new NotFoundException(`Message not found after creation`);
 
-    if (!full) throw new NotFoundException('Message not found after creation');
-
-    const { id, senderId, receiverId, title, body, isRead, createdAt, sender, receiver, assets } = full;
-
-    return {
-      id,
-      senderId,
-      receiverId,
-      title,
-      body,
-      isRead,
-      createdAt,
-      sender: sender
-        ? {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: sender.email,
-          }
-        : undefined,
-      receiver: receiver
-        ? {
-            firstName: receiver.firstName,
-            lastName: receiver.lastName,
-            email: receiver.email,
-          }
-        : undefined,
-      assets: assets
-        ? assets.map((a) => ({
-            id: a.fileId,
-            url: a.file?.url ?? '',
-          }))
-        : [],
-    };
+    return this.toResponseDto(message);
   }
 
   async update(id: number, data: UpdateMessageDto): Promise<MessageResponseDto> {
-    const message = await this.messageRepo.findOne({ where: { id } });
-    if (!message) throw new NotFoundException('Message not found');
+    const updated = await this.messagesRepo.update(id, data);
+    if (!updated) throw new NotFoundException(`Message ${id} not found`);
 
-    Object.assign(message, data);
-    await this.messageRepo.save(message);
-
-    const updated = await this.messageRepo.findOne({
-      where: { id },
-      relations: ['sender', 'receiver', 'assets', 'assets.file'],
-    });
-
-    if (!updated) throw new NotFoundException('Updated message not found');
-
-    const { senderId, receiverId, title, body, isRead, createdAt, sender, receiver, assets } = updated;
-
-    return {
-      id: updated.id,
-      senderId,
-      receiverId,
-      title,
-      body,
-      isRead,
-      createdAt,
-      sender: sender
-        ? {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: sender.email,
-          }
-        : undefined,
-      receiver: receiver
-        ? {
-            firstName: receiver.firstName,
-            lastName: receiver.lastName,
-            email: receiver.email,
-          }
-        : undefined,
-      assets: assets
-        ? assets.map((a) => ({
-            id: a.fileId,
-            url: a.file?.url ?? '',
-          }))
-        : [],
-    };
+    return this.toResponseDto(updated);
   }
 
-  async remove(id: number): Promise<{ message: string }> {
-    const message = await this.messageRepo.findOne({ where: { id } });
-    if (!message) throw new NotFoundException('Message not found');
+  async remove(id: number): Promise<{ deleted: boolean }> {
+    const success = await this.messagesRepo.delete(id);
+    if (!success) throw new NotFoundException(`Message ${id} not found`);
 
-    await this.messageRepo.remove(message);
-    return { message: `Message ${id} removed successfully` };
+    return { deleted: true };
   }
 }

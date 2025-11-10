@@ -18,10 +18,19 @@ import { User } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // query param email
+
+  @Patch(':id/credentials')
+  async updateCretentials(
+    @Param('id') id: number,
+    @Body() data: { refreshTokenHash: string }
+  ): Promise<{ message: string }>{
+    await this.usersService.updateCredentials(id, data);
+    return { message: 'User credentials updated' }
+  }
+
   @Get()
   async find(
-    @Query('email') email?: string,
+    @Query('email') email: string,
   ): Promise<UserResponseDto | UserResponseDto[]> {
     if (email) {
       const user = await this.usersService.findByEmail(email);

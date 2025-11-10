@@ -1,165 +1,103 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Notification } from './entities/notification.entity';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import { NotificationsRepository } from './notifications.repository';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { NotificationResponseDto } from './dto/notification-response.dto';
 
 @Injectable()
 export class NotificationsService {
-  constructor(
-    @InjectRepository(Notification)
-    private readonly notificationRepo: Repository<Notification>,
-  ) {}
+  private readonly logger = new Logger(NotificationsService.name);
+
+  constructor(private readonly notificationsRepo: NotificationsRepository) {}
 
   async findAll(): Promise<NotificationResponseDto[]> {
-    const notifications = await this.notificationRepo.find({
-      relations: ['sender', 'recipient'],
-      order: { createdAt: 'DESC' },
-    });
+    const notifications = await this.notificationsRepo.findAll();
 
-    return notifications.map(({ id, recipientId, senderId, action, targetId, isRead, createdAt, sender, recipient }) => ({
-      id,
-      recipientId,
-      senderId,
-      action,
-      targetId,
-      isRead,
-      createdAt,
-      sender: sender
+    return notifications.map((n) => ({
+      id: n.id,
+      recipientId: n.recipientId,
+      senderId: n.senderId,
+      action: n.action,
+      targetId: n.targetId,
+      isRead: n.isRead,
+      createdAt: n.createdAt,
+      sender: n.sender
         ? {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: sender.email,
+            firstName: n.sender.firstName,
+            lastName: n.sender.lastName,
+            email: n.sender.email,
           }
         : undefined,
-      recipient: recipient
+      recipient: n.recipient
         ? {
-            firstName: recipient.firstName,
-            lastName: recipient.lastName,
-            email: recipient.email,
+            firstName: n.recipient.firstName,
+            lastName: n.recipient.lastName,
+            email: n.recipient.email,
           }
         : undefined,
     }));
   }
 
   async findOne(id: number): Promise<NotificationResponseDto> {
-    const notification = await this.notificationRepo.findOne({
-      where: { id },
-      relations: ['sender', 'recipient'],
-    });
+    const n = await this.notificationsRepo.findById(id);
+    if (!n) throw new NotFoundException(`Notification ${id} not found`);
 
-    if (!notification) throw new NotFoundException('Notification not found');
-
-    const { recipientId, senderId, action, targetId, isRead, createdAt, sender, recipient } = notification;
     return {
-      id,
-      recipientId,
-      senderId,
-      action,
-      targetId,
-      isRead,
-      createdAt,
-      sender: sender
+      id: n.id,
+      recipientId: n.recipientId,
+      senderId: n.senderId,
+      action: n.action,
+      targetId: n.targetId,
+      isRead: n.isRead,
+      createdAt: n.createdAt,
+      sender: n.sender
         ? {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: sender.email,
+            firstName: n.sender.firstName,
+            lastName: n.sender.lastName,
+            email: n.sender.email,
           }
         : undefined,
-      recipient: recipient
+      recipient: n.recipient
         ? {
-            firstName: recipient.firstName,
-            lastName: recipient.lastName,
-            email: recipient.email,
+            firstName: n.recipient.firstName,
+            lastName: n.recipient.lastName,
+            email: n.recipient.email,
           }
         : undefined,
     };
   }
 
   async create(data: CreateNotificationDto): Promise<NotificationResponseDto> {
-    const notification = this.notificationRepo.create(data);
-    const saved = await this.notificationRepo.save(notification);
+    const created = await this.notificationsRepo.create(data);
+    if (!created) {
+      throw new InternalServerErrorException('Notification creation failed');
+    }
 
-    const full = await this.notificationRepo.findOne({
-      where: { id: saved.id },
-      relations: ['sender', 'recipient'],
-    });
-
-    if (!full) throw new NotFoundException('Notification not found after creation');
-
-    const { recipientId, senderId, action, targetId, isRead, createdAt, sender, recipient } = full;
-    return {
-      id: full.id,
-      recipientId,
-      senderId,
-      action,
-      targetId,
-      isRead,
-      createdAt,
-      sender: sender
-        ? {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: sender.email,
-          }
-        : undefined,
-      recipient: recipient
-        ? {
-            firstName: recipient.firstName,
-            lastName: recipient.lastName,
-            email: recipient.email,
-          }
-        : undefined,
-    };
+    return this.findOne(created.id);
   }
 
   async update(id: number, data: UpdateNotificationDto): Promise<NotificationResponseDto> {
-    const notification = await this.notificationRepo.findOne({ where: { id } });
-    if (!notification) throw new NotFoundException('Notification not found');
+    const updated = await this.notificationsRepo.update(id, data);
 
-    Object.assign(notification, data);
-    await this.notificationRepo.save(notification);
+    if (!updated) {
+      throw new NotFoundException(`Notification ${id} not found`);
+    }
 
-    const updated = await this.notificationRepo.findOne({
-      where: { id },
-      relations: ['sender', 'recipient'],
-    });
-
-    if (!updated) throw new NotFoundException('Updated notification not found');
-
-    const { recipientId, senderId, action, targetId, isRead, createdAt, sender, recipient } = updated;
-    return {
-      id: updated.id,
-      recipientId,
-      senderId,
-      action,
-      targetId,
-      isRead,
-      createdAt,
-      sender: sender
-        ? {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: sender.email,
-          }
-        : undefined,
-      recipient: recipient
-        ? {
-            firstName: recipient.firstName,
-            lastName: recipient.lastName,
-            email: recipient.email,
-          }
-        : undefined,
-    };
+    return this.findOne(updated.id);
   }
 
-  async remove(id: number): Promise<{ message: string }> {
-    const notification = await this.notificationRepo.findOne({ where: { id } });
-    if (!notification) throw new NotFoundException('Notification not found');
+  async remove(id: number): Promise<{ deleted: boolean }> {
+    const success = await this.notificationsRepo.delete(id);
 
-    await this.notificationRepo.remove(notification);
-    return { message: `Notification ${id} removed successfully` };
+    if (!success) {
+      throw new NotFoundException(`Notification ${id} not found`);
+    }
+
+    return { deleted: true };
   }
 }

@@ -11,7 +11,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Post } from '../../posts/entities/posts.entity';
 import { LikeComment } from '../../likes-comments/entities/like-comment.entity';
-import { File } from '../../files/entities/file.entity';
+import { CommentAsset } from '../../comment-assets/entities/comment-asset.entity';
 
 @Entity('comments')
 export class Comment {
@@ -34,17 +34,18 @@ export class Comment {
   updatedAt: Date;
 
   // relations
-  @ManyToOne(() => User, (user) => user.comments)
+
+  @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Post, (post) => post.comments)
+  @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
   post: Post;
 
   @OneToMany(() => LikeComment, (likeComment) => likeComment.comment)
   likes: LikeComment[];
 
-  @OneToMany(() => File, (file) => file.comment)
-  files: File[];
+  @OneToMany(() => CommentAsset, (ca) => ca.comment, { cascade: true })
+  assets: CommentAsset[];
 }

@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 import { resolve, join } from 'path';
 import { DataSource } from 'typeorm';
+import 'tsconfig-paths/register';
 
 config({ path: resolve(__dirname, '../../../.env') });
 

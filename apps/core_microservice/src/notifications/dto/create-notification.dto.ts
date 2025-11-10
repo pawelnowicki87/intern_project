@@ -1,4 +1,5 @@
 import { IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { NotificationAction } from '../entities/notification-acion.enum';
 
 export class CreateNotificationDto {
   @IsInt()
@@ -12,7 +13,7 @@ export class CreateNotificationDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  action: string;
+  action: NotificationAction;
 
   @IsInt()
   @IsNotEmpty()

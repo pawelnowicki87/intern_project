@@ -8,6 +8,7 @@ import { RedisModule } from '../redis/redis.module';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { CoreUsersAdapter } from 'src/adapters/core-users.adapter';
 
 
 
@@ -23,6 +24,6 @@ import { GoogleStrategy } from './strategies/google.strategy';
     RedisModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, CoreUsersAdapter],
 })
 export class AuthModule {}

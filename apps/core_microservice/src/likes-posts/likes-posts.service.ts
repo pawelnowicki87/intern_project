@@ -1,82 +1,57 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { LikePost } from './entities/like-post.entity';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { LikesPostsRepository } from './likes-posts.repository';
 import { CreateLikePostDto } from './dto/create-like-post.dto';
 import { LikePostResponseDto } from './dto/like-post-response.dto';
 
 @Injectable()
 export class LikesPostsService {
-  constructor(
-    @InjectRepository(LikePost)
-    private readonly likePostRepo: Repository<LikePost>,
-  ) {}
+  constructor(private readonly likesRepo: LikesPostsRepository) {}
+
+  private toResponseDto(like: any): LikePostResponseDto {
+    return {
+      userId: like.userId,
+      postId: like.postId,
+      createdAt: like.createdAt,
+      userFirstName: like.user?.firstName,
+      userLastName: like.user?.lastName,
+      postTitle: like.post?.title,
+    };
+  }
 
   async findAll(): Promise<LikePostResponseDto[]> {
-    const likes = await this.likePostRepo.find({
-      relations: ['user', 'post'],
-      order: { createdAt: 'DESC' },
-    });
-
-    return likes.map(({ userId, postId, createdAt, user, post }) => ({
-      userId,
-      postId,
-      createdAt,
-      userFirstName: user?.firstName,
-      userLastName: user?.lastName,
-      postTitle: post?.title,
-    }));
+    const likes = await this.likesRepo.findAll();
+    return likes.map((like) => this.toResponseDto(like));
   }
 
   async findOne(userId: number, postId: number): Promise<LikePostResponseDto> {
-    const like = await this.likePostRepo.findOne({
-      where: { userId, postId },
-      relations: ['user', 'post'],
-    });
-
+    const like = await this.likesRepo.findOne(userId, postId);
     if (!like) throw new NotFoundException('Like not found');
-
-    const { createdAt, user, post } = like;
-    return {
-      userId,
-      postId,
-      createdAt,
-      userFirstName: user?.firstName,
-      userLastName: user?.lastName,
-      postTitle: post?.title,
-    };
+    return this.toResponseDto(like);
   }
 
   async create(data: CreateLikePostDto): Promise<LikePostResponseDto> {
-    const like = this.likePostRepo.create(data);
-    const saved = await this.likePostRepo.save(like);
+    const created = await this.likesRepo.create(data);
 
-    const full = await this.likePostRepo.findOne({
-      where: { userId: saved.userId, postId: saved.postId },
-      relations: ['user', 'post'],
-    });
+    if (!created) {
+      throw new InternalServerErrorException('Failed to create like');
+    }
 
-    if (!full)
-      throw new NotFoundException(
-        `Like (userId=${saved.userId}, postId=${saved.postId}) not found after creation.`,
-      );
+    const like = await this.likesRepo.findOne(created.userId, created.postId);
+    if (!like) {
+      throw new NotFoundException('Like not found after creation');
+    }
 
-    const { userId, postId, createdAt, user, post } = full;
-    return {
-      userId,
-      postId,
-      createdAt,
-      userFirstName: user?.firstName,
-      userLastName: user?.lastName,
-      postTitle: post?.title,
-    };
+    return this.toResponseDto(like);
   }
 
-  async remove(userId: number, postId: number): Promise<{ message: string }> {
-    const like = await this.likePostRepo.findOne({ where: { userId, postId } });
-    if (!like) throw new NotFoundException('Like not found');
+  async remove(userId: number, postId: number): Promise<{ deleted: boolean }> {
+    const success = await this.likesRepo.delete(userId, postId);
+    if (!success) throw new NotFoundException('Like not found');
 
-    await this.likePostRepo.remove(like);
-    return { message: `Like (userId=${userId}, postId=${postId}) removed successfully.` };
+    return { deleted: true };
   }
 }

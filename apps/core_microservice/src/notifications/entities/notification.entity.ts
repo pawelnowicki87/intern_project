@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { NotificationAction } from './notification-acion.enum';
 
 @Entity('notifications')
 export class Notification {
@@ -20,7 +21,7 @@ export class Notification {
   senderId: number;
 
   @Column({ type: 'varchar', nullable: false })
-  action: string;
+  action: NotificationAction;
 
   @Column({ name: 'target_id', type: 'int', nullable: false })
   targetId: number;

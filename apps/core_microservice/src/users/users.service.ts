@@ -1,145 +1,136 @@
 import {
   Injectable,
   NotFoundException,
+  ConflictException,
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import bcrypt from 'bcrypt';
+import { UsersRepository } from './users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-  ) {}
+  constructor(private readonly usersRepository: UsersRepository) {}
+
+  async updateCredentials(
+    id: number,
+    data: { refreshTokenHash?: string },
+  ): Promise<{ updated: boolean }> {
+    const user = await this.usersRepository.findById(id, ['credentials']);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    if (data.refreshTokenHash) {
+      user.credentials.refreshTokenHash = data.refreshTokenHash;
+    }
+
+    await this.usersRepository.save(user);
+
+    return { updated: true };
+  }
 
   async findByEmail(email: string): Promise<UserResponseDto | null> {
-  this.logger.log(`Fetching user by email=${email}`);
-  const user = await this.userRepository.findOne({ where: { email } });
-  if (!user) return null;
+    const user = await this.usersRepository.findOneByEmail(email);
+    if (!user) return null;
 
-  const { firstName, lastName, email: userEmail, phone } = user;
-  return { firstName, lastName, email: userEmail, phone };
-}
-
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      isPrivate: user.isPrivate
+    };
+  }
 
   async findAll(): Promise<UserResponseDto[]> {
-    this.logger.log('Fetching all users...');
-    const users = await this.userRepository.find();
-    this.logger.debug(`Fetched ${users.length} users from database.`);
-
-    return users.map(({ firstName, lastName, email, phone }) => ({
+    const users = await this.usersRepository.findMany();
+    return users.map(({ id, firstName, lastName, email, phone, isPrivate }) => ({
+      id,
       firstName,
       lastName,
       email,
       phone,
+      isPrivate
     }));
   }
 
   async findOne(id: number): Promise<UserResponseDto> {
-    this.logger.log(`Fetching user with ID=${id}`);
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findById(id);
     if (!user) {
-      this.logger.warn(`User with ID=${id} not found.`);
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const { firstName, lastName, email, phone } = user;
-    return { firstName, lastName, email, phone };
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      isPrivate: user.isPrivate
+    };
   }
 
   async create(data: CreateUserDto): Promise<UserResponseDto> {
-  this.logger.log(`Creating new user with email=${data.email}`);
+    const exists = await this.usersRepository.findOneByEmail(data.email);
+    if (exists) {
+      throw new ConflictException('Email is already in use');
+    }
 
-  try {
-    const { password, ...rest } = data;
-    const passwordHash = await bcrypt.hash(password, 10);
+    const created = await this.usersRepository.create(data);
 
-    const user = this.userRepository.create({
-      ...rest,
-      passwordHash,
-    });
+    if (!created) {
+      throw new InternalServerErrorException('User creation failed');
+    }
 
-    const savedUser = await this.userRepository.save(user);
-    this.logger.debug(`User created with ID=${savedUser.id}`);
-
-    const { firstName, lastName, email, phone } = savedUser;
-    return { firstName, lastName, email, phone };
-  } catch (error: unknown) {
-    this.logger.error(
-      `Error creating user: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    throw new InternalServerErrorException(
-      error instanceof Error
-        ? `Error while creating user: ${error.message}`
-        : 'Unexpected error while creating user.',
-    );
+    return {
+      id: created.id,
+      firstName: created.firstName,
+      lastName: created.lastName,
+      email: created.email,
+      phone: created.phone,
+      isPrivate: created.isPrivate
+    };
   }
-}
 
   async update(id: number, data: UpdateUserDto): Promise<UserResponseDto> {
-    this.logger.log(`Updating user with ID=${id}`);
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      this.logger.warn(`User with ID=${id} not found for update.`);
+    if (data.password) {
+      const passwordHash = await bcrypt.hash(data.password, 10);
+      (data as any).passwordHash = passwordHash;
+      delete data.password;
+    }
+
+    const updated = await this.usersRepository.update(id, data);
+    if (!updated) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    try {
-      if (data.password) {
-        this.logger.debug(`Hashing new password for user ID=${id}`);
-        const passwordHash = await bcrypt.hash(data.password, 10);
-        (data as Partial<User>).passwordHash = passwordHash;
-        delete data.password;
-      }
-
-      await this.userRepository.update(id, data);
-      const updatedUser = await this.userRepository.findOne({ where: { id } });
-
-      if (!updatedUser) {
-        this.logger.error(`User with ID=${id} not found after update.`);
-        throw new NotFoundException(`Updated user with ID ${id} not found`);
-      }
-
-      this.logger.debug(`User with ID=${id} updated successfully.`);
-
-      const { firstName, lastName, email, phone } = updatedUser;
-      return { firstName, lastName, email, phone };
-    } catch (error: unknown) {
-      this.logger.error(
-        `Error updating user ID=${id}: ${error instanceof Error ? error.message : error}`,
-      );
-      throw new InternalServerErrorException(
-        error instanceof Error
-          ? `Error while updating user: ${error.message}`
-          : 'Unexpected error while updating user.',
-      );
-    }
+    return {
+      id: updated.id,
+      firstName: updated.firstName,
+      lastName: updated.lastName,
+      email: updated.email,
+      phone: updated.phone,
+      isPrivate: updated.isPrivate
+    };
   }
 
   async remove(id: number): Promise<{ deleted: boolean }> {
-    this.logger.warn(`Attempting to delete user with ID=${id}`);
-    const result = await this.userRepository.delete(id);
-
-    if (!result.affected) {
-      this.logger.warn(`User with ID=${id} not found for deletion.`);
+    const success = await this.usersRepository.delete(id);
+    if (!success) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-    this.logger.log(`User with ID=${id} deleted successfully.`);
     return { deleted: true };
   }
 
-  async findByEmailForAuth(email: string): Promise<User | null> {
-  this.logger.log(`Fetching user by email for AuthService = ${email}`);
-  return this.userRepository.findOne({ where: { email } });
-}
+  async findByEmailForAuth(email: string) {
+    return this.usersRepository.findOneByEmail(email);
+  }
 }

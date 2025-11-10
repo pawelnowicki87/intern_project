@@ -1,8 +1,15 @@
-import { IsOptional, IsArray, IsInt } from 'class-validator';
+import { IsInt, IsOptional, IsArray, IsString, MaxLength } from 'class-validator';
 
 export class CreateChatDto {
-  @IsOptional()
+  @IsInt()
+  creatorId: number;
+
   @IsArray()
   @IsInt({ each: true, message: 'Each participant ID must be an integer.' })
-  participantIds?: number[];
+  participantIds: number[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  name?: string;
 }

@@ -5,16 +5,12 @@ export class CreateFileDto {
   @IsNotEmpty({ message: 'File URL is required.' })
   url: string;
 
+  @IsInt()
+  @IsNotEmpty({ message: 'Owner ID is required.' })
+  publicId: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(50, { message: 'File type can have up to 50 characters.' })
   fileType?: string;
-
-  @IsInt()
-  @IsNotEmpty({ message: 'Owner ID is required.' })
-  ownerId: number;
-
-  @IsOptional()
-  @IsInt()
-  commentId?: number;
 }

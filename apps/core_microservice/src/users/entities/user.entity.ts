@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Post } from '../../posts/entities/posts.entity';
 import { Comment } from '../../comments/entities/comment.entity';
@@ -14,6 +15,7 @@ import { Follow } from '../../follows/entities/follow.entity';
 import { Message } from '../../messages/entities/message.entity';
 import { Notification } from '../../notifications/entities/notification.entity';
 import { File } from '../../files/entities/file.entity';
+import { UserCredentials } from './user-credencials.entity';
 
 @Entity('users')
 export class User {
@@ -29,6 +31,9 @@ export class User {
   @Column({ type: 'varchar', unique: true, nullable: false })
   email: string;
 
+  @Column({ name: 'is_private', type: 'boolean', default: false })
+  isPrivate: boolean;
+
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone?: string;
 
@@ -42,6 +47,9 @@ export class User {
   updatedAt: Date;
 
   // relations
+
+  @OneToOne(() => UserCredentials, (credentials) => credentials.user, { cascade: true })
+  credentials: UserCredentials;
 
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];

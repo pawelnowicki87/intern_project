@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -18,8 +19,12 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  findAll(): Promise<PostResponseDto[]> {
-    return this.postsService.findAll();
+  findAll(
+    @Query('sort') sort: 'asc' | 'desc' = 'desc',
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+  ): Promise<PostResponseDto[]> {
+    return this.postsService.findAll(sort, page, limit);
   }
 
   @Get(':id')
@@ -43,5 +48,38 @@ export class PostsController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.remove(id);
+  }
+
+  @Get('archive')
+  findArchived(): Promise<PostResponseDto[]> {
+    return this.postsService.findArchived()
+  }
+
+  @Patch(':id/archive') 
+  archive(@Param('id', ParseIntPipe) id: number): Promise<PostResponseDto> {
+    return this.postsService.archive(id);
+  }
+
+  @Patch(':id/unarchive')
+  unArchive(@Param('id', ParseIntPipe) id: number): Promise<PostResponseDto> {
+    return this.postsService.unArchive(id);
+  }
+
+  @Get('feed/:userId')
+  findFeed(
+    @Param('userId', ParseIntPipe) userId: Number,
+    @Query('sort') sort: 'asc' | 'desc' = 'desc',
+    @Query('pare') page = 1,
+    @Query('limit') limit = 10
+  ): Promise<PostResponseDto[]> {
+    return this.postsService.findFeedForUser(Number(userId), sort, Number(page), Number(limit));
+  }
+
+  @Get('search')
+  search(
+    @Query('query') query: string,
+    
+  ): Promise<PostResponseDto[]> {
+    return this.postsService.searchPosts(query);
   }
 }

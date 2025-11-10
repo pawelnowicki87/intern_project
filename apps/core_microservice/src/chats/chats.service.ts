@@ -1,24 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Chat } from './entities/chat.entity';
-import { CreateChatDto } from './dto/create-chat.dto';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { ChatsRepository } from './chats.repository';
 import { ChatResponseDto } from './dto/chat-response.dto';
+import { CreateChatDto } from './dto/create-chat.dto';
 
 @Injectable()
 export class ChatsService {
-  constructor(
-    @InjectRepository(Chat)
-    private readonly chatRepo: Repository<Chat>,
-  ) {}
+  constructor(private readonly chatsRepo: ChatsRepository) {}
 
-  async findAll(): Promise<ChatResponseDto[]> {
-    const chats = await this.chatRepo.find({
-      relations: ['participants', 'participants.user', 'messages'],
-      order: { createdAt: 'DESC' },
-    });
-
-    return chats.map((chat) => ({
+  private toResponseDto(chat: any): ChatResponseDto {
+    return {
       id: chat.id,
       createdAt: chat.createdAt,
       participants: chat.participants?.map((p) => ({
@@ -34,53 +28,40 @@ export class ChatsService {
         body: m.body,
         createdAt: m.createdAt,
       })),
-    }));
+    };
+  }
+
+  async findAll(): Promise<ChatResponseDto[]> {
+    const chats = await this.chatsRepo.findAll();
+    return chats.map((c) => this.toResponseDto(c));
   }
 
   async findOne(id: number): Promise<ChatResponseDto> {
-    const chat = await this.chatRepo.findOne({
-      where: { id },
-      relations: ['participants', 'participants.user', 'messages'],
-    });
-
-    if (!chat) throw new NotFoundException('Chat not found');
-
-    return {
-      id: chat.id,
-      createdAt: chat.createdAt,
-      participants: chat.participants?.map((p) => ({
-        userId: p.user.id,
-        firstName: p.user.firstName,
-        lastName: p.user.lastName,
-        email: p.user.email,
-      })),
-      messages: chat.messages?.map((m) => ({
-        id: m.id,
-        senderId: m.senderId,
-        receiverId: m.receiverId,
-        body: m.body,
-        createdAt: m.createdAt,
-      })),
-    };
+    const chat = await this.chatsRepo.findById(id);
+    if (!chat) throw new NotFoundException(`Chat ${id} not found`);
+    return this.toResponseDto(chat);
   }
 
   async create(data: CreateChatDto): Promise<ChatResponseDto> {
-    const chat = this.chatRepo.create();
-    const saved = await this.chatRepo.save(chat);
+    const created = await this.chatsRepo.create(data);
 
-    return {
-      id: saved.id,
-      createdAt: saved.createdAt,
-      participants: [],
-      messages: [],
-    };
+    if (!created) {
+      throw new InternalServerErrorException('Failed to create chat');
+    }
+
+    const chat = await this.chatsRepo.findById(created.id);
+    if (!chat) {
+      throw new NotFoundException('Chat not found after creation');
+    }
+
+    return this.toResponseDto(chat);
   }
 
-  async remove(id: number): Promise<{ message: string }> {
-    const chat = await this.chatRepo.findOne({ where: { id } });
-    if (!chat) throw new NotFoundException('Chat not found');
+  async remove(id: number): Promise<{ deleted: boolean }> {
+    const success = await this.chatsRepo.delete(id);
 
-    await this.chatRepo.remove(chat);
-    return { message: `Chat ${id} removed successfully.` };
+    if (!success) throw new NotFoundException(`Chat ${id} not found`);
+
+    return { deleted: true };
   }
 }

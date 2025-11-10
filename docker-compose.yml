@@ -17,7 +17,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    
+
   redis:
     image: redis:7-alpine
     container_name: innogram-redis
@@ -61,34 +61,8 @@ services:
   #   ports:
   #     - "3002:3002"
   #   depends_on:
-  #     - postgres
+  #     - auth_postgres
   #     - redis
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - innogram-network
-
-  # notifications_consumer_microservice:
-  #   build: ./apps/notifications_consumer_microservice
-  #   container_name: innogram-notifications
-  #   ports:
-  #     - "3003:3003"
-  #   depends_on:
-  #     - rabbitmq
-  #     - redis
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - innogram-network
-
-  # client_app:
-  #   build: ./apps/client_app
-  #   container_name: innogram-client
-  #   ports:
-  #     - "3005:3000"
-  #   depends_on:
-  #     - core_microservice
-  #     - auth_microservice
   #   env_file:
   #     - .env
   #   networks:
@@ -96,6 +70,7 @@ services:
 
 volumes:
   postgres_data:
+  auth_postgres_data:
   redis_data:
 
 networks:
