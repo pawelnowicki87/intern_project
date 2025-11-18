@@ -149,4 +149,20 @@ export class FollowsService {
   const followingList = await this.followsRepo.findFollowingByUserId(userId);
   return followingList.map((f) => this.toResponseDto(f));
   }
+
+  async cancelFollowRequest(followerId: number, followedId: number): Promise<{ cancelled: boolean }> {
+    const follow = await this.followsRepo.findOne(followerId, followedId);
+
+    if (!follow) throw new NotFoundException('Follow request not found')
+
+    if( follow.status !== FollowStatus.PENDING) {
+      throw new NotFoundException('Cannot cancer not pending follow request')
+    }
+
+    const success = await this.followsRepo.delete(followerId, followedId);
+
+    if (!success) throw new InternalServerErrorException('Fail to cancel follow request');
+
+    return { cancelled: true };
+  }
 }

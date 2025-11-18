@@ -32,4 +32,19 @@ export class LikesCommentsController {
   ): Promise<{ deleted: boolean }> {
     return this.likesCommentsService.remove(userId, commentId);
   }
+
+  @Post('toggle')
+  toggleLikeComment(@Body() data: CreateLikeCommentDto): Promise<{ liked: boolean}> {
+    return this.likesCommentsService.toggleLike(data.userId, data.commentId)
+  }
+
+  @Get('comment/:commentId')
+  getCommentLikes(@Param('commentId') commentId: number): Promise<LikeCommentResponseDto[]> {
+    return this.likesCommentsService.getCommentLikes(commentId)
+  }
+
+  @Get('comment/:commentId/count')
+  getCommentLikesCount(@Param('commentId') commentId: number): Promise<number> {
+    return this.likesCommentsService.countByCommentId(commentId);
+  }
 }

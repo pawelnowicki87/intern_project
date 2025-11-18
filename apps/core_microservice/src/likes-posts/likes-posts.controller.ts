@@ -32,4 +32,19 @@ export class LikesPostsController {
   ): Promise<{ deleted: boolean }> {
     return this.likesPostsService.remove(userId, postId);
   }
+
+  @Post('toggle')
+  toggleLikePost(@Body() data: CreateLikePostDto): Promise<{ liked: boolean }> {
+    return this.likesPostsService.toggleLike(data.userId, data.postId);
+  }
+
+  @Get('post/:postId')
+  getPostLikes(@Param('postId') postId: number): Promise<LikePostResponseDto[] |null> {
+    return this.likesPostsService.getPostLikes(postId);
+  }
+
+  @Get('post/:postId/count')
+  getPostLikesCount(@Param('postId') postId: number): Promise<number> {
+    return this.likesPostsService.countByPostId(postId)
+  }
 }

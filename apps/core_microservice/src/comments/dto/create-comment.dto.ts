@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { isIn, IsInt, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateCommentDto {
   @IsInt()
@@ -8,6 +8,10 @@ export class CreateCommentDto {
   @IsInt()
   @IsNotEmpty({ message: 'Post ID is required.' })
   postId: number;
+
+  @IsOptional()
+  @IsInt()
+  parentId?: number;
 
   @IsOptional()
   @IsString()

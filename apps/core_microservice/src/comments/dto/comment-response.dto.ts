@@ -3,6 +3,8 @@ export class CommentResponseDto {
   body?: string;
   createdAt: Date;
   updatedAt: Date;
+  parentId?: number;
+  children: CommentResponseDto[] = [];
 
   user: {
     id: number;

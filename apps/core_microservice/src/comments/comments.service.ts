@@ -7,28 +7,36 @@ import { CommentsRepository } from './comments.repository';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
+import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentsService {
   constructor(private readonly commentsRepo: CommentsRepository) {}
 
-  private toResponseDto(comment: any): CommentResponseDto {
-    return {
-      id: comment.id,
-      body: comment.body,
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
-      user: {
-        id: comment.user.id,
-        firstName: comment.user.firstName,
-        lastName: comment.user.lastName,
-        email: comment.user.email,
-      },
-      post: {
-        id: comment.post.id,
-        title: comment.post.title,
-      },
+    private toResponseDto(c: Comment): CommentResponseDto {
+    const dto = new CommentResponseDto();
+
+    dto.id = c.id;
+    dto.body = c.body;
+    dto.createdAt = c.createdAt;
+    dto.updatedAt = c.updatedAt;
+    dto.parentId = c.parentId;
+
+    dto.user = {
+      id: c.user.id,
+      firstName: c.user.firstName,
+      lastName: c.user.lastName,
+      email: c.user.email,
     };
+
+    dto.post = {
+      id: c.post.id,
+      title: c.post.title,
+    };
+
+    dto.children = [];
+
+    return dto;
   }
 
   async findAll(): Promise<CommentResponseDto[]> {
@@ -44,6 +52,19 @@ export class CommentsService {
   }
 
   async create(data: CreateCommentDto): Promise<CommentResponseDto> {
+
+    if (data.parentId) {
+      const parent = await this.commentsRepo.findById(data.parentId);
+      if (!parent) {
+        throw new NotFoundException('Parent comment not found');
+      }
+
+      if (parent.postId !== data.postId) {
+        throw new InternalServerErrorException(
+          'Parent comment belongs to a different post',
+        );
+      }
+    }
     const created = await this.commentsRepo.create(data);
 
     if (!created) {
@@ -64,8 +85,13 @@ export class CommentsService {
     if (!updated) {
       throw new NotFoundException(`Comment ${id} not found`);
     }
+    
+    const fresh = await this.commentsRepo.findById(id);
+    if (!fresh) {
+      throw new NotFoundException(`Comment ${id} not found after update`);
+    }
 
-    return this.toResponseDto(updated);
+    return this.toResponseDto(fresh);
   }
 
   async remove(id: number): Promise<{ deleted: boolean }> {
@@ -74,5 +100,31 @@ export class CommentsService {
     if (!success) throw new NotFoundException(`Comment ${id} not found`);
 
     return { deleted: true };
+  }
+
+  async getCommentsTreeForPost(postId: number): Promise<CommentResponseDto[]> {
+    const comments = await this.commentsRepo.findByPostId(postId);
+
+    const dtoList = comments.map((c) => this.toResponseDto(c));
+
+    const map = new Map<number, CommentResponseDto>();
+    dtoList.forEach((dto) => map.set(dto.id, dto));
+
+    const roots: CommentResponseDto[] = [];
+
+    // assign children to parents
+    dtoList.forEach((dto) => {
+      if (dto.parentId) {
+        const parent = map.get(dto.parentId);
+        if (parent) {
+          parent.children.push(dto);
+        }
+      } else {
+        // main comment
+        roots.push(dto);
+      }
+    });
+
+    return roots;
   }
 }

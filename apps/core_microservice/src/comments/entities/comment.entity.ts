@@ -25,7 +25,10 @@ export class Comment {
   postId: number;
 
   @Column({ type: 'text', nullable: true })
-  body?: string;
+  body: string;
+
+  @Column({ name: 'parent_id', type: 'int', nullable: true })
+  parentId?: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -48,4 +51,10 @@ export class Comment {
 
   @OneToMany(() => CommentAsset, (ca) => ca.comment, { cascade: true })
   assets: CommentAsset[];
+
+  @ManyToOne(() => Comment, (comment) => comment.children, { nullable: true })
+  parent?: Comment;
+
+  @OneToMany(() => Comment, (comment) => comment.parent)
+  children?: Comment[];
 }

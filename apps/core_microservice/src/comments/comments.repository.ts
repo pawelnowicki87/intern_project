@@ -55,4 +55,12 @@ export class CommentsRepository {
       return false;
     }
   }
+
+  findByPostId(postId: number): Promise<Comment[]> {
+  return this.repo.find({
+    where: { postId },
+    relations: ['user', 'post'], 
+    order: { createdAt: 'ASC' },
+  });
+}
 }

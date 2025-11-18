@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LikePost } from './entities/like-post.entity';
+import { CreateLikePostDto } from './dto/create-like-post.dto';
 
 @Injectable()
 export class LikesPostsRepository {
@@ -26,7 +27,7 @@ export class LikesPostsRepository {
     });
   }
 
-  async create(data: Partial<LikePost>): Promise<LikePost | null> {
+  async create(data: CreateLikePostDto): Promise<LikePost | null> {
     try {
       const like = this.repo.create(data);
       return await this.repo.save(like);
@@ -44,5 +45,18 @@ export class LikesPostsRepository {
       this.logger.error(err.message);
       return false;
     }
+  }
+  async findByPostId(postId: number): Promise<LikePost[] | null> {
+    return this.repo.find({
+      where: { postId },
+      relations: ['user', 'post'],
+      order: { createdAt: 'DESC'}
+    })
+  }
+
+  async countByPostId(postId): Promise<number> {
+    return this.repo.count({
+      where: { postId }
+    })
   }
 }

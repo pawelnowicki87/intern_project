@@ -63,4 +63,11 @@ export class FollowsController {
     return this.followsService.getFollowing(userId);
   }
 
+  @Delete(':followerId/:followedId/cancel')
+  cancelFollowRequest(
+    @Param('followerId') followerId: number,
+    @Param('followedId') followedId: number,
+  ): Promise<{ cancelled: boolean }> {
+    return this.followsService.cancelFollowRequest(followerId, followedId)
+  }
 }
