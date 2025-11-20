@@ -10,12 +10,16 @@ import { UsersRepository } from './users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { VisibilityService } from './visibility/visibility.service';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly visibilityService: VisibilityService,
+  ) {}
 
   async updateCredentials(
     id: number,
@@ -46,7 +50,7 @@ export class UsersService {
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
-      isPrivate: user.isPrivate
+      isPrivate: user.isPrivate,
     };
   }
 
@@ -58,7 +62,7 @@ export class UsersService {
       lastName,
       email,
       phone,
-      isPrivate
+      isPrivate,
     }));
   }
 
@@ -74,9 +78,33 @@ export class UsersService {
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
-      isPrivate: user.isPrivate
+      isPrivate: user.isPrivate,
     };
   }
+
+  async findOneVisible(
+  viewerId: number,
+  ownerId: number,
+  ): Promise<UserResponseDto> {
+
+    const user = await this.findOne(ownerId);
+
+    const canView = await this.visibilityService.canViewProfile(viewerId, ownerId);
+
+    if (!canView) {
+      return {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        isPrivate: true,
+      };
+    }
+
+    return user;
+  }
+
 
   async create(data: CreateUserDto): Promise<UserResponseDto> {
     const exists = await this.usersRepository.findOneByEmail(data.email);
@@ -96,7 +124,7 @@ export class UsersService {
       lastName: created.lastName,
       email: created.email,
       phone: created.phone,
-      isPrivate: created.isPrivate
+      isPrivate: created.isPrivate,
     };
   }
 
@@ -118,7 +146,7 @@ export class UsersService {
       lastName: updated.lastName,
       email: updated.email,
       phone: updated.phone,
-      isPrivate: updated.isPrivate
+      isPrivate: updated.isPrivate,
     };
   }
 

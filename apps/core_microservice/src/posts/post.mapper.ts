@@ -17,6 +17,7 @@ export class PostMapper {
             lastName: post.user.lastName,
             email: post.user.email,
             phone: post.user.phone,
+            isPrivate: post.user.isPrivate,
           }
         : null,
     };

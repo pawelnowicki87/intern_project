@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Delete, Param, Body, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  Patch,
+  Query,
+} from '@nestjs/common';
 import { FollowsService } from './follows.service';
 import { CreateFollowDto } from './dto/create-follow.dto';
 import { FollowResponseDto } from './dto/follow-response.dto';
@@ -29,38 +38,46 @@ export class FollowsController {
   remove(
     @Param('followerId') followerId: number,
     @Param('followedId') followedId: number,
-  ): Promise<{ deleted: boolean}> {
+  ): Promise<{ deleted: boolean }> {
     return this.followsService.remove(followerId, followedId);
   }
 
   @Patch(':followerId/:followedId/accept')
   async acceptFollow(
     @Param('followerId') followerId: number,
-    @Param('followedId') followedId: number
-  ): Promise<{ accepted: boolean}> {
-    const result = await this.followsService.acceptFollow(followerId, followedId);
-
-    return result;
+    @Param('followedId') followedId: number,
+  ): Promise<{ accepted: boolean }> {
+    return this.followsService.acceptFollow(followerId, followedId);
   }
 
   @Patch(':followerId/:followedId/reject')
   async rejectFollow(
     @Param('followerId') followerId: number,
-    @Param('followedId') followedId: number
-  ): Promise<{ accepted: boolean}> {
-    const result = await this.followsService.rejectFollow(followerId, followedId);
-
-    return result;
+    @Param('followedId') followedId: number,
+  ): Promise<{ accepted: boolean }> {
+    return this.followsService.rejectFollow(followerId, followedId);
   }
 
   @Get(':userId/followers')
-  getFollowers(@Param('userId') userId: number): Promise<FollowResponseDto[]> {
-    return this.followsService.getFollowers(userId);
+  getFollowers(
+    @Param('userId') userId: number,
+    @Query('viewerId') viewerId?: number,
+  ): Promise<FollowResponseDto[]> {
+    return this.followsService.getFollowers(
+      Number(userId),
+      viewerId ? Number(viewerId) : 0,
+    );
   }
 
   @Get(':userId/following')
-  getFollowing(@Param('userId') userId: number): Promise<FollowResponseDto[]> {
-    return this.followsService.getFollowing(userId);
+  getFollowing(
+    @Param('userId') userId: number,
+    @Query('viewerId') viewerId?: number,
+  ): Promise<FollowResponseDto[]> {
+    return this.followsService.getFollowing(
+      Number(userId),
+      viewerId ? Number(viewerId) : 0,
+    );
   }
 
   @Delete(':followerId/:followedId/cancel')
@@ -68,6 +85,6 @@ export class FollowsController {
     @Param('followerId') followerId: number,
     @Param('followedId') followedId: number,
   ): Promise<{ cancelled: boolean }> {
-    return this.followsService.cancelFollowRequest(followerId, followedId)
+    return this.followsService.cancelFollowRequest(followerId, followedId);
   }
 }

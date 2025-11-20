@@ -12,6 +12,7 @@ import { User } from '../../users/entities/user.entity';
 import { Post } from '../../posts/entities/posts.entity';
 import { LikeComment } from '../../likes-comments/entities/like-comment.entity';
 import { CommentAsset } from '../../comment-assets/entities/comment-asset.entity';
+import { CommentMention } from 'src/comment-mentions/entities/comment-mention.entity';
 
 @Entity('comments')
 export class Comment {
@@ -52,9 +53,14 @@ export class Comment {
   @OneToMany(() => CommentAsset, (ca) => ca.comment, { cascade: true })
   assets: CommentAsset[];
 
-  @ManyToOne(() => Comment, (comment) => comment.children, { nullable: true })
+  @ManyToOne(() => Comment, (comment) => comment.children, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'parent_id' })
   parent?: Comment;
 
   @OneToMany(() => Comment, (comment) => comment.parent)
   children?: Comment[];
+
+  @OneToMany(() => CommentMention, (mention) => mention.comment)
+  mentions: CommentMention[];
 }
+

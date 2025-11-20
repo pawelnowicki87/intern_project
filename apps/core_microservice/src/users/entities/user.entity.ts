@@ -31,6 +31,9 @@ export class User {
   @Column({ type: 'varchar', unique: true, nullable: false })
   email: string;
 
+  @Column({ type: 'varchar', length: 32, unique: true, nullable: false })
+  username: string;
+
   @Column({ name: 'is_private', type: 'boolean', default: false })
   isPrivate: boolean;
 

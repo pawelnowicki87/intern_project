@@ -1,1 +1,2 @@
-export const FOLLOWS_READER = Symbol('FOLLOWS_READER')
+export const FOLLOWS_READER = Symbol('FOLLOWS_READER');
+export const VISIBILITY_READER = Symbol('VISIBILITY_READER');

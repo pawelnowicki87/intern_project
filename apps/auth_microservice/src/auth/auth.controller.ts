@@ -19,35 +19,10 @@ import type { Response } from 'express';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // --- Register ---
   @Post('register')
   async register(@Body() registerDto: RegisterDto, @Res() res: Response) {
     const { accessToken, refreshToken, user } = await this.authService.register(registerDto);
 
-    // refresh token → cookie (httpOnly, JS nie widzi)
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dni
-    });
-
-    // access token → frontend zapisze w localStorage
-    return res.json({
-      message: 'User registered successfully',
-      accessToken,
-      user,
-    });
-  }
-
-  // --- Login ---
-  @Post('login')
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
-    const { accessToken, refreshToken } = await this.authService.login(user);
-
-    // refresh cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -56,11 +31,29 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // access token → do localStorage na froncie
+    return res.json({
+      message: 'User registered successfully',
+      accessToken,
+      user,
+    });
+  }
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
+    const { accessToken, refreshToken } = await this.authService.login(user);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     return res.json({ accessToken, user });
   }
 
-  // --- Refresh access token ---
   @Post('refresh')
   async refresh(@Req() req, @Res() res: Response) {
     const refreshToken = req.cookies?.refreshToken;
@@ -68,7 +61,6 @@ export class AuthController {
 
     const { accessToken, newRefreshToken } = await this.authService.refresh(refreshToken);
 
-    // zaktualizuj refresh cookie
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -80,7 +72,6 @@ export class AuthController {
     return res.json({ accessToken });
   }
 
-  // --- Logout ---
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Req() req, @Res() res: Response) {
@@ -89,7 +80,6 @@ export class AuthController {
 
     await this.authService.logout(userId);
 
-    // usuń refresh cookie
     res.clearCookie('refreshToken', {
       httpOnly: true,
       sameSite: 'strict',
@@ -100,7 +90,6 @@ export class AuthController {
     return res.json({ message: 'Logged out' });
   }
 
-  // --- Google OAuth ---
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleAuth() {}
@@ -114,7 +103,6 @@ export class AuthController {
       email: user.email,
     });
 
-    // refresh cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -123,7 +111,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // access → frontend sam zapisze w localStorage
     return res.json({ accessToken });
   }
 }

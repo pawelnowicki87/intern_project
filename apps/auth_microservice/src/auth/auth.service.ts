@@ -31,7 +31,7 @@ export class AuthService {
     });
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-    await this.coreUsersAdapter.updateUserCredentials(createdUser.id, refreshTokenHash);
+    await this.coreUsersAdapter.updateUserCredentials(createdUser.id, { refreshTokenHash });
 
 
     return { accessToken, refreshToken, user: createdUser };

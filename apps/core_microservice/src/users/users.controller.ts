@@ -18,14 +18,13 @@ import { User } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-
   @Patch(':id/credentials')
   async updateCretentials(
     @Param('id') id: number,
     @Body() data: { refreshTokenHash: string }
-  ): Promise<{ message: string }>{
+  ): Promise<{ message: string }> {
     await this.usersService.updateCredentials(id, data);
-    return { message: 'User credentials updated' }
+    return { message: 'User credentials updated' };
   }
 
   @Get()
@@ -51,14 +50,20 @@ export class UsersController {
     return user;
   }
 
-
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<UserResponseDto> {
-    const user = await this.usersService.findOne(id);
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    return user;
+  async findOne(
+    @Param('id') id: number,
+    @Query('viewerId') viewerId?: number,
+  ): Promise<UserResponseDto> {
+    return this.usersService.findOneVisible(Number(viewerId ?? 0), id);
+  }
+
+  @Patch(':id/privacy')
+  async updatePrivacy(
+    @Param('id') id: number,
+    @Body() data: { isPrivate: boolean },
+  ): Promise<UserResponseDto> {
+    return this.usersService.update(id, { isPrivate: data.isPrivate });
   }
 
   @Post()

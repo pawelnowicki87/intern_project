@@ -19,6 +19,8 @@ export class CreateUserDto {
   @Length(0, 20, { message: 'Phone number can have up to 20 characters.' })
   phone?: string;
 
+  isPrivate: boolean;
+
   @IsString()
   @IsNotEmpty({ message: 'Password is required.' })
   @Length(6, 100, { message: 'Password must be between 6 and 100 characters.' })

@@ -28,8 +28,11 @@ export class PostsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<PostResponseDto> {
-    return this.postsService.findOne(id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('viewerId') viewerId?: number,
+  ): Promise<PostResponseDto> {
+    return this.postsService.findOne(id, viewerId ? Number(viewerId) : 0);
   }
 
   @HttpPost()
