@@ -1,17 +1,13 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { UsersRepository } from '../users.repository';
-import { IFollowsReader } from 'src/posts/ports/follows-reader.port';
-import { FOLLOWS_READER } from 'src/posts/ports/tokens';
 import { FollowStatus } from 'src/follows/entities/follow.entity';
-import { VISIBILITY_FOLLOWS_READER } from '../ports/tokens';
-import { IVisibilityFollowsReader } from '../ports/visibility-reader.port';
+import { IUserVisibilityReader } from './port/user-visibility-reader.port';
+import { IFollowsVisibilityReader } from './port/follows-visibility-reader.port';
 
 @Injectable()
 export class VisibilityService {
   constructor(
-    private readonly usersRepo: UsersRepository,
-    @Inject(VISIBILITY_FOLLOWS_READER)
-    private readonly followsReader: IVisibilityFollowsReader
+    private readonly userVisibilityReader: IUserVisibilityReader,
+    private readonly followVisibilityReader: IFollowsVisibilityReader
   ) {}
 
   async isOwner(viewerId: number, ownerId: number): Promise<boolean> {
@@ -19,12 +15,12 @@ export class VisibilityService {
   }
 
   async isPublicProfile(userId: number): Promise<boolean> {
-    const user = await this.usersRepo.findById(userId);
+    const user = await this.userVisibilityReader.findUserById(userId);
     return user ? !user.isPrivate : false;
   }
 
   async isFollowAccepted(viewerId: number, ownerId: number): Promise<boolean> {
-    const follow = await this.followsReader.findFollowRelation(viewerId, ownerId);
+    const follow = await this.followVisibilityReader.findFollowRelation(viewerId, ownerId);
     return follow?.status === FollowStatus.ACCEPTED;
   }
 

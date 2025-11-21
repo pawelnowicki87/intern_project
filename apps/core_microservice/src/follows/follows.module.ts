@@ -8,8 +8,8 @@ import { FollowsReaderAdapter } from './adapters/follows-reader.adapter';
 import { FOLLOWS_READER } from 'src/posts/ports/tokens';
 import { UsersModule } from 'src/users/users.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
-import { VISIBILITY_FOLLOWS_READER } from 'src/users/ports/tokens';
-import { VisibilityFollowsReaderAdapter } from './adapters/visibility-follows-reader.adapter';
+import { FollowVisibilityAdapter } from './adapters/follows-visibility-adapter';
+import { FOLLOWS_VISIBILITY_READER } from 'src/visibility/port/tokens';
 
 @Module({
   imports: [
@@ -26,22 +26,14 @@ import { VisibilityFollowsReaderAdapter } from './adapters/visibility-follows-re
       provide: FOLLOWS_READER,
       useClass: FollowsReaderAdapter
     },
-    VisibilityFollowsReaderAdapter,
     {
-      provide: VISIBILITY_FOLLOWS_READER,
-      useClass: VisibilityFollowsReaderAdapter,
+      provide: FOLLOWS_VISIBILITY_READER,
+      useClass: FollowVisibilityAdapter
     }
   ],
   exports: [
-    FollowsReaderAdapter, 
-    {
-      provide: FOLLOWS_READER,
-      useClass: FollowsReaderAdapter
-    },
-    {
-      provide: VISIBILITY_FOLLOWS_READER,
-      useClass: VisibilityFollowsReaderAdapter,
-    }
+      FOLLOWS_READER,
+      FOLLOWS_VISIBILITY_READER
   ],
 })
 export class FollowsModule {}

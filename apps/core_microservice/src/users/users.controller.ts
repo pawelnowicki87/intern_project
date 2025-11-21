@@ -13,6 +13,7 @@ import { UsersService } from './users.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
+import { HiddenUserDto } from './dto/hidden-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -51,11 +52,11 @@ export class UsersController {
   }
 
   @Get(':id')
-  async findOne(
+  async findOneVisible(
     @Param('id') id: number,
-    @Query('viewerId') viewerId?: number,
-  ): Promise<UserResponseDto> {
-    return this.usersService.findOneVisible(Number(viewerId ?? 0), id);
+    @Query('viewerId') viewerId: number
+  ): Promise<UserResponseDto | HiddenUserDto> {
+    return this.usersService.findOneVisible(viewerId, id);
   }
 
   @Patch(':id/privacy')

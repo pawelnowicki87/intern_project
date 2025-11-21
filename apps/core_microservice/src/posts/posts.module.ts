@@ -5,11 +5,13 @@ import { PostsService } from './posts.service';
 import { PostsController } from './posts.controller';
 import { PostsRepository } from './posts.repository';
 import { FollowsModule } from 'src/follows/follows.module';
+import { VisibilityModule } from 'src/visibility/visibility.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Post]),
-    FollowsModule
+    FollowsModule,
+    VisibilityModule
   ],
   providers: [PostsService, PostsRepository],
   controllers: [PostsController],

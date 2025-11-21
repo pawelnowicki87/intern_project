@@ -8,33 +8,34 @@ import { UsersRepository } from './users.repository';
 import { USERS_READER } from 'src/follows/ports/tokens';
 import { UserReaderAdapter } from './adapters/user-reader.adapter';
 
-import { VisibilityService } from './visibility/visibility.service';
 import { FollowsModule } from 'src/follows/follows.module';
+import { USER_VISIBILITY_READER } from 'src/visibility/port/tokens';
+import { UserVisibilityReaderAdapter } from './adapters/user-visibility.adapter';
+import { VisibilityModule } from 'src/visibility/visibility.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-    FollowsModule,
-  ],
+  imports: [TypeOrmModule.forFeature([User]), FollowsModule],
   providers: [
     UsersService,
     UsersRepository,
-    VisibilityService,
+    VisibilityModule,
     {
       provide: USERS_READER,
       useClass: UserReaderAdapter,
     },
+    {
+      provide: USER_VISIBILITY_READER,
+      useClass: UserVisibilityReaderAdapter
+    }
   ],
   controllers: [UsersController],
   exports: [
     UsersService,
     TypeOrmModule,
     UsersRepository,
-    VisibilityService,
-    {
-      provide: USERS_READER,
-      useClass: UserReaderAdapter,
-    },
+    USERS_READER,
+    USER_VISIBILITY_READER
+    
   ],
 })
 export class UsersModule {}

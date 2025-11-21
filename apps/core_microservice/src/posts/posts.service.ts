@@ -10,12 +10,12 @@ import { PostsRepository } from './posts.repository';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostResponseDto } from './dto/post-response.dto';
-import { FOLLOWS_READER, VISIBILITY_READER } from './ports/tokens';
+import { FOLLOWS_READER, VISIBILITY_POST_READER } from './ports/tokens';
 import { IFollowsReader } from './ports/follows-reader.port';
 import { PostMapper } from './post.mapper';
-import { IVisibilityReader } from './ports/visibility-reader.port';
 import { PostStatus } from './entities/post-status.enum';
 import { Post } from './entities/posts.entity';
+import { IVisibilityPostsReader } from './ports/visibility-post.reader';
 
 @Injectable()
 export class PostsService {
@@ -23,10 +23,13 @@ export class PostsService {
 
   constructor(
     private readonly postsRepository: PostsRepository,
+
     @Inject(FOLLOWS_READER)
     private readonly followsReader: IFollowsReader,
-    @Inject(VISIBILITY_READER)
-    private readonly visibilityReader: IVisibilityReader,
+
+    @Inject(VISIBILITY_POST_READER)
+    private readonly visibilityPostReader: IVisibilityPostsReader
+
   ) {}
 
   async findAll(
@@ -137,6 +140,6 @@ export class PostsService {
 
     if (post.status !== PostStatus.PUBLISHED) return false;
 
-    return this.visibilityReader.canViewPosts(viewerId, post.userId);
+    return this.visibilityPostReader.canViewPosts(viewerId, post.userId);
   }
 }

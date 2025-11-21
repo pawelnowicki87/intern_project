@@ -4,13 +4,16 @@ import {
   ConflictException,
   InternalServerErrorException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import { UsersRepository } from './users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { VisibilityService } from './visibility/visibility.service';
+import { IVisibilityReader } from './ports/visibility-reader.port';
+import { HiddenUserDto } from './dto/hidden-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -18,8 +21,18 @@ export class UsersService {
 
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly visibilityService: VisibilityService,
+    @Inject('VISIBILITY_READER')
+    private readonly visibilityReader: IVisibilityReader,
   ) {}
+
+  private toHiddenUserDto(user: User): HiddenUserDto {
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    }
+
+  }
 
   async updateCredentials(
     id: number,
@@ -56,55 +69,43 @@ export class UsersService {
 
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.usersRepository.findMany();
-    return users.map(({ id, firstName, lastName, email, phone, isPrivate }) => ({
-      id,
-      firstName,
-      lastName,
-      email,
-      phone,
-      isPrivate,
-    }));
+    return users.map(
+      ({ id, firstName, lastName, email, phone, isPrivate }) => ({
+        id,
+        firstName,
+        lastName,
+        email,
+        phone,
+        isPrivate,
+      }),
+    );
   }
 
-  async findOne(id: number): Promise<UserResponseDto> {
-    const user = await this.usersRepository.findById(id);
+  async findOneVisible(
+    viewerId: number,
+    ownerId: number
+): Promise<UserResponseDto | HiddenUserDto> {
+    const user = await this.usersRepository.findById(ownerId);
+
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User with ID ${ownerId} not found`);
     }
 
-    return {
+    const canView = await this.visibilityReader.canViewProfile(
+      viewerId,
+      ownerId,
+    );
+
+    return canView ? {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
       isPrivate: user.isPrivate,
-    };
+    } : this.toHiddenUserDto(user);
+    
   }
-
-  async findOneVisible(
-  viewerId: number,
-  ownerId: number,
-  ): Promise<UserResponseDto> {
-
-    const user = await this.findOne(ownerId);
-
-    const canView = await this.visibilityService.canViewProfile(viewerId, ownerId);
-
-    if (!canView) {
-      return {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        isPrivate: true,
-      };
-    }
-
-    return user;
-  }
-
 
   async create(data: CreateUserDto): Promise<UserResponseDto> {
     const exists = await this.usersRepository.findOneByEmail(data.email);
