@@ -11,15 +11,17 @@ import { NotificationsSenderAdapter } from './adapters/notifications-sender.adap
   imports: [TypeOrmModule.forFeature([Notification])],
   controllers: [NotificationsController],
   providers: [
-    NotificationsService, 
-    NotificationsRepository,
-  ],
-  exports: [
-    NotificationsService, 
+    NotificationsService,
     NotificationsRepository,
     {
       provide: NOTIFICATIONS_SENDER,
       useClass: NotificationsSenderAdapter,
-    }],
+    }
+  ],
+  exports: [
+    NotificationsService,
+    NotificationsRepository,
+    NOTIFICATIONS_SENDER,
+  ],
 })
 export class NotificationsModule {}

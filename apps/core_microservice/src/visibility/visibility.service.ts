@@ -2,12 +2,17 @@ import { Injectable, Inject } from '@nestjs/common';
 import { FollowStatus } from 'src/follows/entities/follow.entity';
 import { IUserVisibilityReader } from './port/user-visibility-reader.port';
 import { IFollowsVisibilityReader } from './port/follows-visibility-reader.port';
+import { VISIBILITY_READER } from 'src/users/ports/tokens';
+import { FOLLOWS_VISIBILITY_READER } from './port/tokens';
 
 @Injectable()
 export class VisibilityService {
   constructor(
+    @Inject(VISIBILITY_READER)
     private readonly userVisibilityReader: IUserVisibilityReader,
-    private readonly followVisibilityReader: IFollowsVisibilityReader
+
+    @Inject(FOLLOWS_VISIBILITY_READER)
+    private readonly followVisibilityReader: IFollowsVisibilityReader,
   ) {}
 
   async isOwner(viewerId: number, ownerId: number): Promise<boolean> {

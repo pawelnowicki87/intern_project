@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
@@ -14,28 +14,30 @@ import { UserVisibilityReaderAdapter } from './adapters/user-visibility.adapter'
 import { VisibilityModule } from 'src/visibility/visibility.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), FollowsModule],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    forwardRef(() => FollowsModule),
+    forwardRef(() => VisibilityModule),
+  ],
   providers: [
     UsersService,
     UsersRepository,
-    VisibilityModule,
     {
       provide: USERS_READER,
       useClass: UserReaderAdapter,
     },
     {
       provide: USER_VISIBILITY_READER,
-      useClass: UserVisibilityReaderAdapter
-    }
+      useClass: UserVisibilityReaderAdapter,
+    },
   ],
   controllers: [UsersController],
   exports: [
     UsersService,
-    TypeOrmModule,
     UsersRepository,
     USERS_READER,
-    USER_VISIBILITY_READER
-    
+    USER_VISIBILITY_READER,
+    TypeOrmModule,
   ],
 })
 export class UsersModule {}

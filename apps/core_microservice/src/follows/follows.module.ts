@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Follow } from './entities/follow.entity';
 import { FollowsService } from './follows.service';
@@ -14,7 +14,7 @@ import { FOLLOWS_VISIBILITY_READER } from 'src/visibility/port/tokens';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Follow]), 
-    UsersModule,
+    forwardRef(() => UsersModule),
     NotificationsModule  
   ],
   controllers: [FollowsController],
@@ -33,7 +33,8 @@ import { FOLLOWS_VISIBILITY_READER } from 'src/visibility/port/tokens';
   ],
   exports: [
       FOLLOWS_READER,
-      FOLLOWS_VISIBILITY_READER
+      FOLLOWS_VISIBILITY_READER,
+      FollowsRepository
   ],
 })
 export class FollowsModule {}

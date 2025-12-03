@@ -14,6 +14,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { IVisibilityReader } from './ports/visibility-reader.port';
 import { HiddenUserDto } from './dto/hidden-user.dto';
 import { User } from './entities/user.entity';
+import { VISIBILITY_READER } from './ports/tokens';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +22,7 @@ export class UsersService {
 
   constructor(
     private readonly usersRepository: UsersRepository,
-    @Inject('VISIBILITY_READER')
+    @Inject(VISIBILITY_READER)
     private readonly visibilityReader: IVisibilityReader,
   ) {}
 
