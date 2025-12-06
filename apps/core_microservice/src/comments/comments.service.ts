@@ -4,6 +4,9 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CommentsRepository } from './comments.repository';
+import { Inject } from '@nestjs/common';
+import { COMMENT_MENTIONS_READER } from './ports/tokens';
+import { ICommentMentionsProcessorReader } from './ports/mentions-processor.port';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
@@ -11,7 +14,11 @@ import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentsService {
-  constructor(private readonly commentsRepo: CommentsRepository) {}
+  constructor(
+    private readonly commentsRepo: CommentsRepository,
+    @Inject(COMMENT_MENTIONS_READER)
+    private readonly commentMentionsReader: ICommentMentionsProcessorReader,
+  ) {}
 
     private toResponseDto(c: Comment): CommentResponseDto {
     const dto = new CommentResponseDto();
@@ -76,6 +83,9 @@ export class CommentsService {
       throw new NotFoundException('Comment not found after creation');
     }
 
+    if (typeof data.body === 'string' && data.body.length > 0) {
+      await this.commentMentionsReader.processMentions(data.body, comment.id, data.userId);
+    }
     return this.toResponseDto(comment);
   }
 
@@ -89,6 +99,10 @@ export class CommentsService {
     const fresh = await this.commentsRepo.findById(id);
     if (!fresh) {
       throw new NotFoundException(`Comment ${id} not found after update`);
+    }
+
+    if (typeof data.body === 'string' && data.body.length > 0) {
+      await this.commentMentionsReader.processMentions(data.body, id, fresh.userId);
     }
 
     return this.toResponseDto(fresh);

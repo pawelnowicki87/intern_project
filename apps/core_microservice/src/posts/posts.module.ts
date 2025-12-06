@@ -6,12 +6,14 @@ import { PostsController } from './posts.controller';
 import { PostsRepository } from './posts.repository';
 import { FollowsModule } from 'src/follows/follows.module';
 import { VisibilityModule } from 'src/visibility/visibility.module';
+import { MentionsModule } from 'src/mentions/mentions.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Post]),
     forwardRef(() => FollowsModule),
     forwardRef(() => VisibilityModule),
+    MentionsModule,
   ],
   providers: [PostsService, PostsRepository],
   controllers: [PostsController],

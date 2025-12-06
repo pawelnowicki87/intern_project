@@ -1,8 +1,10 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
+    "useUnknownInCatchVariables": false,
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -12,13 +14,14 @@
     "outDir": "./dist",
     "baseUrl": "./src",
     "paths": {
-      "src/*": ["*"]
+      "src/*": ["*"],
+      "@shared/*": ["../../../packages/shared/*"]
     },
     "skipLibCheck": true,
-    "strictNullChecks": true,
+    "strictNullChecks": false,
     "noImplicitAny": false,
     "ignoreDeprecations": "5.0"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }

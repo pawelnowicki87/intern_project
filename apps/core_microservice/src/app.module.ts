@@ -12,23 +12,27 @@ import { FollowsModule } from './follows/follows.module';
 import { LikesCommentsModule } from './likes-comments/likes-comments.module';
 import { MessageAssetsModule } from './message-assets/message-assets.module';
 import { MessagesModule } from './messages/messages.module';
-import { NotificationsModule } from './notifications/notifications.module';
+import { NotificationsProducerModule } from './notifications-producer/notifications-producer.module';
 import { PostAssetsModule } from './post-assets/post-assets.module';
 import { PostsModule } from './posts/posts.module';
 import { UsersModule } from './users/users.module';
 import { ProfileConfigModule } from './profile-config/profile-config.module';
 import { dataSource } from './data-source';
+import { CloudinaryModule } from './common/config/cloudinary.module';
 
 @Module({
   imports: [
-    // .env
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['../../.env'],
     }),
+
+    CloudinaryModule,
+
     TypeOrmModule.forRoot({
       ...dataSource.options,
     }),
+
     UsersModule,
     PostsModule,
     CommentsModule,
@@ -36,7 +40,7 @@ import { dataSource } from './data-source';
     LikesCommentsModule,
     FollowsModule,
     MessagesModule,
-    NotificationsModule,
+    NotificationsProducerModule,
     FilesModule,
     PostAssetsModule,
     MessageAssetsModule,
@@ -48,3 +52,4 @@ import { dataSource } from './data-source';
   providers: [AppService],
 })
 export class AppModule {}
+

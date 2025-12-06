@@ -16,6 +16,8 @@ import { PostMapper } from './post.mapper';
 import { PostStatus } from './entities/post-status.enum';
 import { Post } from './entities/posts.entity';
 import { IVisibilityPostsReader } from './ports/visibility-post.reader';
+import { POST_MENTIONS_READER } from './ports/tokens';
+import { IPostMentionsProcessorReader } from './ports/mentions-processor.port';
 
 @Injectable()
 export class PostsService {
@@ -28,7 +30,10 @@ export class PostsService {
     private readonly followsReader: IFollowsReader,
 
     @Inject(VISIBILITY_POST_READER)
-    private readonly visibilityPostReader: IVisibilityPostsReader
+    private readonly visibilityPostReader: IVisibilityPostsReader,
+
+    @Inject(POST_MENTIONS_READER)
+    private readonly postMentionsReader: IPostMentionsProcessorReader
 
   ) {}
 
@@ -59,6 +64,8 @@ export class PostsService {
     const post = await this.postsRepository.findById(created.id);
     if (!post) throw new NotFoundException('Error fetching created post');
 
+    await this.postMentionsReader.processMentions(data.body, post.id, data.userId);
+
     return PostMapper.toResponseDto(post);
   }
 
@@ -66,6 +73,9 @@ export class PostsService {
     const updated = await this.postsRepository.update(id, data);
     if (!updated) throw new NotFoundException(`Post with ID ${id} not found`);
 
+    if (typeof data.body === 'string' && data.body.length > 0) {
+      await this.postMentionsReader.processMentions(data.body, id, updated.userId);
+    }
     return PostMapper.toResponseDto(updated);
   }
 

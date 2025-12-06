@@ -68,6 +68,16 @@ export class UsersService {
     };
   }
 
+  async findByUserName(userName: string): Promise<User | null> {
+    const user = await this.usersRepository.findOneByUserName(userName)
+
+    if (!user) {
+      return null;
+    }
+
+    return user;
+  }
+
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.usersRepository.findMany();
     return users.map(

@@ -9,9 +9,10 @@ import { FollowsRepository } from './follows.repository';
 import { CreateFollowDto } from './dto/create-follow.dto';
 import { FollowResponseDto } from './dto/follow-response.dto';
 import { Follow, FollowStatus } from './entities/follow.entity';
-import { NOTIFICATIONS_SENDER, USERS_READER } from './ports/tokens';
-import { INotificationSender } from './ports/notification-sender.port';
-import { NotificationAction } from 'src/notifications/entities/notification-acion.enum';
+import { USERS_READER } from './ports/tokens';
+import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
+import { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
+import { NotificationAction } from '@shared/notifications/notification-action';
 import { IUsersReader } from './ports/users-reader.port';
 
 @Injectable()

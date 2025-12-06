@@ -16,5 +16,5 @@ export class CreateCommentDto {
   @IsOptional()
   @IsString()
   @MinLength(1, { message: 'Comment body must have at least 1 character.' })
-  body?: string;
+  body: string;
 }

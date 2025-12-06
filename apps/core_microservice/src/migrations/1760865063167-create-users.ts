@@ -4,7 +4,6 @@ export class CreateUsers1760865063167 implements MigrationInterface {
     name = 'CreateUsers1760865063167'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`CREATE TABLE "likes_comments" ("user_id" integer NOT NULL, "comment_id" integer NOT NULL, "created_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_bd9342e8385295a0b4557c5d548" PRIMARY KEY ("user_id", "comment_id"))`);
         await queryRunner.query(`CREATE TABLE "files" ("id" SERIAL NOT NULL, "url" character varying NOT NULL, "type" character varying, "owner_id" integer NOT NULL, "comment_id" integer, "created_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_6c16b9093a142e0e7613b04a3d9" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "comments" ("id" SERIAL NOT NULL, "user_id" integer NOT NULL, "post_id" integer NOT NULL, "body" text, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_8bf68bc960f2b69e818bdb90dcb" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "likes_posts" ("user_id" integer NOT NULL, "post_id" integer NOT NULL, "created_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_b5807b18fd3ade1691f633fb4f5" PRIMARY KEY ("user_id", "post_id"))`);
@@ -18,8 +17,6 @@ export class CreateUsers1760865063167 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "notifications" ("id" SERIAL NOT NULL, "recipient_id" integer NOT NULL, "sender_id" integer NOT NULL, "action" character varying NOT NULL, "target_id" integer NOT NULL, "is_read" boolean NOT NULL DEFAULT false, "created_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "users" ("id" SERIAL NOT NULL, "first_name" character varying NOT NULL, "last_name" character varying NOT NULL, "email" character varying NOT NULL, "phone" character varying(20), "password_hash" character varying NOT NULL, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "profile_to_profile_configurations" ("source_user_id" integer NOT NULL, "target_user_id" integer NOT NULL, "is_blocked" boolean NOT NULL DEFAULT false, "is_muted" boolean NOT NULL DEFAULT false, "created_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_f823cdde24dc9c5e07597276c9b" PRIMARY KEY ("source_user_id", "target_user_id"))`);
-        await queryRunner.query(`ALTER TABLE "likes_comments" ADD CONSTRAINT "FK_7308db24de1e49ec93489eece53" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
-        await queryRunner.query(`ALTER TABLE "likes_comments" ADD CONSTRAINT "FK_094a34ab526c9617cf7c261c15e" FOREIGN KEY ("comment_id") REFERENCES "comments"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "files" ADD CONSTRAINT "FK_4bc1db1f4f34ec9415acd88afdb" FOREIGN KEY ("owner_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "files" ADD CONSTRAINT "FK_db7b86afe40dda812511f3dc91c" FOREIGN KEY ("comment_id") REFERENCES "comments"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "comments" ADD CONSTRAINT "FK_4c675567d2a58f0b07cef09c13d" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
@@ -67,8 +64,6 @@ export class CreateUsers1760865063167 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "comments" DROP CONSTRAINT "FK_4c675567d2a58f0b07cef09c13d"`);
         await queryRunner.query(`ALTER TABLE "files" DROP CONSTRAINT "FK_db7b86afe40dda812511f3dc91c"`);
         await queryRunner.query(`ALTER TABLE "files" DROP CONSTRAINT "FK_4bc1db1f4f34ec9415acd88afdb"`);
-        await queryRunner.query(`ALTER TABLE "likes_comments" DROP CONSTRAINT "FK_094a34ab526c9617cf7c261c15e"`);
-        await queryRunner.query(`ALTER TABLE "likes_comments" DROP CONSTRAINT "FK_7308db24de1e49ec93489eece53"`);
         await queryRunner.query(`DROP TABLE "profile_to_profile_configurations"`);
         await queryRunner.query(`DROP TABLE "users"`);
         await queryRunner.query(`DROP TABLE "notifications"`);
@@ -82,7 +77,6 @@ export class CreateUsers1760865063167 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "likes_posts"`);
         await queryRunner.query(`DROP TABLE "comments"`);
         await queryRunner.query(`DROP TABLE "files"`);
-        await queryRunner.query(`DROP TABLE "likes_comments"`);
     }
 
 }

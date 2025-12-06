@@ -1,2 +1,1 @@
 export const USERS_READER = Symbol('USERS_READER');
-export const NOTIFICATIONS_SENDER = Symbol('NOTIFICATIONS_SENDER');

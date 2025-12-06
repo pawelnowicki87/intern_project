@@ -12,6 +12,8 @@ import { FollowsModule } from 'src/follows/follows.module';
 import { USER_VISIBILITY_READER } from 'src/visibility/port/tokens';
 import { UserVisibilityReaderAdapter } from './adapters/user-visibility.adapter';
 import { VisibilityModule } from 'src/visibility/visibility.module';
+import { USER_MENTION_READER } from 'src/mentions/ports/user-mention.reader';
+import { UserMentionAdapter } from './adapters/user-mention.adapter';
 
 @Module({
   imports: [
@@ -30,6 +32,10 @@ import { VisibilityModule } from 'src/visibility/visibility.module';
       provide: USER_VISIBILITY_READER,
       useClass: UserVisibilityReaderAdapter,
     },
+    {
+      provide: USER_MENTION_READER,
+      useClass: UserMentionAdapter
+    }
   ],
   controllers: [UsersController],
   exports: [
@@ -38,6 +44,7 @@ import { VisibilityModule } from 'src/visibility/visibility.module';
     USERS_READER,
     USER_VISIBILITY_READER,
     TypeOrmModule,
+    USER_MENTION_READER
   ],
 })
 export class UsersModule {}

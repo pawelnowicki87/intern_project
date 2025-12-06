@@ -1,0 +1,62 @@
+import { Inject, Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Mention, MentionType } from "./entity/mention.entity";
+import { USER_MENTION_READER, IUserMentionReader } from "./ports/user-mention.reader";
+import { NOTIFICATIONS_SENDER } from "src/notifications-producer/ports/tokens";
+import { INotificationSender } from "src/notifications-producer/ports/notification-sender.port";
+import { NotificationAction } from "@shared/notifications/notification-action";
+
+@Injectable()
+export class MentionsService {
+  constructor(
+    @InjectRepository(Mention)
+    private readonly repo: Repository<Mention>,
+
+    @Inject(USER_MENTION_READER)
+    private readonly userReader: IUserMentionReader,
+
+    @Inject(NOTIFICATIONS_SENDER)
+    private readonly notificationSender: INotificationSender
+  ) {}
+
+  private extractUsernames(text: string): string[] {
+    const regex = /@([a-zA-Z0-9_]+)/g;
+    return [...text.matchAll(regex)].map(match => match[1]);
+  }
+
+  async processMentions(
+    text: string,
+    sourceId: number,
+    sourceType: MentionType,
+    createdByUserId: number
+  ) {
+    const usernames = this.extractUsernames(text);
+
+    for (const username of usernames) {
+      const user = await this.userReader.findUserByUserName(username);
+
+      if (!user) continue;
+
+      const mention = this.repo.create({
+        sourceId,
+        sourceType,
+        mentionedUserId: user.id,
+        createdByUserId
+      });
+
+      await this.repo.save(mention);
+
+      const action = sourceType === MentionType.COMMENT
+        ? NotificationAction.MENTION_COMMENT
+        : NotificationAction.MENTION_POST;
+
+      await this.notificationSender.sendNotification(
+        user.id,
+        createdByUserId,
+        action,
+        sourceId
+      );
+    }
+  }
+}

@@ -13,7 +13,6 @@ import { LikePost } from '../../likes-posts/entities/like-post.entity';
 import { LikeComment } from '../../likes-comments/entities/like-comment.entity';
 import { Follow } from '../../follows/entities/follow.entity';
 import { Message } from '../../messages/entities/message.entity';
-import { Notification } from '../../notifications/entities/notification.entity';
 import { File } from '../../files/entities/file.entity';
 import { UserCredentials } from './user-credencials.entity';
 
@@ -28,11 +27,11 @@ export class User {
   @Column({ name: 'last_name', type: 'varchar', nullable: false })
   lastName: string;
 
+  @Column({ name: "user_name", type: 'varchar', unique: true })
+  username: string;
+
   @Column({ type: 'varchar', unique: true, nullable: false })
   email: string;
-
-  @Column({ type: 'varchar', length: 32, unique: true, nullable: false })
-  username: string;
 
   @Column({ name: 'is_private', type: 'boolean', default: false })
   isPrivate: boolean;
@@ -78,11 +77,6 @@ export class User {
   @OneToMany(() => Message, (message) => message.receiver)
   receivedMessages: Message[];
 
-  @OneToMany(() => Notification, (notification) => notification.recipient)
-  receivedNotifications: Notification[];
-
-  @OneToMany(() => Notification, (notification) => notification.sender)
-  sentNotifications: Notification[];
 
   @OneToMany(() => File, (file) => file.owner)
   files: File[];

@@ -16,6 +16,10 @@ export class UsersRepository {
     return this.repo.findOne({ where: { email } });
   }
 
+  async findOneByUserName(username: string): Promise<User | null> {
+    return this.repo.findOne({ where: { username }})
+  }
+
   async findMany(): Promise<User[]> {
     return this.repo.find();
   }
