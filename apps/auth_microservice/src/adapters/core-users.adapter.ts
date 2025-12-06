@@ -46,7 +46,7 @@ export class CoreUsersAdapter {
   async getUserForAuth(email: string) {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${process.env.CORE_SERVICE_URL}/users`, {
+        this.httpService.get(`${process.env.CORE_SERVICE_URL}/users/auth`, {
           params: { email },
         }),
       );

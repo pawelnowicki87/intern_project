@@ -1,0 +1,33 @@
+{
+  "collection": "@nestjs/schematics",
+  "monorepo": true,
+  "projects": {
+    "auth_microservice": {
+      "type": "application",
+      "root": "apps/auth_microservice",
+      "entryFile": "main",
+      "sourceRoot": "apps/auth_microservice/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/auth_microservice/tsconfig.json"
+      }
+    },
+    "core_microservice": {
+      "type": "application",
+      "root": "apps/core_microservice",
+      "entryFile": "main",
+      "sourceRoot": "apps/core_microservice/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/core_microservice/tsconfig.json"
+      }
+    },
+    "notifications_consumer_microservice": {
+      "type": "application",
+      "root": "apps/notifications_consumer_microservice",
+      "entryFile": "main",
+      "sourceRoot": "apps/notifications_consumer_microservice/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/notifications_consumer_microservice/tsconfig.json"
+      }
+    }
+  }
+}

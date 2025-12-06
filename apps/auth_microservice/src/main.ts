@@ -31,7 +31,6 @@ async function bootstrap() {
   await app.listen(PORT, '0.0.0.0');
 
   console.log('Auth_microservice is running on port', PORT);
-  console.log('JWT_SECRET:', process.env.JWT_SECRET);
 }
 
 bootstrap();
