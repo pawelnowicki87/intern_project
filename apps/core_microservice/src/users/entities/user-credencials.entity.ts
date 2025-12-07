@@ -9,7 +9,7 @@ export class UserCredentials {
   @Column({name: 'password_hash', type: "varchar", nullable: false })
   passwordHash: string;
 
-  @Column({ name: 'refreshtoken_hash', type: "varchar", nullable: false })
+  @Column({ name: 'refreshtoken_hash', type: "varchar", nullable: true })
   refreshTokenHash?: string;
 
   @CreateDateColumn({ name: 'created_at'})

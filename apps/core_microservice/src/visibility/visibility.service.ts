@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { FollowStatus } from 'src/follows/entities/follow.entity';
-import { IUserVisibilityReader } from './port/user-visibility-reader.port';
-import { IFollowsVisibilityReader } from './port/follows-visibility-reader.port';
+import type { IUserVisibilityReader } from './port/user-visibility-reader.port';
+import type { IFollowsVisibilityReader } from './port/follows-visibility-reader.port';
 import { VISIBILITY_READER } from 'src/users/ports/tokens';
 import { FOLLOWS_VISIBILITY_READER } from './port/tokens';
 

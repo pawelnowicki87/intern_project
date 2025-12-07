@@ -20,6 +20,7 @@ export class AuthService {
     const createdUser = await this.coreUsersAdapter.createUser({
       firstName: registerDto.firstName,
       lastName: registerDto.lastName,
+      username: registerDto.username,
       email: registerDto.email,
       phone: registerDto.phone,
       passwordHash,

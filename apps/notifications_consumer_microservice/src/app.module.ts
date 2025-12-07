@@ -4,9 +4,15 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '../../.env',
+    }),
+
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST || 'localhost',
@@ -17,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
       synchronize: false,
     }),
+
     NotificationsModule,
   ],
   controllers: [AppController],

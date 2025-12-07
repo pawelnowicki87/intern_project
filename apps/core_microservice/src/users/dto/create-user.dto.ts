@@ -14,6 +14,11 @@ export class CreateUserDto {
   @IsEmail({}, { message: 'Invalid email format.' })
   email: string;
 
+  @IsString()
+  @IsNotEmpty({ message: 'Username is required.' })
+  @MaxLength(20, { message: 'Username can have up to 20 characters.' })
+  username: string;
+
   @IsOptional()
   @IsString()
   @Length(0, 20, { message: 'Phone number can have up to 20 characters.' })
@@ -24,5 +29,5 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty({ message: 'Password is required.' })
   @Length(6, 100, { message: 'Password must be between 6 and 100 characters.' })
-  password: string;
+  passwordHash: string;
 }

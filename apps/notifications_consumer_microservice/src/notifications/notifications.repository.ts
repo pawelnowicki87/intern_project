@@ -25,8 +25,8 @@ export class NotificationsRepository {
     try {
       const notification = this.repo.create(data);
       return await this.repo.save(notification);
-    } catch (e) {
-      this.logger.error(e.message);
+    } catch (e: any) {
+      this.logger.error(e?.message ?? String(e));
       return null;
     }
   }
@@ -35,8 +35,8 @@ export class NotificationsRepository {
     try {
       await this.repo.update(id, data);
       return this.findById(id);
-    } catch (e) {
-      this.logger.error(e.message);
+    } catch (e: any) {
+      this.logger.error(e?.message ?? String(e));
       return null;
     }
   }
@@ -45,8 +45,8 @@ export class NotificationsRepository {
     try {
       const result = await this.repo.delete(id);
       return (result.affected ?? 0) > 0;
-    } catch (e) {
-      this.logger.error(e.message);
+    } catch (e: any) {
+      this.logger.error(e?.message ?? String(e));
       return false;
     }
   }

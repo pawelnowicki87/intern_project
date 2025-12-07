@@ -1599,3 +1599,18 @@
 2025-12-06T22:31:54.094196Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\auth_microservice\\src\\adapters\\core-users.adapter.ts")}
 2025-12-06T22:31:54.094248Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("auth_microservice"), path: AnchoredSystemPathBuf("apps\\auth_microservice") }}))
 2025-12-06T22:31:54.094327Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-12-06T22:34:54.063925Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies"), AnchoredSystemPathBuf(".turbo\\cookies\\1.cookie"), AnchoredSystemPathBuf(".turbo")}
+2025-12-06T22:34:54.063961Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-12-06T22:34:55.174361Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies")}
+2025-12-06T22:34:55.174390Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-12-06T22:39:12.860847Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\core_microservice\\src\\main.ts")}
+2025-12-06T22:39:12.860866Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("core_microservice"), path: AnchoredSystemPathBuf("apps\\core_microservice") }}))
+2025-12-06T22:39:17.664550Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\notifications_consumer_microservice\\src\\main.ts")}
+2025-12-06T22:39:17.664565Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("notifications_consumer_microservice"), path: AnchoredSystemPathBuf("apps\\notifications_consumer_microservice") }}))
+2025-12-06T22:40:07.971433Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\core_microservice\\src\\main.ts")}
+2025-12-06T22:40:07.971506Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("core_microservice"), path: AnchoredSystemPathBuf("apps\\core_microservice") }}))
+2025-12-06T22:40:13.262421Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\notifications_consumer_microservice\\src\\main.ts")}
+2025-12-06T22:40:13.262435Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("notifications_consumer_microservice"), path: AnchoredSystemPathBuf("apps\\notifications_consumer_microservice") }}))
+2025-12-06T22:40:13.410872Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\notifications_consumer_microservice\\src\\main.ts")}
+2025-12-06T22:40:13.410907Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("notifications_consumer_microservice"), path: AnchoredSystemPathBuf("apps\\notifications_consumer_microservice") }}))
+2025-12-06T22:40:13.410977Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun

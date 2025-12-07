@@ -39,9 +39,6 @@ export class User {
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone?: string;
 
-  @Column({ name: 'password_hash', type: 'varchar', nullable: false })
-  passwordHash: string;
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

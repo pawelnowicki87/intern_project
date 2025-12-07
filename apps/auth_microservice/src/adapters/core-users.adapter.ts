@@ -1,7 +1,7 @@
 import { HttpService } from "@nestjs/axios";
 import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { firstValueFrom } from "rxjs";
-import { CreateUserPayload } from "src/auth/dto/create-user-payload";
+import { CreateUserDto } from "src/auth/dto/create-user-payload";
 
 @Injectable()
 export class CoreUsersAdapter {
@@ -9,7 +9,7 @@ export class CoreUsersAdapter {
 
   constructor(private readonly httpService: HttpService){}
 
-  async updateUserCredentials(userId: number, data: { refreshTokenHash?: string }) {
+  async updateUserCredentials(userId: number, data: { refreshTokenHash: string }) {
     try {
       const response = await firstValueFrom(
         this.httpService.patch(
@@ -30,7 +30,7 @@ export class CoreUsersAdapter {
     }
   }
 
-  async createUser(user: CreateUserPayload) {
+  async createUser(user: CreateUserDto) {
     try {
       const response = await firstValueFrom(
         this.httpService.post(`${process.env.CORE_SERVICE_URL}/users`, user)

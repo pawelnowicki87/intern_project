@@ -1,5 +1,9 @@
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { resolve } from 'path';
+import { config } from 'dotenv';
+
+config({ path: resolve(__dirname, '../../.env') });
 
 export default new DataSource({
   type: 'postgres',

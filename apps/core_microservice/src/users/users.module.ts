@@ -1,9 +1,12 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
+import { UserCredentials } from './entities/user-credencials.entity';
+
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { UsersRepository } from './users.repository';
+import { UsersCredentialRepository } from './users-credencial.repository';
 
 import { USERS_READER } from 'src/follows/ports/tokens';
 import { UserReaderAdapter } from './adapters/user-reader.adapter';
@@ -17,13 +20,14 @@ import { UserMentionAdapter } from './adapters/user-mention.adapter';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, UserCredentials]),
     forwardRef(() => FollowsModule),
     forwardRef(() => VisibilityModule),
   ],
   providers: [
     UsersService,
     UsersRepository,
+    UsersCredentialRepository,
     {
       provide: USERS_READER,
       useClass: UserReaderAdapter,
@@ -34,17 +38,18 @@ import { UserMentionAdapter } from './adapters/user-mention.adapter';
     },
     {
       provide: USER_MENTION_READER,
-      useClass: UserMentionAdapter
-    }
+      useClass: UserMentionAdapter,
+    },
   ],
   controllers: [UsersController],
   exports: [
     UsersService,
     UsersRepository,
+    UsersCredentialRepository,
     USERS_READER,
     USER_VISIBILITY_READER,
     TypeOrmModule,
-    USER_MENTION_READER
+    USER_MENTION_READER,
   ],
 })
 export class UsersModule {}

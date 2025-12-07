@@ -12,10 +12,11 @@
     "lib": ["ES2022"],
     "types": ["node", "jest"],
     "outDir": "./dist",
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "src/*": ["*"],
-      "@shared/*": ["../../../packages/shared/*"]
+      "src/*": ["src/*"],
+      "@shared": ["../../libs/shared/src"],
+      "@shared/*": ["../../libs/shared/src/*"]
     },
     "skipLibCheck": true,
     "strictNullChecks": false,

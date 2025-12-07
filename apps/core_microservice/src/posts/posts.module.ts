@@ -13,7 +13,7 @@ import { MentionsModule } from 'src/mentions/mentions.module';
     TypeOrmModule.forFeature([Post]),
     forwardRef(() => FollowsModule),
     forwardRef(() => VisibilityModule),
-    MentionsModule,
+    forwardRef(() => MentionsModule),
   ],
   providers: [PostsService, PostsRepository],
   controllers: [PostsController],

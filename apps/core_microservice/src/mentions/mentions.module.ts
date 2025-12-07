@@ -1,4 +1,5 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
+import { UsersModule } from "src/users/users.module";
 import { MentionsService } from "./mentions.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Mention } from "./entity/mention.entity";
@@ -9,7 +10,8 @@ import { POST_MENTIONS_READER } from "src/posts/ports/tokens";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Mention])
+        TypeOrmModule.forFeature([Mention]),
+        forwardRef(() => UsersModule)
     ],
     controllers: [
 

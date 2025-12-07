@@ -7,89 +7,63 @@ import {
   Delete,
   Patch,
   Query,
-  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UserResponseDto } from './dto/user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './entities/user.entity';
+import { UserResponseDto } from './dto/user-response.dto';
 import { HiddenUserDto } from './dto/hidden-user.dto';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Patch(':id/credentials')
-  async updateCretentials(
+  updateCredentials(
     @Param('id') id: number,
-    @Body() data: { refreshTokenHash: string }
-  ): Promise<{ message: string }> {
-    await this.usersService.updateCredentials(id, data);
-    return { message: 'User credentials updated' };
+    @Body() data: { refreshTokenHash?: string; passwordHash?: string },
+  ) {
+    return this.usersService.updateCredentials(id, data);
   }
 
   @Get()
-  async find(
-    @Query('email') email: string,
-  ): Promise<UserResponseDto | UserResponseDto[]> {
-    if (email) {
-      const user = await this.usersService.findByEmail(email);
-      if (!user) {
-        throw new NotFoundException(`User with email ${email} not found`);
-      }
-      return user;
-    }
-    return this.usersService.findAll();
+  find(@Query('email') email?: string) {
+    return this.usersService.find(email);
   }
 
   @Get('auth')
-  async findForAuth(@Query('email') email: string): Promise<User> {
-    const user = await this.usersService.findByEmailForAuth(email);
-    if (!user) {
-      throw new NotFoundException(`User with email ${email} not found`);
-    }
-    return user;
+  findForAuth(@Query('email') email: string) {
+    return this.usersService.findByEmailForAuth(email);
   }
 
   @Get(':id')
-  async findOneVisible(
+  findOneVisible(
     @Param('id') id: number,
-    @Query('viewerId') viewerId: number
+    @Query('viewerId') viewerId: number,
   ): Promise<UserResponseDto | HiddenUserDto> {
     return this.usersService.findOneVisible(viewerId, id);
   }
 
   @Patch(':id/privacy')
-  async updatePrivacy(
+  updatePrivacy(
     @Param('id') id: number,
     @Body() data: { isPrivate: boolean },
-  ): Promise<UserResponseDto> {
+  ) {
     return this.usersService.update(id, { isPrivate: data.isPrivate });
   }
 
   @Post()
-  async create(@Body() data: CreateUserDto): Promise<UserResponseDto> {
+  create(@Body() data: CreateUserDto & { passwordHash: string }) {
     return this.usersService.create(data);
   }
 
   @Patch(':id')
-  async update(
-    @Param('id') id: number,
-    @Body() data: Partial<User>,
-  ): Promise<UserResponseDto> {
-    const updatedUser = await this.usersService.update(id, data);
-    if (!updatedUser) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    return updatedUser;
+  update(@Param('id') id: number, @Body() data: Partial<User>) {
+    return this.usersService.update(id, data);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: number): Promise<{ message: string }> {
-    const result = await this.usersService.remove(id);
-    if (!result) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    return { message: `User with ID ${id} removed successfully` };
+  remove(@Param('id') id: number) {
+    return this.usersService.remove(id);
   }
 }

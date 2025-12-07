@@ -19,7 +19,11 @@
         "name": "next"
       }
     ],
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@shared": ["libs/shared/src"],
+      "@shared/*": ["libs/shared/src/*"]
+    }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "test-cloudinary.cjs"],
   "exclude": ["node_modules", "dist", "build", ".next"]
