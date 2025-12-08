@@ -55,15 +55,12 @@ jobs:
         with:
           node-version: 22
 
-      # Install deps for whole monorepo (Turbo needs this)
       - name: Install root dependencies
         run: npm ci
 
-      # Create a pruned workspace for faster & correct builds
       - name: Turbo prune
         run: npx turbo prune --scope=core_microservice --scope=auth_microservice --scope=notifications_consumer_microservice --scope=client_app --docker
 
-      # Move into pruned output
       - name: Install pruned dependencies
         working-directory: ./out
         run: npm ci
@@ -76,9 +73,6 @@ jobs:
         working-directory: ./out
         run: npm run test --if-present
 
-  # ---------------------
-  #     DEPLOY SECTION
-  # ---------------------
   deploy:
     name: Deploy (CD)
     runs-on: ubuntu-latest

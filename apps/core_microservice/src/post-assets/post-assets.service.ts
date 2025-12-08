@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { NotFoundError } from '@shared/errors/domain-errors';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PostAsset } from './entities/post-asset.entity';
@@ -33,7 +34,7 @@ export class PostAssetsService {
     });
 
     if (!asset) {
-      throw new NotFoundException(
+      throw new NotFoundError(
         `Post asset (postId=${postId}, fileId=${fileId}) not found`,
       );
     }
@@ -58,7 +59,7 @@ export class PostAssetsService {
     });
 
     if (!reloaded) {
-      throw new NotFoundException(
+      throw new NotFoundError(
         `Post asset (postId=${saved.postId}, fileId=${saved.fileId}) not found after creation`,
       );
     }
@@ -77,7 +78,7 @@ export class PostAssetsService {
     const asset = await this.postAssetRepo.findOne({ where: { postId, fileId } });
 
     if (!asset) {
-      throw new NotFoundException(
+      throw new NotFoundError(
         `Post asset (postId=${postId}, fileId=${fileId}) not found`,
       );
     }

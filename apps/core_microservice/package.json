@@ -86,8 +86,8 @@
     },
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/$1",
-      "^@shared$": "<rootDir>/../../libs/shared/src",
-      "^@shared/(.*)$": "<rootDir>/../../libs/shared/src/$1"
+      "^@shared$": "<rootDir>/../../../libs/shared/src",
+      "^@shared/(.*)$": "<rootDir>/../../../libs/shared/src/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

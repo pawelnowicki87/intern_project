@@ -1,8 +1,5 @@
-import {
-  Injectable,
-  NotFoundException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
 import { ChatsRepository } from './chats.repository';
 import { ChatResponseDto } from './dto/chat-response.dto';
 import { CreateChatDto } from './dto/create-chat.dto';
@@ -15,30 +12,30 @@ export class ChatsService {
     return {
       id: chat.id,
       createdAt: chat.createdAt,
-      participants: chat.participants?.map((p) => ({
-        userId: p.user.id,
-        firstName: p.user.firstName,
-        lastName: p.user.lastName,
-        email: p.user.email,
+      participants: chat.participants?.map((participant) => ({
+        userId: participant.user.id,
+        firstName: participant.user.firstName,
+        lastName: participant.user.lastName,
+        email: participant.user.email,
       })),
-      messages: chat.messages?.map((m) => ({
-        id: m.id,
-        senderId: m.senderId,
-        receiverId: m.receiverId,
-        body: m.body,
-        createdAt: m.createdAt,
+      messages: chat.messages?.map((message) => ({
+        id: message.id,
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+        body: message.body,
+        createdAt: message.createdAt,
       })),
     };
   }
 
   async findAll(): Promise<ChatResponseDto[]> {
     const chats = await this.chatsRepo.findAll();
-    return chats.map((c) => this.toResponseDto(c));
+    return chats.map((chatItem) => this.toResponseDto(chatItem));
   }
 
   async findOne(id: number): Promise<ChatResponseDto> {
     const chat = await this.chatsRepo.findById(id);
-    if (!chat) throw new NotFoundException(`Chat ${id} not found`);
+    if (!chat) throw new NotFoundError(`Chat ${id} not found`);
     return this.toResponseDto(chat);
   }
 
@@ -46,12 +43,12 @@ export class ChatsService {
     const created = await this.chatsRepo.create(data);
 
     if (!created) {
-      throw new InternalServerErrorException('Failed to create chat');
+      throw new InternalError('Failed to create chat');
     }
 
     const chat = await this.chatsRepo.findById(created.id);
     if (!chat) {
-      throw new NotFoundException('Chat not found after creation');
+      throw new NotFoundError('Chat not found after creation');
     }
 
     return this.toResponseDto(chat);
@@ -60,7 +57,7 @@ export class ChatsService {
   async remove(id: number): Promise<{ deleted: boolean }> {
     const success = await this.chatsRepo.delete(id);
 
-    if (!success) throw new NotFoundException(`Chat ${id} not found`);
+    if (!success) throw new NotFoundError(`Chat ${id} not found`);
 
     return { deleted: true };
   }

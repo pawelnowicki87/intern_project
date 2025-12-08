@@ -3,7 +3,7 @@ import { UsersService } from '../users.service';
 import { UsersRepository } from '../users.repository';
 import { UsersCredentialRepository } from '../users-credencial.repository';
 import { VISIBILITY_READER } from '../ports/tokens';
-import { ConflictException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { ConflictError, NotFoundError, InternalError } from '@shared/errors/domain-errors';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -44,19 +44,19 @@ describe('UsersService', () => {
     service = module.get(UsersService);
   });
 
-  it('create throws ConflictException when email exists', async () => {
+  it('create throws ConflictError when email exists', async () => {
     usersRepo.findOneByEmail.mockResolvedValue({ id: 1 } as any);
     await expect(
       service.create({ firstName: 'A', lastName: 'B', email: 'e', username: 'u', passwordHash: 'p' } as any),
-    ).rejects.toBeInstanceOf(ConflictException);
+    ).rejects.toBeInstanceOf(ConflictError);
   });
 
-  it('create throws InternalServerErrorException when repository create fails', async () => {
+  it('create throws InternalError when repository create fails', async () => {
     usersRepo.findOneByEmail.mockResolvedValue(null);
     usersRepo.create.mockResolvedValue(null);
     await expect(
       service.create({ firstName: 'A', lastName: 'B', email: 'e', username: 'u', passwordHash: 'p' } as any),
-    ).rejects.toBeInstanceOf(InternalServerErrorException);
+    ).rejects.toBeInstanceOf(InternalError);
   });
 
   it('create returns response and creates credentials', async () => {
@@ -69,9 +69,9 @@ describe('UsersService', () => {
     expect(credsRepo.createForUser).toHaveBeenCalledWith(10, 'p');
   });
 
-  it('findOneVisible throws NotFound when user missing', async () => {
+  it('findOneVisible throws NotFoundError when user missing', async () => {
     usersRepo.findById.mockResolvedValue(null);
-    await expect(service.findOneVisible(1, 2)).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findOneVisible(1, 2)).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('findOneVisible returns hidden dto when cannot view', async () => {
@@ -94,9 +94,9 @@ describe('UsersService', () => {
     expect(res).toMatchObject({ id: 3, firstName: 'X' });
   });
 
-  it('update throws NotFound when missing', async () => {
+  it('update throws NotFoundError when missing', async () => {
     usersRepo.update.mockResolvedValue(null);
-    await expect(service.update(3, { firstName: 'X' } as any)).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.update(3, { firstName: 'X' } as any)).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('remove returns deleted true', async () => {
@@ -105,9 +105,9 @@ describe('UsersService', () => {
     expect(res).toEqual({ deleted: true });
   });
 
-  it('remove throws NotFound when not deleted', async () => {
+  it('remove throws NotFoundError when not deleted', async () => {
     usersRepo.delete.mockResolvedValue(false);
-    await expect(service.remove(5)).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.remove(5)).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('findByEmailForAuth returns data', async () => {
@@ -119,13 +119,13 @@ describe('UsersService', () => {
 
   it('findByEmailForAuth throws when user missing', async () => {
     usersRepo.findOneByEmail.mockResolvedValue(null);
-    await expect(service.findByEmailForAuth('e')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findByEmailForAuth('e')).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('findByEmailForAuth throws when password missing', async () => {
     usersRepo.findOneByEmail.mockResolvedValue({ id: 7, email: 'e' } as any);
     credsRepo.getPasswordByUserId.mockResolvedValue(null);
-    await expect(service.findByEmailForAuth('e')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findByEmailForAuth('e')).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('updateCredentials updates password and refresh', async () => {
@@ -151,4 +151,3 @@ describe('UsersService', () => {
     expect(res).toMatchObject({ id: 1, email: 'e' });
   });
 });
-

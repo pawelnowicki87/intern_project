@@ -1,11 +1,5 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  InternalServerErrorException,
-  Logger,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { NotFoundError, ConflictError, InternalError } from '@shared/errors/domain-errors';
 
 import { UsersRepository } from './users.repository';
 import { UsersCredentialRepository } from './users-credencial.repository';
@@ -76,7 +70,7 @@ export class UsersService {
 
   async findOneVisible(viewerId: number, ownerId: number) {
     const user = await this.usersRepository.findById(ownerId);
-    if (!user) throw new NotFoundException(`User with ID ${ownerId} not found`);
+    if (!user) throw new NotFoundError(`User with ID ${ownerId} not found`);
 
     const canView = await this.visibilityReader.canViewProfile(viewerId, ownerId);
 
@@ -94,7 +88,7 @@ export class UsersService {
 
   async create(data: CreateUserDto & { passwordHash: string }): Promise<UserResponseDto> {
     const exists = await this.usersRepository.findOneByEmail(data.email);
-    if (exists) throw new ConflictException('Email is already in use');
+    if (exists) throw new ConflictError('Email is already in use');
 
     const user = await this.usersRepository.create({
       firstName: data.firstName,
@@ -104,7 +98,7 @@ export class UsersService {
       phone: data.phone,
     });
 
-    if (!user) throw new InternalServerErrorException('User creation failed');
+    if (!user) throw new InternalError('User creation failed');
 
     await this.credentialsRepository.createForUser(user.id, data.passwordHash);
 
@@ -121,7 +115,7 @@ export class UsersService {
 
   async update(id: number, data: UpdateUserDto) {
     const updated = await this.usersRepository.update(id, data);
-    if (!updated) throw new NotFoundException(`User with ID ${id} not found`);
+    if (!updated) throw new NotFoundError(`User with ID ${id} not found`);
 
     return {
       id: updated.id,
@@ -136,16 +130,16 @@ export class UsersService {
 
   async remove(id: number) {
     const success = await this.usersRepository.delete(id);
-    if (!success) throw new NotFoundException(`User with ID ${id} not found`);
+    if (!success) throw new NotFoundError(`User with ID ${id} not found`);
     return { deleted: true };
   }
 
   async findByEmailForAuth(email: string) {
     const user = await this.usersRepository.findOneByEmail(email);
-    if (!user) throw new NotFoundException('Email does not exist in database');
+    if (!user) throw new NotFoundError('Email does not exist in database');
 
     const passwordHash = await this.credentialsRepository.getPasswordByUserId(user.id);
-    if (!passwordHash) throw new NotFoundException('Password does not exist');
+    if (!passwordHash) throw new NotFoundError('Password does not exist');
 
     return {
       id: user.id,

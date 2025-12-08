@@ -1,8 +1,5 @@
-import {
-  Injectable,
-  NotFoundException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
 import { LikesPostsRepository } from './likes-posts.repository';
 import { CreateLikePostDto } from './dto/create-like-post.dto';
 import { LikePostResponseDto } from './dto/like-post-response.dto';
@@ -29,7 +26,7 @@ export class LikesPostsService {
 
   async findOne(userId: number, postId: number): Promise<LikePostResponseDto> {
     const like = await this.likesRepo.findOne(userId, postId);
-    if (!like) throw new NotFoundException('Like not found');
+    if (!like) throw new NotFoundError('Like not found');
     return this.toResponseDto(like);
   }
 
@@ -37,12 +34,12 @@ export class LikesPostsService {
     const created = await this.likesRepo.create(data);
 
     if (!created) {
-      throw new InternalServerErrorException('Failed to create like');
+      throw new InternalError('Failed to create like');
     }
 
     const like = await this.likesRepo.findOne(created.userId, created.postId);
     if (!like) {
-      throw new NotFoundException('Like not found after creation');
+      throw new NotFoundError('Like not found after creation');
     }
 
     return this.toResponseDto(like);
@@ -50,19 +47,19 @@ export class LikesPostsService {
 
   async remove(userId: number, postId: number): Promise<{ deleted: boolean }> {
     const success = await this.likesRepo.delete(userId, postId);
-    if (!success) throw new NotFoundException('Like not found');
+    if (!success) throw new NotFoundError('Like not found');
 
     return { deleted: true };
   }
 
   async toggleLike(userId: number, postId: number): Promise<{ liked: boolean }> {
-    const exist = await this.likesRepo.findOne(userId, postId);
+    const existingLike = await this.likesRepo.findOne(userId, postId);
 
-    if (exist) {
+    if (existingLike) {
       const success = await this.likesRepo.delete(userId, postId);
 
       if (!success) {
-        throw new InternalServerErrorException('Faild to remove like')
+        throw new InternalError('Faild to remove like')
       }
 
       return { liked: false }
@@ -70,7 +67,7 @@ export class LikesPostsService {
 
     const created = await this.likesRepo.create({ userId, postId });
     if (!created) {
-      throw new InternalServerErrorException('Faild to create like')
+      throw new InternalError('Faild to create like')
     }
 
     return { liked: true }
@@ -80,7 +77,7 @@ export class LikesPostsService {
     const likes = await this.likesRepo.findByPostId(postId);
 
     if(!likes) {
-      throw new InternalServerErrorException('Failed to count likes')
+      throw new InternalError('Failed to count likes')
     }
 
     return likes.map(like => this.toResponseDto(like))

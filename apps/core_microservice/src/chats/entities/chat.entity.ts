@@ -15,9 +15,9 @@ export class Chat {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @OneToMany(() => ChatParticipant, (p) => p.chat)
+  @OneToMany(() => ChatParticipant, (participant) => participant.chat)
   participants: ChatParticipant[];
 
-  @OneToMany(() => Message, (m) => m.chat)
+  @OneToMany(() => Message, (message) => message.chat)
   messages: Message[];
 }

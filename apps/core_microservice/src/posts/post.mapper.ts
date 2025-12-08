@@ -25,6 +25,6 @@ export class PostMapper {
   }
 
   static toResponseList(posts: Post[]): PostResponseDto[] {
-    return posts.map((p) => this.toResponseDto(p));
+    return posts.map((post) => this.toResponseDto(post));
   }
 }

@@ -1,4 +1,5 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { InternalError, NotFoundError } from '@shared/errors/domain-errors';
 import { CloudinaryConfig } from 'src/common/config/cloudinary.config';
 import { UploadApiResponse } from 'cloudinary';
 import * as streamifier from 'streamifier';
@@ -13,7 +14,7 @@ export class FilesService {
 
   async uploadImage(file: Express.Multer.File) {
     if (!file) {
-      throw new InternalServerErrorException('No file provided');
+      throw new InternalError('No file provided');
     }
 
     const cloudinary = this.cloudinaryConfig.getClient();
@@ -46,7 +47,7 @@ export class FilesService {
 
   async deleteImage(publicId: string): Promise<{ deleted: boolean}> {
     const file = await this.fileRepository.findByPublicId(publicId);
-    if (!file) throw new NotFoundException('File not found');
+    if (!file) throw new NotFoundError('File not found');
 
     const cloudinary = this.cloudinaryConfig.getClient();
     await cloudinary.uploader.destroy(publicId);

@@ -1,8 +1,5 @@
-import {
-  Injectable,
-  NotFoundException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
 import { ChatParticipantsRepository } from './chat-participants.repository';
 import { CreateChatParticipantDto } from './dto/create-chat-participant.dto';
 import { ChatParticipantResponseDto } from './dto/chat-participant-response.dto';
@@ -11,25 +8,25 @@ import { ChatParticipantResponseDto } from './dto/chat-participant-response.dto'
 export class ChatParticipantsService {
   constructor(private readonly participantsRepo: ChatParticipantsRepository) {}
 
-  private toResponseDto(p: any): ChatParticipantResponseDto {
+  private toResponseDto(participant: any): ChatParticipantResponseDto {
     return {
-      chatId: p.chatId,
-      userId: p.userId,
-      joinedAt: p.joinedAt,
-      userFirstName: p.user?.firstName,
-      userLastName: p.user?.lastName,
-      userEmail: p.user?.email,
+      chatId: participant.chatId,
+      userId: participant.userId,
+      joinedAt: participant.joinedAt,
+      userFirstName: participant.user?.firstName,
+      userLastName: participant.user?.lastName,
+      userEmail: participant.user?.email,
     };
   }
 
   async findAll(): Promise<ChatParticipantResponseDto[]> {
     const participants = await this.participantsRepo.findAll();
-    return participants.map((p) => this.toResponseDto(p));
+    return participants.map((participant) => this.toResponseDto(participant));
   }
 
   async findOne(chatId: number, userId: number): Promise<ChatParticipantResponseDto> {
     const participant = await this.participantsRepo.findOne(chatId, userId);
-    if (!participant) throw new NotFoundException('Participant not found');
+    if (!participant) throw new NotFoundError('Participant not found');
     return this.toResponseDto(participant);
   }
 
@@ -37,7 +34,7 @@ export class ChatParticipantsService {
     const created = await this.participantsRepo.create(data);
 
     if (!created) {
-      throw new InternalServerErrorException('Failed to add participant');
+      throw new InternalError('Failed to add participant');
     }
 
     const participant = await this.participantsRepo.findOne(
@@ -45,7 +42,7 @@ export class ChatParticipantsService {
       created.userId,
     );
     if (!participant) {
-      throw new NotFoundException('Participant not found after creation');
+      throw new NotFoundError('Participant not found after creation');
     }
 
     return this.toResponseDto(participant);
@@ -54,7 +51,7 @@ export class ChatParticipantsService {
   async remove(chatId: number, userId: number): Promise<{ deleted: boolean }> {
     const success = await this.participantsRepo.delete(chatId, userId);
 
-    if (!success) throw new NotFoundException('Participant not found');
+    if (!success) throw new NotFoundError('Participant not found');
 
     return { deleted: true };
   }

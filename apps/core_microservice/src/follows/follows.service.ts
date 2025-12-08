@@ -1,10 +1,5 @@
-import {
-  Injectable,
-  NotFoundException,
-  InternalServerErrorException,
-  Inject,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { NotFoundError, InternalError, ForbiddenError } from '@shared/errors/domain-errors';
 import { FollowsRepository } from './follows.repository';
 import { CreateFollowDto } from './dto/create-follow.dto';
 import { FollowResponseDto } from './dto/follow-response.dto';
@@ -25,15 +20,15 @@ export class FollowsService {
     private readonly userReader: IUsersReader,
   ) {}
 
-  private toResponseDto(f: Follow): FollowResponseDto {
+  private toResponseDto(follow: Follow): FollowResponseDto {
     return {
-      followerId: f.followerId,
-      followedId: f.followedId,
-      createdAt: f.createdAt,
-      followerFirstName: f.follower.firstName,
-      followerLastName: f.follower.lastName,
-      followedFirstName: f.followed.firstName,
-      followedLastName: f.followed.lastName,
+      followerId: follow.followerId,
+      followedId: follow.followedId,
+      createdAt: follow.createdAt,
+      followerFirstName: follow.follower.firstName,
+      followerLastName: follow.follower.lastName,
+      followedFirstName: follow.followed.firstName,
+      followedLastName: follow.followed.lastName,
     };
   }
 
@@ -56,12 +51,12 @@ export class FollowsService {
 
   async findAll(): Promise<FollowResponseDto[]> {
     const follows = await this.followsRepo.findAll();
-    return follows.map((f) => this.toResponseDto(f));
+    return follows.map((follow) => this.toResponseDto(follow));
   }
 
   async findOne(followerId: number, followedId: number): Promise<FollowResponseDto> {
     const follow = await this.followsRepo.findOne(followerId, followedId);
-    if (!follow) throw new NotFoundException('Follow relation not found');
+    if (!follow) throw new NotFoundError('Follow relation not found');
     return this.toResponseDto(follow);
   }
 
@@ -69,12 +64,12 @@ export class FollowsService {
     const created = await this.followsRepo.create(data);
 
     if (!created) {
-      throw new InternalServerErrorException('Failed to create follow relation');
+      throw new InternalError('Failed to create follow relation');
     }
 
     const user = await this.userReader.findById(created.followedId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundError('User not found');
     }
 
     if (user.isPrivate) {
@@ -108,7 +103,7 @@ export class FollowsService {
       created.followedId,
     );
     if (!follow) {
-      throw new NotFoundException('Follow relation not found after creation');
+      throw new NotFoundError('Follow relation not found after creation');
     }
 
     return this.toResponseDto(follow);
@@ -119,7 +114,7 @@ export class FollowsService {
     followedId: number,
   ): Promise<{ deleted: boolean }> {
     const success = await this.followsRepo.delete(followerId, followedId);
-    if (!success) throw new NotFoundException('Follow relation not found');
+    if (!success) throw new NotFoundError('Follow relation not found');
     return { deleted: true };
   }
 
@@ -129,7 +124,7 @@ export class FollowsService {
   ): Promise<{ accepted: boolean }> {
     const follow = await this.followsRepo.findOne(followerId, followedId);
 
-    if (!follow) throw new NotFoundException('Follow not found');
+    if (!follow) throw new NotFoundError('Follow not found');
 
     follow.status = FollowStatus.ACCEPTED;
 
@@ -151,7 +146,7 @@ export class FollowsService {
   ): Promise<{ accepted: boolean }> {
     const follow = await this.followsRepo.findOne(followerId, followedId);
 
-    if (!follow) throw new NotFoundException('Follow not found');
+    if (!follow) throw new NotFoundError('Follow not found');
 
     follow.status = FollowStatus.REJECTED;
 
@@ -173,11 +168,11 @@ export class FollowsService {
   ): Promise<FollowResponseDto[]> {
     const canView = await this.canViewFollowersList(viewerId, userId);
     if (!canView) {
-      throw new ForbiddenException('Followers list is private');
+      throw new ForbiddenError('Followers list is private');
     }
 
     const followersList = await this.followsRepo.findFollowersByUserId(userId);
-    return followersList.map((f) => this.toResponseDto(f));
+    return followersList.map((follow) => this.toResponseDto(follow));
   }
 
   async getFollowing(
@@ -186,11 +181,11 @@ export class FollowsService {
   ): Promise<FollowResponseDto[]> {
     const canView = await this.canViewFollowersList(viewerId, userId);
     if (!canView) {
-      throw new ForbiddenException('Following list is private');
+      throw new ForbiddenError('Following list is private');
     }
 
     const followingList = await this.followsRepo.findFollowingByUserId(userId);
-    return followingList.map((f) => this.toResponseDto(f));
+    return followingList.map((follow) => this.toResponseDto(follow));
   }
 
   async cancelFollowRequest(
@@ -199,16 +194,16 @@ export class FollowsService {
   ): Promise<{ cancelled: boolean }> {
     const follow = await this.followsRepo.findOne(followerId, followedId);
 
-    if (!follow) throw new NotFoundException('Follow request not found');
+    if (!follow) throw new NotFoundError('Follow request not found');
 
     if (follow.status !== FollowStatus.PENDING) {
-      throw new NotFoundException('Cannot cancel non pending follow request');
+      throw new NotFoundError('Cannot cancel non pending follow request');
     }
 
     const success = await this.followsRepo.delete(followerId, followedId);
 
     if (!success) {
-      throw new InternalServerErrorException('Fail to cancel follow request');
+      throw new InternalError('Fail to cancel follow request');
     }
 
     return { cancelled: true };

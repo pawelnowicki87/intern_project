@@ -1,8 +1,10 @@
+import 'tsconfig-paths/register';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,6 +28,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Global error mapping for domain errors
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   const PORT = process.env.AUTH_PORT || 3002;
   await app.listen(PORT, '0.0.0.0');

@@ -13,6 +13,7 @@ import {
   ConflictError,
   ValidationError,
   InternalError,
+  UnauthorizedError,
 } from '@shared/errors/domain-errors';
 
 @Catch()
@@ -27,6 +28,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     if (exception instanceof HttpException) {
       status = exception.getStatus();
+    } else if (exception instanceof UnauthorizedError) {
+      status = HttpStatus.UNAUTHORIZED;
     } else if (exception instanceof NotFoundError) {
       status = HttpStatus.NOT_FOUND;
     } else if (exception instanceof ForbiddenError) {

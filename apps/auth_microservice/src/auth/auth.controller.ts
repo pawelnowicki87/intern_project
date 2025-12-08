@@ -22,14 +22,7 @@ export class AuthController {
   @Post('register')
   async register(@Body() registerDto: RegisterDto, @Res() res: Response) {
     const { accessToken, refreshToken, user } = await this.authService.register(registerDto);
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, this.authService.getRefreshCookieOptions());
 
     return res.json({
       message: 'User registered successfully',
@@ -40,17 +33,11 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
-    const { accessToken, refreshToken } = await this.authService.login(user);
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
+    const { accessToken, refreshToken, user } = await this.authService.loginWithCredentials(
+      loginDto.email,
+      loginDto.password,
+    );
+    res.cookie('refreshToken', refreshToken, this.authService.getRefreshCookieOptions());
     return res.json({ accessToken, user });
   }
 
@@ -61,13 +48,7 @@ export class AuthController {
 
     const { accessToken, newRefreshToken } = await this.authService.refresh(refreshToken);
 
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', newRefreshToken, this.authService.getRefreshCookieOptions());
 
     return res.json({ accessToken });
   }
@@ -103,13 +84,7 @@ export class AuthController {
       email: user.email,
     });
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, this.authService.getRefreshCookieOptions());
 
     return res.json({ accessToken });
   }

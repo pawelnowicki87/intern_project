@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { UnauthorizedError } from '@shared/errors/domain-errors';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RedisService } from '../redis/redis.service';
@@ -38,18 +39,34 @@ export class AuthService {
     return { accessToken, refreshToken, user: createdUser };
   }
 
+  getRefreshCookieOptions() {
+    return {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    };
+  }
+
   async validateUser(email: string, password: string): Promise<ValidatedUserDto> {
     const user = await this.coreUsersAdapter.getUserForAuth(email);
-    if (!user || !user.passwordHash) throw new UnauthorizedException('User not found');
+    if (!user || !user.passwordHash) throw new UnauthorizedError('User not found');
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) throw new UnauthorizedException('Invalid credentials');
+    if (!isValid) throw new UnauthorizedError('Invalid credentials');
 
     return { id: user.id, email: user.email };
   }
 
   async login(user: ValidatedUserDto) {
     return this.generateTokens(user);
+  }
+
+  async loginWithCredentials(email: string, password: string) {
+    const user = await this.validateUser(email, password);
+    const tokens = await this.login(user);
+    return { ...tokens, user };
   }
 
   async refresh(refreshToken: string) {
@@ -60,7 +77,7 @@ export class AuthService {
 
       const userId = decoded.sub;
       const stored = await this.redisService.get(`refresh:${userId}`);
-      if (stored !== refreshToken) throw new UnauthorizedException('Invalid refresh token');
+      if (stored !== refreshToken) throw new UnauthorizedError('Invalid refresh token');
 
       const { accessToken, refreshToken: newRefreshToken } = await this.generateTokens({
         id: decoded.sub,
@@ -69,7 +86,7 @@ export class AuthService {
 
       return { accessToken, newRefreshToken };
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedError('Invalid or expired refresh token');
     }
   }
 

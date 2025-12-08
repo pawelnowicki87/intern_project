@@ -59,7 +59,7 @@ export class FollowsRepository {
       where: { followerId },
       select: [ 'followedId' ]
     });
-    return follows.map(f => f. followedId)
+    return follows.map((follow) => follow.followedId);
   }
 
   async updateStatus(

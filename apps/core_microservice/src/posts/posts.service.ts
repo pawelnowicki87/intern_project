@@ -1,11 +1,5 @@
-import {
-  Injectable,
-  NotFoundException,
-  InternalServerErrorException,
-  Logger,
-  Inject,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { NotFoundError, InternalError, ForbiddenError } from '@shared/errors/domain-errors';
 import { PostsRepository } from './posts.repository';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -49,20 +43,20 @@ export class PostsService {
 
   async findOne(id: number, viewerId: number): Promise<PostResponseDto> {
     const post = await this.postsRepository.findById(id);
-    if (!post) throw new NotFoundException(`Post with ID ${id} not found`);
+    if (!post) throw new NotFoundError(`Post with ID ${id} not found`);
 
     const canView = await this.canViewPost(viewerId, post);
-    if (!canView) throw new ForbiddenException('This post is private');
+    if (!canView) throw new ForbiddenError('This post is private');
 
     return PostMapper.toResponseDto(post);
   }
 
   async create(data: CreatePostDto): Promise<PostResponseDto> {
     const created = await this.postsRepository.create(data);
-    if (!created) throw new InternalServerErrorException('Post creation failed');
+    if (!created) throw new InternalError('Post creation failed');
 
     const post = await this.postsRepository.findById(created.id);
-    if (!post) throw new NotFoundException('Error fetching created post');
+    if (!post) throw new NotFoundError('Error fetching created post');
 
     await this.postMentionsReader.processMentions(data.body, post.id, data.userId);
 
@@ -71,7 +65,7 @@ export class PostsService {
 
   async update(id: number, data: UpdatePostDto): Promise<PostResponseDto> {
     const updated = await this.postsRepository.update(id, data);
-    if (!updated) throw new NotFoundException(`Post with ID ${id} not found`);
+    if (!updated) throw new NotFoundError(`Post with ID ${id} not found`);
 
     if (typeof data.body === 'string' && data.body.length > 0) {
       await this.postMentionsReader.processMentions(data.body, id, updated.userId);
@@ -81,7 +75,7 @@ export class PostsService {
 
   async remove(id: number) {
     const success = await this.postsRepository.delete(id);
-    if (!success) throw new NotFoundException(`Post with ID ${id} not found`);
+    if (!success) throw new NotFoundError(`Post with ID ${id} not found`);
     return { deleted: true };
   }
 
@@ -93,7 +87,7 @@ export class PostsService {
   async archive(id: number): Promise<PostResponseDto> {
     const archived = await this.postsRepository.archive(id);
     if (!archived)
-      throw new NotFoundException(`Post with id: ${id} cannot be found to archive`);
+      throw new NotFoundError(`Post with id: ${id} cannot be found to archive`);
 
     return PostMapper.toResponseDto(archived);
   }
@@ -101,7 +95,7 @@ export class PostsService {
   async unArchive(id: number): Promise<PostResponseDto> {
     const unArchive = await this.postsRepository.unArchive(id);
     if (!unArchive)
-      throw new NotFoundException(`Post with id: ${id} cannot be found to unarchive`);
+      throw new NotFoundError(`Post with id: ${id} cannot be found to unarchive`);
 
     return PostMapper.toResponseDto(unArchive);
   }

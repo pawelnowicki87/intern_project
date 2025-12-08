@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { NotFoundError } from '@shared/errors/domain-errors';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProfileToProfileConfiguration } from './entities/profile-to-profile-configuration.entity';
@@ -20,7 +21,7 @@ export class ProfileConfigService {
       relations: ['sourceUser', 'targetUser'],
     });
     if (!entity) {
-      throw new NotFoundException('Profile configuration not found');
+      throw new NotFoundError('Profile configuration not found');
     }
     return entity;
   }
