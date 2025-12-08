@@ -1,0 +1,132 @@
+import { Injectable } from '@nestjs/common';
+import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
+import { CommentsRepository } from './comments.repository';
+import { Inject } from '@nestjs/common';
+import { COMMENT_MENTIONS_READER } from './ports/tokens';
+import type { ICommentMentionsProcessorReader } from './ports/mentions-processor.port';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
+import { CommentResponseDto } from './dto/comment-response.dto';
+import { Comment } from './entities/comment.entity';
+
+@Injectable()
+export class CommentsService {
+  constructor(
+    private readonly commentsRepo: CommentsRepository,
+    @Inject(COMMENT_MENTIONS_READER)
+    private readonly commentMentionsReader: ICommentMentionsProcessorReader,
+  ) {}
+
+    private toResponseDto(comment: Comment): CommentResponseDto {
+    return new CommentResponseDto({
+      id: comment.id,
+      body: comment.body,
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+      parentId: comment.parentId,
+      user: {
+        id: comment.user.id,
+        firstName: comment.user.firstName,
+        lastName: comment.user.lastName,
+        email: comment.user.email,
+      },
+      post: {
+        id: comment.post.id,
+        title: comment.post.title,
+      },
+      children: [],
+    });
+  }
+
+  async findAll(): Promise<CommentResponseDto[]> {
+    const comments = await this.commentsRepo.findAll();
+    return comments.map((comment) => this.toResponseDto(comment));
+  }
+
+  async findOne(id: number): Promise<CommentResponseDto> {
+    const foundComment = await this.commentsRepo.findById(id);
+    if (!foundComment) throw new NotFoundError(`Comment ${id} not found`);
+
+    return this.toResponseDto(foundComment);
+  }
+
+  async create(data: CreateCommentDto): Promise<CommentResponseDto> {
+
+    if (data.parentId) {
+      const parent = await this.commentsRepo.findById(data.parentId);
+      if (!parent) {
+        throw new NotFoundError('Parent comment not found');
+      }
+
+      if (parent.postId !== data.postId) {
+        throw new InternalError('Parent comment belongs to a different post');
+      }
+    }
+    const created = await this.commentsRepo.create(data);
+
+    if (!created) {
+      throw new InternalError('Failed to create comment');
+    }
+
+    const createdComment = await this.commentsRepo.findById(created.id);
+    if (!createdComment) {
+      throw new NotFoundError('Comment not found after creation');
+    }
+
+    if (typeof data.body === 'string' && data.body.length > 0) {
+      await this.commentMentionsReader.processMentions(data.body, createdComment.id, data.userId);
+    }
+    return this.toResponseDto(createdComment);
+  }
+
+  async update(id: number, data: UpdateCommentDto): Promise<CommentResponseDto> {
+    const updated = await this.commentsRepo.update(id, data);
+
+    if (!updated) {
+      throw new NotFoundError(`Comment ${id} not found`);
+    }
+    
+    const freshComment = await this.commentsRepo.findById(id);
+    if (!freshComment) {
+      throw new NotFoundError(`Comment ${id} not found after update`);
+    }
+
+    if (typeof data.body === 'string' && data.body.length > 0) {
+      await this.commentMentionsReader.processMentions(data.body, id, freshComment.userId);
+    }
+
+    return this.toResponseDto(freshComment);
+  }
+
+  async remove(id: number): Promise<{ deleted: boolean }> {
+    const success = await this.commentsRepo.delete(id);
+
+    if (!success) throw new NotFoundError(`Comment ${id} not found`);
+
+    return { deleted: true };
+  }
+
+  async getCommentsTreeForPost(postId: number): Promise<CommentResponseDto[]> {
+    const comments = await this.commentsRepo.findByPostId(postId);
+
+    const responseList = comments.map((comment) => this.toResponseDto(comment));
+
+    const responsesById = new Map<number, CommentResponseDto>();
+    responseList.forEach((response) => responsesById.set(response.id, response));
+
+    const roots: CommentResponseDto[] = [];
+
+    responseList.forEach((response) => {
+      if (response.parentId) {
+        const parent = responsesById.get(response.parentId);
+        if (parent) {
+          parent.children.push(response);
+        }
+      } else {
+        roots.push(response);
+      }
+    });
+
+    return roots;
+  }
+}

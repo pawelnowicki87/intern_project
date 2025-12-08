@@ -1,8 +1,10 @@
 {
-  "projects": [
-    {
-      "name": "client_app",
-      "rootDirectory": "apps/client_app"
+  "buildCommand": "npm run build",
+  "framework": "nextjs",
+  "outputDirectory": "apps/client_app/.next",
+  "build": {
+    "env": {
+      "NEXT_PRIVATE_TARGET": "app"
     }
-  ]
+  }
 }

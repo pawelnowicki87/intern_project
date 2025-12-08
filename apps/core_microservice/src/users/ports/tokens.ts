@@ -1,0 +1,1 @@
+export const VISIBILITY_READER = Symbol('VISIBILITY_READER');

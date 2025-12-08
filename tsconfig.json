@@ -11,7 +11,7 @@
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "jsx": "preserve",
     "incremental": true,
     "plugins": [
@@ -21,11 +21,10 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/shared/*": ["./packages/shared/*"],
-      "@/types/*": ["./packages/types/*"]
+      "@shared": ["libs/shared/src"],
+      "@shared/*": ["libs/shared/src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "test-cloudinary.cjs"],
   "exclude": ["node_modules", "dist", "build", ".next"]
 }
