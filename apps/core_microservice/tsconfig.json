@@ -18,6 +18,7 @@
       "@shared": ["../../libs/shared/src"],
       "@shared/*": ["../../libs/shared/src/*"]
     },
+    "isolatedModules": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,

@@ -13,6 +13,9 @@ jobs:
   build:
     name: Build & Test Monorepo
     runs-on: ubuntu-latest
+    env:
+      TURBO_TELEMETRY_DISABLED: 1
+      DO_NOT_TRACK: 1
 
     services:
       postgres:
@@ -54,7 +57,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --workspaces
 
       - name: Build monorepo
         run: npm run build

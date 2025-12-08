@@ -15,7 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { HiddenUserDto } from './dto/hidden-user.dto';
 
-import { IVisibilityReader } from './ports/visibility-reader.port';
+import type { IVisibilityReader } from './ports/visibility-reader.port';
 import { VISIBILITY_READER } from './ports/tokens';
 
 @Injectable()

@@ -11,13 +11,13 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostResponseDto } from './dto/post-response.dto';
 import { FOLLOWS_READER, VISIBILITY_POST_READER } from './ports/tokens';
-import { IFollowsReader } from './ports/follows-reader.port';
+import type { IFollowsReader } from './ports/follows-reader.port';
 import { PostMapper } from './post.mapper';
 import { PostStatus } from './entities/post-status.enum';
 import { Post } from './entities/posts.entity';
-import { IVisibilityPostsReader } from './ports/visibility-post.reader';
+import type { IVisibilityPostsReader } from './ports/visibility-post.reader';
 import { POST_MENTIONS_READER } from './ports/tokens';
-import { IPostMentionsProcessorReader } from './ports/mentions-processor.port';
+import type { IPostMentionsProcessorReader } from './ports/mentions-processor.port';
 
 @Injectable()
 export class PostsService {

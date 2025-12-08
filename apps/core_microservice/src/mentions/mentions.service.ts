@@ -2,9 +2,10 @@ import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Mention, MentionType } from "./entity/mention.entity";
-import { USER_MENTION_READER, IUserMentionReader } from "./ports/user-mention.reader";
+import type { IUserMentionReader } from "./ports/user-mention.reader";
+import { USER_MENTION_READER } from "./ports/user-mention.reader";
 import { NOTIFICATIONS_SENDER } from "src/notifications-producer/ports/tokens";
-import { INotificationSender } from "src/notifications-producer/ports/notification-sender.port";
+import type { INotificationSender } from "src/notifications-producer/ports/notification-sender.port";
 import { NotificationAction } from "@shared/notifications/notification-action";
 
 @Injectable()

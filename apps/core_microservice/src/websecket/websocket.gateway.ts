@@ -8,11 +8,14 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { IMessageWebsocketReader, MESSAGE_WEBSOCKET_READER } from './ports/message-websocket.port';
+import type { IMessageWebsocketReader } from './ports/message-websocket.port';
+import { MESSAGE_WEBSOCKET_READER } from './ports/message-websocket.port';
 import { Inject, UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
-import { CHAT_PARTICIPANTS_WEBSOCKET, IChatParticipantsWebsocketReader } from './ports/chat-participant-websocket.port';
-import { IMessageReadWebsocketReader, MESSAGE_READ_WEBSOCKET } from './ports/message-read-websocket.port';
+import type { IChatParticipantsWebsocketReader } from './ports/chat-participant-websocket.port';
+import { CHAT_PARTICIPANTS_WEBSOCKET } from './ports/chat-participant-websocket.port';
+import type { IMessageReadWebsocketReader } from './ports/message-read-websocket.port';
+import { MESSAGE_READ_WEBSOCKET } from './ports/message-read-websocket.port';
 
 @WebSocketGateway({
   cors: { origin: '*' },

@@ -6,7 +6,7 @@ import {
 import { CommentsRepository } from './comments.repository';
 import { Inject } from '@nestjs/common';
 import { COMMENT_MENTIONS_READER } from './ports/tokens';
-import { ICommentMentionsProcessorReader } from './ports/mentions-processor.port';
+import type { ICommentMentionsProcessorReader } from './ports/mentions-processor.port';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';

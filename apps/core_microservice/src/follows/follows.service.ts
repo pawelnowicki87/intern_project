@@ -11,9 +11,9 @@ import { FollowResponseDto } from './dto/follow-response.dto';
 import { Follow, FollowStatus } from './entities/follow.entity';
 import { USERS_READER } from './ports/tokens';
 import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
-import { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
+import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
 import { NotificationAction } from '@shared/notifications/notification-action';
-import { IUsersReader } from './ports/users-reader.port';
+import type { IUsersReader } from './ports/users-reader.port';
 
 @Injectable()
 export class FollowsService {
