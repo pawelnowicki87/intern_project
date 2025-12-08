@@ -15,12 +15,12 @@ export class MessagesService {
 
   constructor(private readonly messagesRepo: MessagesRepository) {}
 
-  private toResponseDto(message): MessageResponseDto {
+  public toResponseDto(message): MessageResponseDto {
     return {
       id: message.id,
       senderId: message.senderId,
       receiverId: message.receiverId,
-      title: message.title,
+      chatId: message.chatId,
       body: message.body,
       isRead: message.isRead,
       createdAt: message.createdAt,

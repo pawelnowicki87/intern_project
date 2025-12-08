@@ -19,6 +19,7 @@ import { UsersModule } from './users/users.module';
 import { ProfileConfigModule } from './profile-config/profile-config.module';
 import { dataSource } from './data-source';
 import { CloudinaryModule } from './common/config/cloudinary.module';
+import { WebsocketModule } from './websecket/websocket.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { CloudinaryModule } from './common/config/cloudinary.module';
     ChatsModule,
     ChatParticipantsModule,
     ProfileConfigModule,
+    WebsocketModule
   ],
   controllers: [AppController],
   providers: [AppService],

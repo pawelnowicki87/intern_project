@@ -1,11 +1,11 @@
 import 'tsconfig-paths/register'
 import { dataSource } from '../data-source'
-import { AddMentionsAndUsername1765016767842 } from '../migrations/1765016767842-AddMentionsAndUsername'
+import { DropMessageTitle1765110000000 } from '../migrations/1765110000000-DropMessageTitle'
 
 async function run() {
   await dataSource.initialize()
   const queryRunner = dataSource.createQueryRunner()
-  await new AddMentionsAndUsername1765016767842().up(queryRunner)
+  await new DropMessageTitle1765110000000().up(queryRunner)
   await dataSource.destroy()
   console.log('Schema updated')
 }

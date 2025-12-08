@@ -7,12 +7,11 @@ export class CreateMessageDto {
 
   @IsInt()
   @IsNotEmpty({ message: 'Receiver ID is required.' })
-  receiverId: number;
+  receiverId?: number;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(100, { message: 'Title can have up to 100 characters.' })
-  title?: string;
+  @IsInt()
+  @IsNotEmpty({ message: 'Receiver ID is required.' })
+  chatId?: number;
 
   @IsOptional()
   @IsString()

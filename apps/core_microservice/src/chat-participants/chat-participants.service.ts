@@ -58,4 +58,9 @@ export class ChatParticipantsService {
 
     return { deleted: true };
   }
+
+  async isUserInChat(chatId: number, userId: number): Promise<boolean> {
+    const participant = await this.participantsRepo.findOne(chatId, userId);
+    return participant !== null;
+  }
 }

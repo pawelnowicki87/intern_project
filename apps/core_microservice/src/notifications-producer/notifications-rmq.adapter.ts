@@ -11,10 +11,6 @@ export class NotificationsRmqAdapter implements INotificationSender {
   private readonly queueName = process.env.NOTIFICATIONS_QUEUE || 'notifications';
   private readonly url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
 
-  constructor() {
-    console.log("RMQ URL USED:", this.url);
-  }
-
   private async ensureChannel(): Promise<Channel> {
     if (this.channel) return this.channel;
     try {

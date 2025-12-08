@@ -20,13 +20,10 @@ export class Message {
   senderId: number;
 
   @Column({ name: 'receiver_id', type: 'int', nullable: false })
-  receiverId: number;
+  receiverId?: number;
 
   @Column({ name: 'chat_id', type: 'int', nullable: true })
   chatId?: number;
-
-  @Column({ type: 'varchar', nullable: true })
-  title?: string;
 
   @Column({ type: 'text', nullable: true })
   body?: string;

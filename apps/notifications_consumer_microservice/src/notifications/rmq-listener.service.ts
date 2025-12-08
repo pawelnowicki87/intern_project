@@ -10,9 +10,9 @@ export class NotificationsRmqListener implements OnModuleInit {
   private readonly queueName = process.env.NOTIFICATIONS_QUEUE || 'notifications';
   private readonly url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
 
-  constructor(private readonly notificationsService: NotificationsService) {
-    console.log("RMQ URL USED BY LISTENER:", this.url);
-  }
+  constructor(
+    private readonly notificationsService: NotificationsService
+  ) {}
 
   async onModuleInit() {
     await this.init();

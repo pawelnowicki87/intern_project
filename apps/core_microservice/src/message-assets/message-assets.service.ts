@@ -22,7 +22,6 @@ export class MessageAssetsService {
       messageId,
       fileId,
       createdAt,
-      messageTitle: message?.title,
       fileUrl: file?.url,
     }));
   }
@@ -40,7 +39,6 @@ export class MessageAssetsService {
       messageId,
       fileId,
       createdAt,
-      messageTitle: message?.title,
       fileUrl: file?.url,
     };
   }
@@ -64,7 +62,6 @@ export class MessageAssetsService {
       messageId,
       fileId,
       createdAt,
-      messageTitle: message?.title,
       fileUrl: file?.url,
     };
   }
