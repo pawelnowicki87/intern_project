@@ -16,47 +16,47 @@ import { CommentAsset } from '../../comment-assets/entities/comment-asset.entity
 @Entity('comments')
 export class Comment {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @Column({ name: 'user_id', type: 'int', nullable: false })
-  userId: number;
+    userId: number;
 
   @Column({ name: 'post_id', type: 'int', nullable: false })
-  postId: number;
+    postId: number;
 
   @Column({ type: 'text', nullable: true })
-  body: string;
+    body: string;
 
   @Column({ name: 'parent_id', type: 'int', nullable: true })
-  parentId?: number;
+    parentId?: number;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+    updatedAt: Date;
 
   // relations
 
   @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+    user: User;
 
   @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
-  post: Post;
+    post: Post;
 
   @OneToMany(() => LikeComment, (likeComment) => likeComment.comment)
-  likes: LikeComment[];
+    likes: LikeComment[];
 
   @OneToMany(() => CommentAsset, (ca) => ca.comment, { cascade: true })
-  assets: CommentAsset[];
+    assets: CommentAsset[];
 
   @ManyToOne(() => Comment, (comment) => comment.children, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'parent_id' })
-  parent?: Comment;
+    parent?: Comment;
 
   @OneToMany(() => Comment, (comment) => comment.parent)
-  children?: Comment[];
+    children?: Comment[];
 }
 

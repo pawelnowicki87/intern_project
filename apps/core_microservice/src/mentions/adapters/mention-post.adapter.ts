@@ -1,7 +1,7 @@
-import { Injectable } from "@nestjs/common";
-import { MentionsService } from "../mentions.service";
-import { MentionType } from "../entity/mention.entity";
-import { IPostMentionsProcessorReader } from "src/posts/ports/mentions-processor.port";
+import { Injectable } from '@nestjs/common';
+import { MentionsService } from '../mentions.service';
+import { MentionType } from '../entity/mention.entity';
+import { IPostMentionsProcessorReader } from 'src/posts/ports/mentions-processor.port';
 
 @Injectable()
 export class MentionPostAdapter implements IPostMentionsProcessorReader {

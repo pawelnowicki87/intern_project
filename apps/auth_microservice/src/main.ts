@@ -35,7 +35,7 @@ async function bootstrap() {
   const PORT = process.env.AUTH_PORT || 3002;
   await app.listen(PORT, '0.0.0.0');
 
-  console.log('Auth_microservice is running on port', PORT);
+  console.log('Authentication Microservice is running on port', PORT);
 }
 
 bootstrap();

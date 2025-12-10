@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UnauthorizedError } from '@shared/errors/domain-errors';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +10,7 @@ import { CoreUsersAdapter } from '../adapters/core-users.adapter';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
@@ -86,6 +87,7 @@ export class AuthService {
 
       return { accessToken, newRefreshToken };
     } catch {
+      this.logger.warn('refresh_failed');
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
   }

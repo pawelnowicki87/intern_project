@@ -1,5 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { VisibilityService } from "./visibility.service";
+import { VisibilityService } from './visibility.service';
 import { UsersModule } from 'src/users/users.module';
 import { FollowsModule } from 'src/follows/follows.module';
 import { VISIBILITY_READER } from 'src/users/ports/tokens';
@@ -15,27 +15,27 @@ import { UserVisibilityReaderAdapter } from 'src/users/adapters/user-visibility.
   imports: [
     forwardRef(() => UsersModule),
     forwardRef(() => FollowsModule),
-    forwardRef(() => PostsModule)
+    forwardRef(() => PostsModule),
   ],
   providers: [VisibilityService,
     {
       provide: VISIBILITY_READER,
-      useClass: UserVisibilityReaderAdapter
+      useClass: UserVisibilityReaderAdapter,
     },
     {
       provide: VISIBILITY_POST_READER,
-      useClass: VisibilityPostAdapter
+      useClass: VisibilityPostAdapter,
     },
     {
       provide: FOLLOWS_VISIBILITY_READER,
-      useClass: FollowVisibilityAdapter
-    }
+      useClass: FollowVisibilityAdapter,
+    },
   ],
   controllers: [],
   exports: [
     VISIBILITY_READER,
-    VISIBILITY_POST_READER
-  ]
+    VISIBILITY_POST_READER,
+  ],
 })
 
 export class VisibilityModule{}

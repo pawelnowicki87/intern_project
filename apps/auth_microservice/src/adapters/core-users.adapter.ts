@@ -1,7 +1,7 @@
-import { HttpService } from "@nestjs/axios";
-import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
-import { firstValueFrom } from "rxjs";
-import { CreateUserDto } from "src/auth/dto/create-user-payload";
+import { HttpService } from '@nestjs/axios';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { firstValueFrom } from 'rxjs';
+import { CreateUserDto } from 'src/auth/dto/create-user-payload';
 
 @Injectable()
 export class CoreUsersAdapter {
@@ -17,7 +17,6 @@ export class CoreUsersAdapter {
           data,
         ),
       );
-
       return response.data;
     } catch (error) {
       this.logger.warn(
@@ -33,13 +32,15 @@ export class CoreUsersAdapter {
   async createUser(user: CreateUserDto) {
     try {
       const response = await firstValueFrom(
-        this.httpService.post(`${process.env.CORE_SERVICE_URL}/users`, user)
-      )
+        this.httpService.post(`${process.env.CORE_SERVICE_URL}/users`, user),
+      );
       return response.data;
     } 
     catch (error) {
-      this.logger.warn(`Fail to create user in core ms. Error: ${error.message}`);
-      throw new HttpException('Core ms error while creating a user', HttpStatus.BAD_GATEWAY)
+      const status = error?.response?.status ?? HttpStatus.BAD_GATEWAY;
+      const message = error?.response?.data?.message ?? error.message ?? 'Core microservice error while creating a user';
+      this.logger.warn(`Fail to create user in core ms. Error: ${message}`);
+      throw new HttpException(message, status);
     }
   }
 

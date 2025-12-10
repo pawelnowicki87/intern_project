@@ -19,62 +19,62 @@ import { UserCredentials } from './user-credencials.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @Column({ name: 'first_name', type: 'varchar', nullable: false })
-  firstName: string;
+    firstName: string;
 
   @Column({ name: 'last_name', type: 'varchar', nullable: false })
-  lastName: string;
+    lastName: string;
 
-  @Column({ name: "user_name", type: 'varchar', unique: true })
-  username: string;
+  @Column({ name: 'user_name', type: 'varchar', unique: true })
+    username: string;
 
   @Column({ type: 'varchar', unique: true, nullable: false })
-  email: string;
+    email: string;
 
   @Column({ name: 'is_private', type: 'boolean', default: false })
-  isPrivate: boolean;
+    isPrivate: boolean;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  phone?: string;
+    phone?: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+    updatedAt: Date;
 
   // relations
 
   @OneToOne(() => UserCredentials, (credentials) => credentials.user, { cascade: true })
-  credentials: UserCredentials;
+    credentials: UserCredentials;
 
   @OneToMany(() => Post, (post) => post.user)
-  posts: Post[];
+    posts: Post[];
 
   @OneToMany(() => Comment, (comment) => comment.user)
-  comments: Comment[];
+    comments: Comment[];
 
   @OneToMany(() => LikePost, (likePost) => likePost.user)
-  likedPosts: LikePost[];
+    likedPosts: LikePost[];
 
   @OneToMany(() => LikeComment, (likeComment) => likeComment.user)
-  likedComments: LikeComment[];
+    likedComments: LikeComment[];
 
   @OneToMany(() => Follow, (follow) => follow.follower)
-  following: Follow[];
+    following: Follow[];
 
   @OneToMany(() => Follow, (follow) => follow.followed)
-  followers: Follow[];
+    followers: Follow[];
 
   @OneToMany(() => Message, (message) => message.sender)
-  sentMessages: Message[];
+    sentMessages: Message[];
 
   @OneToMany(() => Message, (message) => message.receiver)
-  receivedMessages: Message[];
+    receivedMessages: Message[];
 
 
   @OneToMany(() => File, (file) => file.owner)
-  files: File[];
+    files: File[];
 }

@@ -5,21 +5,21 @@ import { Comment } from '../../comments/entities/comment.entity';
 @Entity('likes_comments')
 export class LikeComment {
   @PrimaryColumn({ name: 'user_id', type: 'int' })
-  userId: number;
+    userId: number;
 
   @PrimaryColumn({ name: 'comment_id', type: 'int' })
-  commentId: number;
+    commentId: number;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   // relations
 
   @ManyToOne(() => User, (user) => user.likedComments)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+    user: User;
 
   @ManyToOne(() => Comment, (comment) => comment.likes)
   @JoinColumn({ name: 'comment_id' })
-  comment: Comment;
+    comment: Comment;
 }

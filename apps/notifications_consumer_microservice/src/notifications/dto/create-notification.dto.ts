@@ -4,18 +4,18 @@ import { NotificationAction } from '@shared/notifications/notification-action';
 export class CreateNotificationDto {
   @IsInt()
   @IsNotEmpty()
-  recipientId: number;
+    recipientId: number;
 
   @IsInt()
   @IsNotEmpty()
-  senderId: number;
+    senderId: number;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  action: NotificationAction;
+    action: NotificationAction;
 
   @IsInt()
   @IsNotEmpty()
-  targetId: number;
+    targetId: number;
 }

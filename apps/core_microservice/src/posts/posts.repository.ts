@@ -19,11 +19,11 @@ export class PostsRepository {
     take = 10,
     skip = 0,
   ): Promise<Post[]> {
-  return this.repo.find({
-    relations: ['user'],
-    order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
-    take,
-    skip,
+    return this.repo.find({
+      relations: ['user'],
+      order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
+      take,
+      skip,
     });
   }
 
@@ -65,11 +65,11 @@ export class PostsRepository {
   }
 
   async findArchived(): Promise<Post[]> {
-      return this.repo.find({ 
-        where: { status: PostStatus.ARCHIVED},
-        relations: [ 'user' ],
-        order: { createdAt: 'DESC'}
-      })
+    return this.repo.find({ 
+      where: { status: PostStatus.ARCHIVED},
+      relations: [ 'user' ],
+      order: { createdAt: 'DESC'},
+    });
   }
 
   async archive(id: number): Promise<Post | null> {
@@ -77,18 +77,18 @@ export class PostsRepository {
       await this.repo.update(id, { status: PostStatus.ARCHIVED});
       return this.findById(id);
     } catch (error) {
-      this.logger.error(error.message)
-      return null
+      this.logger.error(error.message);
+      return null;
     }
   }
 
   async unArchive(id: number): Promise<Post | null> {
     try {
-      await this.repo.update(id, { status: PostStatus.PUBLISHED})
+      await this.repo.update(id, { status: PostStatus.PUBLISHED});
       return this.findById(id);
     } catch (error) {
-      this.logger.warn(error.message)
-      return null
+      this.logger.warn(error.message);
+      return null;
     }
   };
 
@@ -96,36 +96,36 @@ export class PostsRepository {
     allUsersIds: number[],
     sort: 'asc' | 'desc' = 'desc', 
     take = 1, 
-    skip = 10
+    skip = 10,
   ): Promise<Post[]> {
-  return this.repo.find({
-    where: { 
-      userId: In(allUsersIds),
-      status: PostStatus.PUBLISHED
-    },
-    relations: ['user'],
-    order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
-    take,
-    skip,
-  });
-} 
+    return this.repo.find({
+      where: { 
+        userId: In(allUsersIds),
+        status: PostStatus.PUBLISHED,
+      },
+      relations: ['user'],
+      order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
+      take,
+      skip,
+    });
+  } 
 
-async searchByQuery(
-  query: string,
-  sort: 'asc' | 'desc' = 'desc',
-  take = 10,
-  skip = 0,
-): Promise<Post[]> {
-  return this.repo.find({
-    where: [
-      { title: ILike(`%${query}%`), status: PostStatus.PUBLISHED },
-      { body: ILike(`%${query}%`), status: PostStatus.PUBLISHED },
-    ],
-    relations: ['user'],
-    order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
-    take,
-    skip,
-  });
-}
+  async searchByQuery(
+    query: string,
+    sort: 'asc' | 'desc' = 'desc',
+    take = 10,
+    skip = 0,
+  ): Promise<Post[]> {
+    return this.repo.find({
+      where: [
+        { title: ILike(`%${query}%`), status: PostStatus.PUBLISHED },
+        { body: ILike(`%${query}%`), status: PostStatus.PUBLISHED },
+      ],
+      relations: ['user'],
+      order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
+      take,
+      skip,
+    });
+  }
 
 }

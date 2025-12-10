@@ -1,25 +1,32 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { User } from "./user.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { User } from './user.entity';
 
-@Entity('user_credencials')
+@Entity('user_credentials')
 export class UserCredentials {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
-  @Column({name: 'password_hash', type: "varchar", nullable: false })
-  passwordHash: string;
+  @Column({ name: 'password_hash', type: 'varchar', nullable: false })
+    passwordHash: string;
 
-  @Column({ name: 'refreshtoken_hash', type: "varchar", nullable: true })
-  refreshTokenHash?: string;
+  @Column({ name: 'refreshtoken_hash', type: 'varchar', nullable: true })
+    refreshTokenHash?: string;
 
   @CreateDateColumn({ name: 'created_at'})
-  createdAt: Date;
+    createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at'})
-  updatedAt: Date;
+    updatedAt: Date;
 
-  @OneToOne(() => User, (user) => user.credentials, { onDelete: 'CASCADE'})
+  @OneToOne(() => User, (user) => user.credentials, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
-
+    user: User;
 }

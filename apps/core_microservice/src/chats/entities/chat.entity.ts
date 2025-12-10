@@ -10,14 +10,14 @@ import { Message } from '../../messages/entities/message.entity';
 @Entity('chats')
 export class Chat {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   @OneToMany(() => ChatParticipant, (participant) => participant.chat)
-  participants: ChatParticipant[];
+    participants: ChatParticipant[];
 
   @OneToMany(() => Message, (message) => message.chat)
-  messages: Message[];
+    messages: Message[];
 }

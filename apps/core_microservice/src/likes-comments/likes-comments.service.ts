@@ -59,28 +59,28 @@ export class LikesCommentsService {
     const existingLike = await this.likesRepo.findOne(userId, commentId);
     
     if (existingLike) {
-      const success = await this.likesRepo.delete(userId, commentId)
+      const success = await this.likesRepo.delete(userId, commentId);
 
       if (!success) {
-        throw new InternalError('Failed to remove like')
+        throw new InternalError('Failed to remove like');
       }
 
-      return { liked: false}
+      return { liked: false};
     }
 
-    const created = await this.likesRepo.create({ userId, commentId})
+    const created = await this.likesRepo.create({ userId, commentId});
 
     if (!created) {
-      throw new InternalError('Failed to create like')
+      throw new InternalError('Failed to create like');
     }
 
-    return { liked: true }
+    return { liked: true };
   }
 
   async getCommentLikes(commentId: number): Promise<LikeCommentResponseDto[]> {
     const likes = await this.likesRepo.findByCommentId(commentId);
 
-    return likes.map(like => this.toResponseDto(like))
+    return likes.map(like => this.toResponseDto(like));
   }
 
   async countByCommentId(commentId: number): Promise<number> {

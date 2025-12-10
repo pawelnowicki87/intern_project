@@ -51,13 +51,13 @@ export class LikesCommentsRepository {
     return this.repo.find({
       where: { commentId },
       relations: ['user', 'comment'],
-      order: { createdAt: 'DESC'}
-    })
+      order: { createdAt: 'DESC'},
+    });
   }
 
   async countByCommentId(commentId: number): Promise<number> {
     return this.repo.count({
-      where: { commentId }
-    })
+      where: { commentId },
+    });
   }
 }

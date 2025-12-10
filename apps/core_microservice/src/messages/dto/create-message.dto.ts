@@ -3,18 +3,18 @@ import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'c
 export class CreateMessageDto {
   @IsInt()
   @IsNotEmpty({ message: 'Sender ID is required.' })
-  senderId: number;
+    senderId: number;
 
   @IsInt()
   @IsNotEmpty({ message: 'Receiver ID is required.' })
-  receiverId?: number;
+    receiverId?: number;
 
   @IsInt()
   @IsNotEmpty({ message: 'Receiver ID is required.' })
-  chatId?: number;
+    chatId?: number;
 
   @IsOptional()
   @IsString()
   @MinLength(1, { message: 'Message body cannot be empty.' })
-  body?: string;
+    body?: string;
 }

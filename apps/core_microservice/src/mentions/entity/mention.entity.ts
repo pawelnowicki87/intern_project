@@ -1,40 +1,40 @@
-import { User } from "src/users/entities/user.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn } from "typeorm";
+import { User } from 'src/users/entities/user.entity';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn } from 'typeorm';
 
 export enum MentionType {
-  COMMENT = "COMMENT",
-  POST = "POST"
+  COMMENT = 'COMMENT',
+  POST = 'POST'
 }
 
 @Entity('mentions')
 export class Mention {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
-  id: number;
+    id: number;
 
   @Column({ name: 'source_id', type: 'int' })
-  sourceId: number;
+    sourceId: number;
 
   @Column({
     name: 'source_type',
-    type: "enum",
-    enum: MentionType
+    type: 'enum',
+    enum: MentionType,
   })
-  sourceType: MentionType;
+    sourceType: MentionType;
 
   @Column({ name: 'mentioned_user_id', type: 'int' })
-  mentionedUserId: number;
+    mentionedUserId: number;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   @Column({ name: 'created_by_user_id', type: 'int' })
-  createdByUserId: number;
+    createdByUserId: number;
 
   @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: "mentioned_user_id" })
-  mentionedUser: User;
+  @JoinColumn({ name: 'mentioned_user_id' })
+    mentionedUser: User;
 
   @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: "created_by_user_id" })
-  createdByUser: User;
+  @JoinColumn({ name: 'created_by_user_id' })
+    createdByUser: User;
 }

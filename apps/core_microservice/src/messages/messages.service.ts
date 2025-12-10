@@ -22,23 +22,23 @@ export class MessagesService {
       createdAt: message.createdAt,
       sender: message.sender
         ? {
-            firstName: message.sender.firstName,
-            lastName: message.sender.lastName,
-            email: message.sender.email,
-          }
+          firstName: message.sender.firstName,
+          lastName: message.sender.lastName,
+          email: message.sender.email,
+        }
         : undefined,
       receiver: message.receiver
         ? {
-            firstName: message.receiver.firstName,
-            lastName: message.receiver.lastName,
-            email: message.receiver.email,
-          }
+          firstName: message.receiver.firstName,
+          lastName: message.receiver.lastName,
+          email: message.receiver.email,
+        }
         : undefined,
       assets: message.assets
         ? message.assets.map((asset) => ({
-            id: asset.fileId,
-            url: asset.file?.url ?? '',
-          }))
+          id: asset.fileId,
+          url: asset.file?.url ?? '',
+        }))
         : [],
     };
   }
@@ -59,7 +59,7 @@ export class MessagesService {
     if (!created) throw new InternalError('Failed to create message');
 
     const message = await this.messagesRepo.findById(created.id);
-    if (!message) throw new NotFoundError(`Message not found after creation`);
+    if (!message) throw new NotFoundError('Message not found after creation');
 
     return this.toResponseDto(message);
   }
