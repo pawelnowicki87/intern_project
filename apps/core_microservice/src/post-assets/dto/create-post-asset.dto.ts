@@ -7,5 +7,5 @@ export class CreatePostAssetDto {
 
   @IsInt()
   @IsNotEmpty()
-  fileId: number;
+    fileId: number;
 }

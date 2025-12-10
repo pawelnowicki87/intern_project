@@ -15,13 +15,13 @@ import { CHAT_PARTICIPANTS_WEBSOCKET } from 'src/websecket/ports/chat-participan
     ChatParticipantsRepository,
     {
       provide: CHAT_PARTICIPANTS_WEBSOCKET,
-      useClass: ChatParticipantsWebsocketAdapter
-    }
+      useClass: ChatParticipantsWebsocketAdapter,
+    },
   ],
   exports: [
     ChatParticipantsService, 
     ChatParticipantsRepository,
-    CHAT_PARTICIPANTS_WEBSOCKET
+    CHAT_PARTICIPANTS_WEBSOCKET,
   ],
 })
 export class ChatParticipantsModule {}

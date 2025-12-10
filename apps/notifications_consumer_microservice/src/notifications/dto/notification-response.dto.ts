@@ -1,4 +1,4 @@
-import { NotificationAction } from "@shared/notifications/notification-action";
+import { NotificationAction } from '@shared/notifications/notification-action';
 
 export class NotificationResponseDto {
   id: number;

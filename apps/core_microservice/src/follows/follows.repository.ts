@@ -23,7 +23,7 @@ export class FollowsRepository {
 
   findOne(
     followerId: number, 
-    followedId: number
+    followedId: number,
   ): Promise<Follow | null> {
     return this.repo.findOne({
       where: { followerId, followedId },
@@ -43,7 +43,7 @@ export class FollowsRepository {
 
   async delete(
     followerId: number, 
-    followedId: number
+    followedId: number,
   ): Promise<boolean> {
     try {
       const result = await this.repo.delete({ followerId, followedId });
@@ -57,15 +57,15 @@ export class FollowsRepository {
   async findFollowedIdsByUser(followerId: number): Promise<number[]> {
     const follows = await this.repo.find({
       where: { followerId },
-      select: [ 'followedId' ]
+      select: [ 'followedId' ],
     });
     return follows.map((follow) => follow.followedId);
   }
 
   async updateStatus(
-  followerId: number,
-  followedId: number,
-  status: FollowStatus,
+    followerId: number,
+    followedId: number,
+    status: FollowStatus,
   ): Promise<boolean> {
     try {
       const result = await this.repo.update(
@@ -83,22 +83,22 @@ export class FollowsRepository {
     return await this.repo.find({
       where: { 
         followedId: userId,
-        status: FollowStatus.ACCEPTED
+        status: FollowStatus.ACCEPTED,
       },
       relations: ['follower', 'followed'],
-      order: { createdAt: 'DESC'}
-    })
+      order: { createdAt: 'DESC'},
+    });
   }
 
   async findFollowingByUserId(userId: number): Promise<Follow[]> {
-  return this.repo.find({
-    where: { 
-      followerId: userId,
-      status: FollowStatus.ACCEPTED
-    },
-    relations: ['follower', 'followed'],
-    order: { createdAt: 'DESC' },
-  });
-}
+    return this.repo.find({
+      where: { 
+        followerId: userId,
+        status: FollowStatus.ACCEPTED,
+      },
+      relations: ['follower', 'followed'],
+      order: { createdAt: 'DESC' },
+    });
+  }
 
 }

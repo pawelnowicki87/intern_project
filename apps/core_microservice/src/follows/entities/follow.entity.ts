@@ -10,30 +10,30 @@ export enum FollowStatus {
 @Entity('follows')
 export class Follow {
   @PrimaryColumn({ name: 'follower_id', type: 'int' })
-  followerId: number;
+    followerId: number;
 
   @PrimaryColumn({ name: 'followed_id', type: 'int' })
-  followedId: number;
+    followedId: number;
 
   @Column({ type: 'enum', enum: FollowStatus, default: FollowStatus.ACCEPTED })
-  status: FollowStatus;
+    status: FollowStatus;
 
   @Column({ name: 'approved_at', type: 'timestamp', nullable: true })
-  approvedAt?: Date;
+    approvedAt?: Date;
 
   @Column({ name: 'rejected_at', type: 'timestamp', nullable: true })
-  rejectedAt?: Date;
+    rejectedAt?: Date;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   // relations
 
   @ManyToOne(() => User, (user) => user.following)
   @JoinColumn({ name: 'follower_id' })
-  follower: User;
+    follower: User;
 
   @ManyToOne(() => User, (user) => user.followers)
   @JoinColumn({ name: 'followed_id' })
-  followed: User;
+    followed: User;
 }

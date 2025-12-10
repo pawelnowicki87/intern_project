@@ -3,18 +3,18 @@ import { isIn, IsInt, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-
 export class CreateCommentDto {
   @IsInt()
   @IsNotEmpty({ message: 'User ID is required.' })
-  userId: number;
+    userId: number;
 
   @IsInt()
   @IsNotEmpty({ message: 'Post ID is required.' })
-  postId: number;
+    postId: number;
 
   @IsOptional()
   @IsInt()
-  parentId?: number;
+    parentId?: number;
 
   @IsOptional()
   @IsString()
   @MinLength(1, { message: 'Comment body must have at least 1 character.' })
-  body: string;
+    body: string;
 }

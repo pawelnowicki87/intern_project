@@ -16,7 +16,7 @@ export class FileRepository {
     return this.repo.save(file);
   }
 
-    async findByPublicId(publicId: string) {
+  async findByPublicId(publicId: string) {
     return this.repo.findOne({ where: { publicId } });
   }
 

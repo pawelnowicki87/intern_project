@@ -45,6 +45,6 @@ export class LikesPostsController {
 
   @Get('post/:postId/count')
   getPostLikesCount(@Param('postId') postId: number): Promise<number> {
-    return this.likesPostsService.countByPostId(postId)
+    return this.likesPostsService.countByPostId(postId);
   }
 }

@@ -48,7 +48,7 @@ import { WebsocketModule } from './websecket/websocket.module';
     ChatsModule,
     ChatParticipantsModule,
     ProfileConfigModule,
-    WebsocketModule
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

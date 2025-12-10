@@ -34,7 +34,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   ) {}
 
   @WebSocketServer()
-  server: Server;
+    server: Server;
 
   handleConnection(client: Socket) {
     console.log('Client connected:', client.id);
@@ -52,7 +52,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('join_room')
   async handleJoinRoom(
     @MessageBody() body: { chatId: number },
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: Socket,
   ) {
     const userId = client.data.userId;
 
@@ -71,7 +71,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('send_message')
   async handleSendMessage(
     @MessageBody() body: { chatId: number; receiverId: number; text: string },
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: Socket,
   ) {
     const userId = client.data.userId;
 
@@ -99,7 +99,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('message_read')
   async handleMessageRead(
     @MessageBody() body: { messageId: number; chatId: number },
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: Socket,
   ) {
     const userId = client.data.userId;
 
@@ -123,7 +123,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('typing')
   async handleTyping(
     @MessageBody() body: { chatId: number },
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: Socket,
   ) {
     const userId = client.data.userId;
 
@@ -137,7 +137,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('stop_typing')
   async handleStopTyping(
     @MessageBody() body: { chatId: number },
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: Socket,
   ) {
     const userId = client.data.userId;
 

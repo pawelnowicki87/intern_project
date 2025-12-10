@@ -17,19 +17,19 @@ export class UsersRepository {
   }
 
   async findOneByUserName(username: string): Promise<User | null> {
-    return this.repo.findOne({ where: { username }})
+    return this.repo.findOne({ where: { username }});
   }
 
   async findMany(): Promise<User[]> {
     return this.repo.find();
   }
 
-async findById(id: number, relations: string[] = []): Promise<User | null> {
-  return this.repo.findOne({
-    where: { id },
-    relations,
-  });
-}
+  async findById(id: number, relations: string[] = []): Promise<User | null> {
+    return this.repo.findOne({
+      where: { id },
+      relations,
+    });
+  }
 
   async create(data: Partial<User>): Promise<User | null> {
     try {
@@ -57,6 +57,6 @@ async findById(id: number, relations: string[] = []): Promise<User | null> {
   }
 
   async save(user: User): Promise<User> {
-  return this.repo.save(user);
-}
+    return this.repo.save(user);
+  }
 }

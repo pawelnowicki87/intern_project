@@ -3,27 +3,27 @@ import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength } from 
 export class RegisterDto {
   @IsNotEmpty()
   @IsString()
-  firstName: string;
+    firstName: string;
 
   @IsNotEmpty()
   @IsString()
-  lastName: string;
+    lastName: string;
 
   @IsNotEmpty()
   @IsString()
-  username: string;
+    username: string;
 
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+    email: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  phone?: string;
+    phone?: string;
 
   @IsNotEmpty()
   @IsString()
   @MinLength(8)
-  password: string;
+    password: string;
 }

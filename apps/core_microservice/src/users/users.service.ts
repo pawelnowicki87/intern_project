@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { NotFoundError, ConflictError, InternalError } from '@shared/errors/domain-errors';
 
 import { UsersRepository } from './users.repository';
@@ -14,7 +14,6 @@ import { VISIBILITY_READER } from './ports/tokens';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name);
 
   constructor(
     private readonly usersRepository: UsersRepository,
@@ -76,19 +75,21 @@ export class UsersService {
 
     return canView
       ? {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          phone: user.phone,
-          isPrivate: user.isPrivate,
-        }
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        isPrivate: user.isPrivate,
+      }
       : this.toHiddenUserDto(user);
   }
 
   async create(data: CreateUserDto & { passwordHash: string }): Promise<UserResponseDto> {
     const exists = await this.usersRepository.findOneByEmail(data.email);
     if (exists) throw new ConflictError('Email is already in use');
+    const usernameExists = await this.usersRepository.findOneByUserName(data.username);
+    if (usernameExists) throw new ConflictError('Username is already in use');
 
     const user = await this.usersRepository.create({
       firstName: data.firstName,

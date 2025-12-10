@@ -11,19 +11,19 @@ import {
 @Entity('comment_assets')
 export class CommentAsset {
   @PrimaryColumn({ name: 'comment_id', type: 'int' })
-  commentId: number;
+    commentId: number;
 
   @PrimaryColumn({ name: 'file_id', type: 'int' })
-  fileId: number;
+    fileId: number;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   @ManyToOne(() => Comment, (comment) => comment.assets, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'comment_id' })
-  comment: Comment;
+    comment: Comment;
 
   @ManyToOne(() => File, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'file_id' })
-  file: File;
+    file: File;
 }

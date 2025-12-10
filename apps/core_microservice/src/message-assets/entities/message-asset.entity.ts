@@ -5,19 +5,19 @@ import { File } from '../../files/entities/file.entity';
 @Entity('message_assets')
 export class MessageAsset {
   @PrimaryColumn({ name: 'message_id', type: 'int' })
-  messageId: number;
+    messageId: number;
 
   @PrimaryColumn({ name: 'file_id', type: 'int' })
-  fileId: number;
+    fileId: number;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   @ManyToOne(() => Message, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'message_id' })
-  message: Message;
+    message: Message;
 
   @ManyToOne(() => File, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'file_id' })
-  file: File;
+    file: File;
 }

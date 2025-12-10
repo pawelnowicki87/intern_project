@@ -5,20 +5,20 @@ import { File } from '../../files/entities/file.entity';
 @Entity('post_assets')
 export class PostAsset {
   @PrimaryColumn({ name: 'post_id', type: 'int' })
-  postId: number;
+    postId: number;
 
   @PrimaryColumn({ name: 'file_id', type: 'int' })
-  fileId: number;
+    fileId: number;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   @ManyToOne(() => Post, (post) => post.assets, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
-  post: Post;
+    post: Post;
 
   @ManyToOne(() => File, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'file_id' })
-  file: File;
+    file: File;
 }
 

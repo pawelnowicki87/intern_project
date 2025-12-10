@@ -23,7 +23,8 @@ export class UsersController {
     @Param('id') id: number,
     @Body() data: { refreshTokenHash?: string; passwordHash?: string },
   ) {
-    return this.usersService.updateCredentials(id, data);
+    const response = this.usersService.updateCredentials(id, data);
+    return response;
   }
 
   @Get()

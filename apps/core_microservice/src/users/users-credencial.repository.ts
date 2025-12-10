@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { UserCredentials } from "./entities/user-credencials.entity";
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserCredentials } from './entities/user-credencials.entity';
 
 @Injectable()
 export class UsersCredentialRepository {
+  private readonly logger = new Logger(UsersCredentialRepository.name);
 
   constructor(
     @InjectRepository(UserCredentials)
@@ -17,33 +18,38 @@ export class UsersCredentialRepository {
         passwordHash,
         user: { id: userId },
       });
-      return await this.repo.save(entry);
-    } catch {
-      throw new InternalServerErrorException("Failed to create user credentials");
+      const saved = await this.repo.save(entry);
+      return saved;
+    } catch (e: any) {
+      this.logger.error(e?.message ?? String(e));
+      throw new InternalServerErrorException('Failed to create user credentials');
     }
   }
 
   async updatePassword(userId: number, passwordHash: string): Promise<void> {
     const result = await this.repo.update({ user: { id: userId } }, { passwordHash });
     if (!result.affected) {
-      throw new InternalServerErrorException("Failed to update password");
+      this.logger.error('No rows affected when updating password');
+      throw new InternalServerErrorException('Failed to update password');
     }
   }
 
   async updateRefreshToken(userId: number, refreshTokenHash: string): Promise<void> {
     const result = await this.repo.update({ user: { id: userId } }, { refreshTokenHash });
     if (!result.affected) {
-      throw new InternalServerErrorException("Failed to update refresh token");
+      this.logger.error('No rows affected when updating refresh token');
+      throw new InternalServerErrorException('Failed to update refresh token');
     }
   }
 
-    async getPasswordByUserId(userId: number): Promise<string | null> {
-    const creds = await this.repo.createQueryBuilder("cred")
-        .select("cred.passwordHash", "passwordHash")
-        .where("cred.user_id = :id", { id: userId })
-        .getRawOne();
-
-    return creds?.passwordHash ?? null;
-    }
+  async getPasswordByUserId(userId: number): Promise<string | null> {
+    const raw = await this.repo
+      .createQueryBuilder('cred')
+      .select('cred.passwordHash', 'passwordHash')
+      .where('cred.user_id = :id', { id: userId })
+      .getRawOne<{ passwordHash?: string }>();
+    const pwd = raw?.passwordHash ?? null;
+    return pwd;
+  }
 
 }

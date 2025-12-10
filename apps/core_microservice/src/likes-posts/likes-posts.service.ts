@@ -59,28 +59,28 @@ export class LikesPostsService {
       const success = await this.likesRepo.delete(userId, postId);
 
       if (!success) {
-        throw new InternalError('Faild to remove like')
+        throw new InternalError('Faild to remove like');
       }
 
-      return { liked: false }
+      return { liked: false };
     }
 
     const created = await this.likesRepo.create({ userId, postId });
     if (!created) {
-      throw new InternalError('Faild to create like')
+      throw new InternalError('Faild to create like');
     }
 
-    return { liked: true }
+    return { liked: true };
   }
 
   async getPostLikes(postId: number): Promise<LikePostResponseDto[] | null> {
     const likes = await this.likesRepo.findByPostId(postId);
 
     if(!likes) {
-      throw new InternalError('Failed to count likes')
+      throw new InternalError('Failed to count likes');
     }
 
-    return likes.map(like => this.toResponseDto(like))
+    return likes.map(like => this.toResponseDto(like));
   }
 
   async countByPostId(postId: number): Promise<number> {

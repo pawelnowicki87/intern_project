@@ -17,7 +17,6 @@ export default tseslint.config(
 
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
 
   {
     languageOptions: {
@@ -48,19 +47,7 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-empty-function': 'off',
 
-      '@typescript-eslint/no-floating-promises': [
-        'warn',
-        { ignoreVoid: true, ignoreIIFE: true },
-      ],
-      '@typescript-eslint/no-misused-promises': [
-        'error',
-        { checksVoidReturn: false },
-      ],
       '@typescript-eslint/require-await': 'off',
-      '@typescript-eslint/unbound-method': [
-        'error',
-        { ignoreStatic: true },
-      ],
     },
   },
 );

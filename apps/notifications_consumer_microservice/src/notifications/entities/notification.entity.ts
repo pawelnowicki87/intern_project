@@ -4,23 +4,23 @@ import { NotificationAction } from '@shared/notifications/notification-action';
 @Entity('notifications')
 export class Notification {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @Column({ name: 'recipient_id', type: 'int', nullable: false })
-  recipientId: number;
+    recipientId: number;
 
   @Column({ name: 'sender_id', type: 'int', nullable: false })
-  senderId: number;
+    senderId: number;
 
   @Column({ type: 'varchar', nullable: false })
-  action: NotificationAction;
+    action: NotificationAction;
 
   @Column({ name: 'target_id', type: 'int', nullable: false })
-  targetId: number;
+    targetId: number;
 
   @Column({ name: 'is_read', type: 'boolean', default: false })
-  isRead: boolean;
+    isRead: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 }

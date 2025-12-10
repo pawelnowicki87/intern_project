@@ -55,7 +55,7 @@ export class PostsController {
 
   @Get('archive')
   findArchived(): Promise<PostResponseDto[]> {
-    return this.postsService.findArchived()
+    return this.postsService.findArchived();
   }
 
   @Patch(':id/archive') 
@@ -70,10 +70,10 @@ export class PostsController {
 
   @Get('feed/:userId')
   findFeed(
-    @Param('userId', ParseIntPipe) userId: Number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Query('sort') sort: 'asc' | 'desc' = 'desc',
     @Query('pare') page = 1,
-    @Query('limit') limit = 10
+    @Query('limit') limit = 10,
   ): Promise<PostResponseDto[]> {
     return this.postsService.findFeedForUser(Number(userId), sort, Number(page), Number(limit));
   }

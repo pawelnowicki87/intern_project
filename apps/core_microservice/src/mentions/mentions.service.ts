@@ -1,12 +1,12 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Mention, MentionType } from "./entity/mention.entity";
-import type { IUserMentionReader } from "./ports/user-mention.reader";
-import { USER_MENTION_READER } from "./ports/user-mention.reader";
-import { NOTIFICATIONS_SENDER } from "src/notifications-producer/ports/tokens";
-import type { INotificationSender } from "src/notifications-producer/ports/notification-sender.port";
-import { NotificationAction } from "@shared/notifications/notification-action";
+import { Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Mention, MentionType } from './entity/mention.entity';
+import type { IUserMentionReader } from './ports/user-mention.reader';
+import { USER_MENTION_READER } from './ports/user-mention.reader';
+import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
+import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
+import { NotificationAction } from '@shared/notifications/notification-action';
 
 @Injectable()
 export class MentionsService {
@@ -18,7 +18,7 @@ export class MentionsService {
     private readonly userReader: IUserMentionReader,
 
     @Inject(NOTIFICATIONS_SENDER)
-    private readonly notificationSender: INotificationSender
+    private readonly notificationSender: INotificationSender,
   ) {}
 
   private extractUsernames(text: string): string[] {
@@ -30,7 +30,7 @@ export class MentionsService {
     text: string,
     sourceId: number,
     sourceType: MentionType,
-    createdByUserId: number
+    createdByUserId: number,
   ) {
     const usernames = this.extractUsernames(text);
 
@@ -43,7 +43,7 @@ export class MentionsService {
         sourceId,
         sourceType,
         mentionedUserId: user.id,
-        createdByUserId
+        createdByUserId,
       });
 
       await this.repo.save(mention);
@@ -56,7 +56,7 @@ export class MentionsService {
         user.id,
         createdByUserId,
         action,
-        sourceId
+        sourceId,
       );
     }
   }

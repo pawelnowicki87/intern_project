@@ -1,6 +1,6 @@
-import { IVisibilityPostsReader } from "src/posts/ports/visibility-post.reader";
-import { VisibilityService } from "../visibility.service";
-import { Injectable } from "@nestjs/common";
+import { IVisibilityPostsReader } from 'src/posts/ports/visibility-post.reader';
+import { VisibilityService } from '../visibility.service';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class VisibilityPostAdapter implements IVisibilityPostsReader {

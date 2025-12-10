@@ -17,7 +17,7 @@ export class CommentsService {
     private readonly commentMentionsReader: ICommentMentionsProcessorReader,
   ) {}
 
-    private toResponseDto(comment: Comment): CommentResponseDto {
+  private toResponseDto(comment: Comment): CommentResponseDto {
     return new CommentResponseDto({
       id: comment.id,
       body: comment.body,

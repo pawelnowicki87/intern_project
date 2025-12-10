@@ -13,7 +13,7 @@ import { FOLLOWS_VISIBILITY_READER } from 'src/visibility/port/tokens';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Follow]), 
-    forwardRef(() => UsersModule)
+    forwardRef(() => UsersModule),
   ],
   controllers: [FollowsController],
   providers: [
@@ -22,17 +22,17 @@ import { FOLLOWS_VISIBILITY_READER } from 'src/visibility/port/tokens';
     FollowsReaderAdapter,
     {
       provide: FOLLOWS_READER,
-      useClass: FollowsReaderAdapter
+      useClass: FollowsReaderAdapter,
     },
     {
       provide: FOLLOWS_VISIBILITY_READER,
-      useClass: FollowVisibilityAdapter
-    }
+      useClass: FollowVisibilityAdapter,
+    },
   ],
   exports: [
-      FOLLOWS_READER,
-      FOLLOWS_VISIBILITY_READER,
-      FollowsRepository
+    FOLLOWS_READER,
+    FOLLOWS_VISIBILITY_READER,
+    FollowsRepository,
   ],
 })
 export class FollowsModule {}

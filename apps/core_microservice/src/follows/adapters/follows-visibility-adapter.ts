@@ -1,7 +1,7 @@
-import { IFollowsVisibilityReader } from "src/visibility/port/follows-visibility-reader.port";
-import { FollowsRepository } from "../follows.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { FollowStatus } from "../entities/follow.entity";
+import { IFollowsVisibilityReader } from 'src/visibility/port/follows-visibility-reader.port';
+import { FollowsRepository } from '../follows.repository';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { FollowStatus } from '../entities/follow.entity';
 
 @Injectable()
 export class FollowVisibilityAdapter implements IFollowsVisibilityReader {

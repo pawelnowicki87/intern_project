@@ -5,5 +5,5 @@ import { IsBoolean, IsOptional } from 'class-validator';
 export class UpdateNotificationDto extends PartialType(CreateNotificationDto) {
   @IsOptional()
   @IsBoolean()
-  isRead?: boolean;
+    isRead?: boolean;
 }

@@ -27,7 +27,7 @@ export class PostsService {
     private readonly visibilityPostReader: IVisibilityPostsReader,
 
     @Inject(POST_MENTIONS_READER)
-    private readonly postMentionsReader: IPostMentionsProcessorReader
+    private readonly postMentionsReader: IPostMentionsProcessorReader,
 
   ) {}
 

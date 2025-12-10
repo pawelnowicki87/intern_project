@@ -6,7 +6,7 @@ import { ChatParticipantsModule } from 'src/chat-participants/chat-participants.
 @Module({
   imports: [
     MessagesModule,
-    ChatParticipantsModule
+    ChatParticipantsModule,
   ],
   providers: [WebsocketGateway],
   exports: [WebsocketGateway],

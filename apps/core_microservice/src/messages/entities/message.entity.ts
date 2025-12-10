@@ -14,40 +14,40 @@ import { Chat } from '../../chats/entities/chat.entity';
 @Entity('messages')
 export class Message {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @Column({ name: 'sender_id', type: 'int', nullable: false })
-  senderId: number;
+    senderId: number;
 
   @Column({ name: 'receiver_id', type: 'int', nullable: false })
-  receiverId?: number;
+    receiverId?: number;
 
   @Column({ name: 'chat_id', type: 'int', nullable: true })
-  chatId?: number;
+    chatId?: number;
 
   @Column({ type: 'text', nullable: true })
-  body?: string;
+    body?: string;
 
   @Column({ name: 'is_read', type: 'boolean', default: false })
-  isRead: boolean;
+    isRead: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   // 🔗 RELATIONS
 
   @ManyToOne(() => User, (user) => user.sentMessages)
   @JoinColumn({ name: 'sender_id' })
-  sender: User;
+    sender: User;
 
   @ManyToOne(() => User, (user) => user.receivedMessages)
   @JoinColumn({ name: 'receiver_id' })
-  receiver: User;
+    receiver: User;
 
   @ManyToOne(() => Chat, (chat) => chat.messages, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'chat_id' })
-  chat?: Chat;
+    chat?: Chat;
 
   @OneToMany(() => MessageAsset, (ma) => ma.message)
-  assets: MessageAsset[];
+    assets: MessageAsset[];
 }

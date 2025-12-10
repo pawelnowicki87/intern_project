@@ -11,21 +11,21 @@ import {
 @Entity('files')
 export class File {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @Column({ type: 'varchar', nullable: false })
-  url: string;
+    url: string;
 
   @Column({ name: 'public_id', type: 'varchar', nullable: false })
-  publicId: string;
+    publicId: string;
 
   @Column({ name: 'type', type: 'varchar', nullable: true })
-  fileType?: string;
+    fileType?: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.files, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'owner_id' })
-  owner: User;
+    owner: User;
 }

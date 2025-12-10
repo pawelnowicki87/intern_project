@@ -1,4 +1,4 @@
-import { User } from "src/users/entities/user.entity";
+import { User } from 'src/users/entities/user.entity';
 
 export const USER_MENTION_READER = Symbol('USER_MENTION_READER');
 

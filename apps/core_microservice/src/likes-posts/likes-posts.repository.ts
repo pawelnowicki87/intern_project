@@ -50,13 +50,13 @@ export class LikesPostsRepository {
     return this.repo.find({
       where: { postId },
       relations: ['user', 'post'],
-      order: { createdAt: 'DESC'}
-    })
+      order: { createdAt: 'DESC'},
+    });
   }
 
   async countByPostId(postId): Promise<number> {
     return this.repo.count({
-      where: { postId }
-    })
+      where: { postId },
+    });
   }
 }

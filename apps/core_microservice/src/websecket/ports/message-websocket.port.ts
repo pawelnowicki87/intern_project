@@ -1,4 +1,4 @@
-import { MessageResponseDto } from "src/messages/dto/message-response.dto";
+import { MessageResponseDto } from 'src/messages/dto/message-response.dto';
 
 export const MESSAGE_WEBSOCKET_READER = Symbol('MESSAGE_WEBSOCKET_READER');
 
