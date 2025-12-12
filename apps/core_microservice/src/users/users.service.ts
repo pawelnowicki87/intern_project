@@ -179,9 +179,7 @@ export class UsersService {
       await this.credentialsRepository.getPasswordByUserId(user.id);
 
     if (!passwordHash || passwordHash.trim() === '') {
-      throw new ConflictError(
-        'This account does not support password login',
-      );
+      throw new NotFoundError('Password not found for this account');
     }
 
     return {
