@@ -5,8 +5,13 @@ import { clearTokens, getAccessToken, setTokens } from "../lib/auth";
 import { coreApi, authApi } from "../lib/api";
 
 interface User {
-  id: string;
+  id: number;
   email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  isPrivate: boolean;
 }
 
 interface AuthContextType {
@@ -22,6 +27,7 @@ interface AuthContextType {
     password: string;
   }) => Promise<void>;
   logout: () => void;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -36,13 +42,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
       return;
     }
-    setLoading(false);
+
+    const loadUser = async () => {
+      try {
+        const me = await authApi.get("/auth/me");
+
+        const core = await coreApi.get("/users", {
+          params: { email: me.data.email },
+        });
+
+        setUser(core.data);
+      } catch (err) {
+        clearTokens();
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
   }, []);
 
   const login = async (email: string, password: string) => {
     const res = await authApi.post("/auth/login", { email, password });
     setTokens(res.data.accessToken, res.data.refreshToken);
-    const me = await coreApi.get("/users/auth", { params: { email } });
+
+    const me = await coreApi.get("/users", { params: { email } });
+
     setUser(me.data);
   };
 
@@ -54,7 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     email: string;
     password: string;
   }) => {
-    const res = await authApi.post("/auth/register", data);
+    await authApi.post("/auth/register", data);
     await login(data.email, data.password);
   };
 
@@ -65,7 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout }}
+      value={{ user, loading, login, register, logout, setUser }}
     >
       {children}
     </AuthContext.Provider>

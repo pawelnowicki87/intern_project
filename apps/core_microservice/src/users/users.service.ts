@@ -1,24 +1,26 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { NotFoundError, ConflictError, InternalError } from '@shared/errors/domain-errors';
+import {
+  NotFoundError,
+  ConflictError,
+  InternalError,
+} from '@shared/errors/domain-errors';
 
 import { UsersRepository } from './users.repository';
 import { UsersCredentialRepository } from './users-credencial.repository';
 
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { HiddenUserDto } from './dto/hidden-user.dto';
 
 import type { IVisibilityReader } from './ports/visibility-reader.port';
 import { VISIBILITY_READER } from './ports/tokens';
+import { CreateUserWithPasswordDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: UsersCredentialRepository,
-
     @Inject(VISIBILITY_READER)
     private readonly visibilityReader: IVisibilityReader,
   ) {}
@@ -31,13 +33,21 @@ export class UsersService {
     };
   }
 
-  async updateCredentials(id: number, data: { refreshTokenHash?: string; passwordHash?: string }) {
+  async updateCredentials(
+    id: number,
+    data: { refreshTokenHash?: string; passwordHash?: string },
+  ) {
     if (data.refreshTokenHash) {
-      await this.credentialsRepository.updateRefreshToken(id, data.refreshTokenHash);
+      await this.credentialsRepository.updateRefreshToken(
+        id,
+        data.refreshTokenHash,
+      );
     }
+
     if (data.passwordHash) {
       await this.credentialsRepository.updatePassword(id, data.passwordHash);
     }
+
     return { updated: true };
   }
 
@@ -56,7 +66,8 @@ export class UsersService {
 
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.usersRepository.findMany();
-    return users.map(user => ({
+
+    return users.map((user) => ({
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
@@ -69,9 +80,14 @@ export class UsersService {
 
   async findOneVisible(viewerId: number, ownerId: number) {
     const user = await this.usersRepository.findById(ownerId);
-    if (!user) throw new NotFoundError(`User with ID ${ownerId} not found`);
+    if (!user) {
+      throw new NotFoundError(`User with ID ${ownerId} not found`);
+    }
 
-    const canView = await this.visibilityReader.canViewProfile(viewerId, ownerId);
+    const canView = await this.visibilityReader.canViewProfile(
+      viewerId,
+      ownerId,
+    );
 
     return canView
       ? {
@@ -85,11 +101,20 @@ export class UsersService {
       : this.toHiddenUserDto(user);
   }
 
-  async create(data: CreateUserDto & { passwordHash: string }): Promise<UserResponseDto> {
+  async create(
+    data: CreateUserWithPasswordDto & { passwordHash: string },
+  ): Promise<UserResponseDto> {
     const exists = await this.usersRepository.findOneByEmail(data.email);
-    if (exists) throw new ConflictError('Email is already in use');
-    const usernameExists = await this.usersRepository.findOneByUserName(data.username);
-    if (usernameExists) throw new ConflictError('Username is already in use');
+    if (exists) {
+      throw new ConflictError('Email is already in use');
+    }
+
+    const usernameExists = await this.usersRepository.findOneByUserName(
+      data.username,
+    );
+    if (usernameExists) {
+      throw new ConflictError('Username is already in use');
+    }
 
     const user = await this.usersRepository.create({
       firstName: data.firstName,
@@ -99,9 +124,14 @@ export class UsersService {
       phone: data.phone,
     });
 
-    if (!user) throw new InternalError('User creation failed');
+    if (!user) {
+      throw new InternalError('User creation failed');
+    }
 
-    await this.credentialsRepository.createForUser(user.id, data.passwordHash);
+    await this.credentialsRepository.createForUser(
+      user.id,
+      data.passwordHash,
+    );
 
     return {
       id: user.id,
@@ -116,7 +146,9 @@ export class UsersService {
 
   async update(id: number, data: UpdateUserDto) {
     const updated = await this.usersRepository.update(id, data);
-    if (!updated) throw new NotFoundError(`User with ID ${id} not found`);
+    if (!updated) {
+      throw new NotFoundError(`User with ID ${id} not found`);
+    }
 
     return {
       id: updated.id,
@@ -131,16 +163,26 @@ export class UsersService {
 
   async remove(id: number) {
     const success = await this.usersRepository.delete(id);
-    if (!success) throw new NotFoundError(`User with ID ${id} not found`);
+    if (!success) {
+      throw new NotFoundError(`User with ID ${id} not found`);
+    }
     return { deleted: true };
   }
 
   async findByEmailForAuth(email: string) {
     const user = await this.usersRepository.findOneByEmail(email);
-    if (!user) throw new NotFoundError('Email does not exist in database');
+    if (!user) {
+      throw new NotFoundError('Email does not exist in database');
+    }
 
-    const passwordHash = await this.credentialsRepository.getPasswordByUserId(user.id);
-    if (!passwordHash) throw new NotFoundError('Password does not exist');
+    const passwordHash =
+      await this.credentialsRepository.getPasswordByUserId(user.id);
+
+    if (!passwordHash || passwordHash.trim() === '') {
+      throw new ConflictError(
+        'This account does not support password login',
+      );
+    }
 
     return {
       id: user.id,
@@ -148,4 +190,55 @@ export class UsersService {
       passwordHash,
     };
   }
+
+  async createOAuthUser(data: {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    phone?: string;
+  }) {
+    const existing = await this.usersRepository.findOneByEmail(data.email);
+    if (existing) {
+      return {
+        id: existing.id,
+        firstName: existing.firstName,
+        lastName: existing.lastName,
+        username: existing.username,
+        email: existing.email,
+        phone: existing.phone,
+        isPrivate: existing.isPrivate,
+      };
+    }
+
+    const usernameExists = await this.usersRepository.findOneByUserName(
+      data.username,
+    );
+    if (usernameExists) {
+      throw new ConflictError('Username is already in use');
+    }
+
+    const user = await this.usersRepository.create({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      username: data.username,
+      email: data.email,
+      phone: data.phone,
+    });
+
+    if (!user) {
+      throw new InternalError('User creation failed');
+    }
+
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      isPrivate: user.isPrivate,
+    };
+  }
+
 }

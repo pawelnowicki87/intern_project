@@ -1,86 +1,93 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/client_app/context/AuthContext";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const registerSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Invalid email"),
+  phone: z.string().optional(),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register: registerUser } = useAuth();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [username, setUsername] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  });
 
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      await register({
-        firstName,
-        lastName,
-        username,
-        phone,
-        email,
-        password,
-      });
-
-      router.push("/");
-    } catch (err: any) {
-      setError("Registration failed");
-    }
+  const onSubmit = async (data: RegisterFormData) => {
+    await registerUser(data);
+    router.push("/");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-6 text-center">Create account</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          Create account
+        </h1>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium">First name</label>
             <input
-              type="text"
+              {...register("firstName")}
               className="w-full border p-2 rounded mt-1"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
             />
+            {errors.firstName && (
+              <p className="text-red-600 text-sm">
+                {errors.firstName.message}
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium">Last name</label>
             <input
-              type="text"
+              {...register("lastName")}
               className="w-full border p-2 rounded mt-1"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
             />
+            {errors.lastName && (
+              <p className="text-red-600 text-sm">
+                {errors.lastName.message}
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium">Username</label>
             <input
-              type="text"
+              {...register("username")}
               className="w-full border p-2 rounded mt-1"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
             />
+            {errors.username && (
+              <p className="text-red-600 text-sm">
+                {errors.username.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Phone (optional)</label>
+            <label className="block text-sm font-medium">
+              Phone (optional)
+            </label>
             <input
-              type="text"
+              {...register("phone")}
               className="w-full border p-2 rounded mt-1"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
 
@@ -88,29 +95,34 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium">Email</label>
             <input
               type="email"
+              {...register("email")}
               className="w-full border p-2 rounded mt-1"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
             />
+            {errors.email && (
+              <p className="text-red-600 text-sm">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium">Password</label>
             <input
               type="password"
+              {...register("password")}
               className="w-full border p-2 rounded mt-1"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
             />
+            {errors.password && (
+              <p className="text-red-600 text-sm">
+                {errors.password.message}
+              </p>
+            )}
           </div>
-
-          {error && (
-            <p className="text-red-600 text-sm text-center">{error}</p>
-          )}
 
           <button
             type="submit"
-            className="w-full bg-black text-white p-2 rounded"
+            disabled={isSubmitting}
+            className="w-full bg-black text-white p-2 rounded disabled:opacity-50"
           >
             Register
           </button>

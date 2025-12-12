@@ -32,7 +32,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6">
-      <h1 className="text-3xl font-bold">Hello, {user.email}</h1>
+      <h1 className="text-3xl font-bold">Hello, {user.username ?? user.email}</h1>
 
       <button
         onClick={logout}
