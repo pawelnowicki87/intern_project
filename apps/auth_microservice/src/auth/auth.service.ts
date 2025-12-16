@@ -2,7 +2,6 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UnauthorizedError } from '@shared/errors/domain-errors';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { RedisService } from '../redis/redis.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayloadDto } from './dto/jwt-payload.dto';
@@ -16,7 +15,6 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
     private readonly coreUsersAdapter: CoreUsersAdapter,
   ) {}
 
@@ -73,39 +71,67 @@ export class AuthService {
 
   async loginWithCredentials(email: string, password: string) {
     const user = await this.validateUser(email, password);
-    const tokens = await this.generateTokens(user);
-    return { ...tokens, user };
+
+    const { accessToken, refreshToken } = await this.generateTokens(user);
+
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    await this.coreUsersAdapter.updateUserCredentials(user.id, {
+      refreshTokenHash,
+    });
+
+    return { accessToken, refreshToken, user };
   }
+
 
   async refresh(refreshToken: string) {
     try {
-      const decoded = await this.jwtService.verifyAsync(refreshToken, {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
         secret: process.env.JWT_SECRET ?? 'default_secret',
       });
 
-      const userId = decoded.sub;
-      const stored = await this.redisService.get(`refresh:${userId}`);
-      if (stored !== refreshToken) {
+      const userId = payload.sub;
+
+      const user = await this.coreUsersAdapter.getUserForAuth(payload.email);
+      if (!user?.refreshTokenHash) {
+        throw new UnauthorizedError('Refresh token not found');
+      }
+
+      const isValid = await bcrypt.compare(
+        refreshToken,
+        user.refreshTokenHash,
+      );
+
+      if (!isValid) {
         throw new UnauthorizedError('Invalid refresh token');
       }
 
+      // 🔁 ROTACJA
       const { accessToken, refreshToken: newRefreshToken } =
         await this.generateTokens({
-          id: decoded.sub,
-          email: decoded.email,
+          id: userId,
+          email: payload.email,
         });
 
-      return { accessToken, newRefreshToken };
+      const newHash = await bcrypt.hash(newRefreshToken, 10);
+
+      await this.coreUsersAdapter.updateUserCredentials(userId, {
+        refreshTokenHash: newHash,
+      });
+
+      return { accessToken, refreshToken: newRefreshToken };
     } catch {
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
   }
 
-  async logout(userId: string) {
-    await this.redisService.del(`refresh:${userId}`);
+
+  async logout(userId: number) {
+    await this.coreUsersAdapter.updateUserCredentials(userId, {
+      refreshTokenHash: null,
+    });
   }
 
-  async generateTokens(user: { id: string; email: string }) {
+  async generateTokens(user: { id: number; email: string }) {
     const payload: JwtPayloadDto = { sub: user.id, email: user.email };
 
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -115,10 +141,9 @@ export class AuthService {
 
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_SECRET ?? 'default_secret',
-      expiresIn: (process.env.JWT_EXPIRES_IN ?? '15m') as JwtSignOptions['expiresIn'],
+      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ?? '7d') as JwtSignOptions['expiresIn'],
     });
 
-    await this.redisService.set(`refresh:${user.id}`, refreshToken, 7 * 24 * 3600);
     return { accessToken, refreshToken };
   }
 
@@ -142,13 +167,13 @@ export class AuthService {
       throw new UnauthorizedException('No refresh token');
     }
 
-    const { accessToken, newRefreshToken } = await this.refresh(refreshToken);
+    const { accessToken, refreshToken: newRefreshToken } = await this.refresh(refreshToken);
     res.cookie('refreshToken', newRefreshToken, this.getRefreshCookieOptions());
     return res.json({ accessToken });
   }
 
   async logoutAndClearCookies(req: any, res: Response) {
-    const userId = req.user?.sub;
+    const userId = req.user?.id;
     if (!userId) {
       throw new UnauthorizedException('Invalid user');
     }

@@ -37,12 +37,13 @@ export class UsersService {
     id: number,
     data: { refreshTokenHash?: string; passwordHash?: string },
   ) {
-    if (data.refreshTokenHash) {
+   if ('refreshTokenHash' in data) {
       await this.credentialsRepository.updateRefreshToken(
         id,
-        data.refreshTokenHash,
+        data.refreshTokenHash ?? null,
       );
     }
+
 
     if (data.passwordHash) {
       await this.credentialsRepository.updatePassword(id, data.passwordHash);
@@ -182,12 +183,17 @@ export class UsersService {
       throw new NotFoundError('Password not found for this account');
     }
 
+    const refreshTokenHash =
+      await this.credentialsRepository.getRefreshTokenByUserId(user.id);
+
     return {
       id: user.id,
       email: user.email,
       passwordHash,
+      refreshTokenHash,
     };
   }
+
 
   async createOAuthUser(data: {
     firstName: string;

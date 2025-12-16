@@ -1,4 +1,4 @@
 export interface JwtPayloadDto {
-  sub: string;
+  sub: number;
   email: string;
 }

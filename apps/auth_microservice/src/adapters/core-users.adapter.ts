@@ -11,7 +11,9 @@ export class CoreUsersAdapter {
 
   async updateUserCredentials(
     userId: number,
-    data: { refreshTokenHash?: string; passwordHash?: string },
+    data: { 
+      refreshTokenHash?: string | null; 
+      passwordHash?: string },
   ) {
     try {
       const response = await firstValueFrom(

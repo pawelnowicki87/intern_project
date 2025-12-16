@@ -1,10 +1,10 @@
-import InstagramProfile from "../components/InstagramProfile";
+import ProfilePage from "../components/profile/ProfilePage";
 import ProtectedRoute from "../components/ProtectedRoute";
 
-export default function ProfilePage() {
+export default function Page() {
   return (
     <ProtectedRoute>
-      <InstagramProfile />
+      <ProfilePage />
     </ProtectedRoute>
   );
 }
