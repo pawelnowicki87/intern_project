@@ -28,6 +28,7 @@ describe('UsersService', () => {
       updatePassword: jest.fn(),
       updateRefreshToken: jest.fn(),
       getPasswordByUserId: jest.fn(),
+      getRefreshTokenByUserId: jest.fn(),
     } as any;
 
     visibilityReader = { canViewProfile: jest.fn() };
@@ -113,8 +114,9 @@ describe('UsersService', () => {
   it('findByEmailForAuth returns data', async () => {
     usersRepo.findOneByEmail.mockResolvedValue({ id: 7, email: 'e' } as any);
     credsRepo.getPasswordByUserId.mockResolvedValue('hash');
+    credsRepo.getRefreshTokenByUserId.mockResolvedValue('refreshHash');
     const res = await service.findByEmailForAuth('e');
-    expect(res).toEqual({ id: 7, email: 'e', passwordHash: 'hash' });
+    expect(res).toEqual({ id: 7, email: 'e', passwordHash: 'hash', refreshTokenHash: 'refreshHash' });
   });
 
   it('findByEmailForAuth throws when user missing', async () => {

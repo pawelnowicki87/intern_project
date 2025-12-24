@@ -37,8 +37,6 @@ export class Post {
   @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
 
-  // ✅ RELACJE
-
   @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
     user: User;

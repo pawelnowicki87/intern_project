@@ -61,7 +61,6 @@ export class UsersService {
   }
 
   findByEmail(email: string): Promise<UserResponseDto | null> {
-    console.log(`🔎 [UsersService] findByEmail called for: ${email}`);
     return this.usersRepository.findOneByEmail(email);
   }
 
@@ -175,26 +174,21 @@ export class UsersService {
   }
 
   async findByEmailForAuth(email: string) {
-    this.logger.log(`🔎 [UsersService] findByEmailForAuth called for: ${email}`);
     const user = await this.usersRepository.findOneByEmail(email);
     if (!user) {
-      this.logger.warn(`⚠️ [UsersService] User not found by email: ${email}`);
       throw new NotFoundError('Email does not exist in database');
     }
 
-    this.logger.log(`✅ [UsersService] User found: ${user.id}, fetching credentials...`);
     const passwordHash =
       await this.credentialsRepository.getPasswordByUserId(user.id);
 
     if (!passwordHash || passwordHash.trim() === '') {
-      this.logger.warn(`⚠️ [UsersService] Password not found for user ${user.id}`);
       throw new NotFoundError('Password not found for this account');
     }
 
     const refreshTokenHash =
       await this.credentialsRepository.getRefreshTokenByUserId(user.id);
 
-    this.logger.log(`✅ [UsersService] Returning auth data for user ${user.id}`);
     return {
       id: user.id,
       email: user.email,
