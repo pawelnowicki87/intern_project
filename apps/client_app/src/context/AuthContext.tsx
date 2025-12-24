@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { clearTokens, getAccessToken, setTokens } from "../lib/auth";
-import { coreApi, authApi } from "../lib/api";
+import { createContext, useContext, useEffect, useState } from 'react';
+import { clearTokens, getAccessToken, setAccessToken } from '../lib/auth';
+import { authApi, authApiPublic, coreApi } from '../lib/api';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: number;
@@ -26,8 +27,9 @@ interface AuthContextType {
     email: string;
     password: string;
   }) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   setUser: (user: User | null) => void;
+  loginWithGoogle: (idToken: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -35,6 +37,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const router = useRouter();
 
   useEffect(() => {
     const token = getAccessToken();
@@ -45,14 +49,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const loadUser = async () => {
       try {
-        const me = await authApi.get("/auth/me");
-
-        const core = await coreApi.get("/users", {
+        const me = await authApi.get('/auth/me');
+        const core = await coreApi.get('/users', {
           params: { email: me.data.email },
         });
-
         setUser(core.data);
-      } catch (err) {
+      } catch {
         clearTokens();
         setUser(null);
       } finally {
@@ -64,13 +66,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await authApi.post("/auth/login", { email, password });
-    setTokens(res.data.accessToken, res.data.refreshToken);
+    const res = await authApiPublic.post('/auth/login', {
+      email,
+      password,
+    });
 
-    const me = await coreApi.get("/users", { params: { email } });
+    setAccessToken(res.data.accessToken);
 
-    setUser(me.data);
+    const core = await coreApi.get('/users', {
+      params: { email },
+    });
+
+    setUser(core.data);
   };
+
+  const loginWithGoogle = async (idToken: string) => {
+    try {
+      const res = await authApiPublic.post('/auth/google/token', {
+        idToken,
+      });
+
+      if (res.data.accessToken) {
+        setAccessToken(res.data.accessToken);
+      }
+
+      const core = await coreApi.get('/users', {
+        params: { email: res.data.user.email },
+      });
+
+      setUser(core.data);
+    } catch (error) {
+      console.error("Login with Google failed:", error);
+      throw error;
+    }
+  };
+
 
   const register = async (data: {
     firstName: string;
@@ -80,18 +110,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     email: string;
     password: string;
   }) => {
-    await authApi.post("/auth/register", data);
+    await authApiPublic.post('/auth/register', data);
     await login(data.email, data.password);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await authApi.post('/auth/logout');
+    } catch {}
     clearTokens();
     setUser(null);
+    router.push('/auth/login')
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, setUser }}
+      value={{ user, loading, login, loginWithGoogle, register, logout, setUser }}
     >
       {children}
     </AuthContext.Provider>
@@ -100,6 +134,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be inside AuthProvider");
+  if (!context) throw new Error('useAuth must be inside AuthProvider');
   return context;
 };

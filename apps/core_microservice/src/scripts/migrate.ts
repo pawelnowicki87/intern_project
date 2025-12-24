@@ -1,5 +1,5 @@
 import 'tsconfig-paths/register';
-import { dataSource } from '../data-source';
+import dataSource from '../data-source';
 import { DropMessageTitle1765110000000 } from '../migrations/1765110000000-DropMessageTitle';
 import { AlterUserCredentialsRefreshNullable1765372200000 } from '../migrations/1765372200000-AlterUserCredentialsRefreshNullable';
 import { RenameUserCredencialsToUserCredentials1765372400000 } from '../migrations/1765372400000-RenameUserCredencialsToUserCredentials';

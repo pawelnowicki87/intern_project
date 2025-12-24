@@ -37,13 +37,11 @@ export class AuthController {
     return this.authService.logoutAndClearCookies(req, res);
   }
 
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  async googleAuth() {}
-
-  @Get('google/redirect')
-  @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    return this.authService.googleAuthRedirect(req.user, res);
+  @Post('google/token')
+  async googleTokenLogin(
+    @Body('idToken') idToken: string,
+    @Res() res: Response,
+  ) {
+    return this.authService.loginWithGoogleToken(idToken, res);
   }
 }

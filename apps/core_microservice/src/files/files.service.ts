@@ -35,7 +35,6 @@ export class FilesService {
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
 
-    // zapis do bazy
     await this.fileRepository.createFile({
       url: uploadResult.secure_url,
       publicId: uploadResult.public_id,

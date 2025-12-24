@@ -44,10 +44,12 @@ export class UsersCredentialRepository {
     );
 
     if (!result.affected) {
-      throw new InternalServerErrorException('Failed to update refresh token');
+      await this.repo.insert({
+        user: { id: userId },
+        refreshTokenHash,
+      });
     }
   }
-
 
   async getPasswordByUserId(userId: number): Promise<string | null> {
     const raw = await this.repo

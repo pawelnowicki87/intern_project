@@ -1,208 +1,186 @@
 "use client";
 
 import { useAuth } from "@/client_app/context/AuthContext";
-import { coreApi } from "@/client_app/lib/api";
+import { useState, useEffect } from "react";
+import EditProfileHeader from "./profile/edit/EditProfileHeader";
+import ProfilePhotoSection from "./profile/edit/ProfilePhotoSection";
+import SubmitButtonSection from "./profile/edit/SubmitButtonSection";
+import Input from "./ui/Input";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { z } from "zod";
 
-const schema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  phone: z.string().optional(),
-  isPrivate: z.boolean(),
-});
-
-type FormState = {
-  firstName: string;
-  lastName: string;
-  username: string;
-  phone: string;
-  isPrivate: boolean;
-};
-
-type FormErrors = Partial<Record<keyof FormState, string>>;
-
-export default function EditProfile() {
-  const { user, loading, setUser } = useAuth();
+export default function EditProfilePage() {
+  const { user, setUser } = useAuth();
   const router = useRouter();
-
-  const [form, setForm] = useState<FormState>({
-    firstName: "",
-    lastName: "",
-    username: "",
-    phone: "",
-    isPrivate: false,
+  
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    username: '',
+    email: '',
+    phone: '',
+    isPrivate: false
   });
 
-  const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
+  // Załaduj dane użytkownika
   useEffect(() => {
-    if (!user) return;
-
-    setForm({
-      firstName: user.firstName ?? "",
-      lastName: user.lastName ?? "",
-      username: user.username ?? "",
-      phone: user.phone ?? "",
-      isPrivate: Boolean(user.isPrivate),
-    });
+    if (user) {
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        username: user.username || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        isPrivate: user.isPrivate || false
+      });
+    }
   }, [user]);
 
-  if (loading) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // Tu będzie API call do aktualizacji profilu
+      // const response = await coreApi.put('/users/me', formData);
+      
+      // Symulacja API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Aktualizuj dane w kontekście
+      if (user) {
+        setUser({
+          ...user,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          username: formData.username,
+          email: formData.email,
+          phone: formData.phone || null,
+          isPrivate: formData.isPrivate
+        });
+      }
+
+      // Przekieruj z powrotem do profilu
+      router.push('/profile');
+    } catch (err) {
+      setError('Failed to update profile. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    router.push('/profile');
+  };
+
+  if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p>Loading...</p>
       </div>
     );
   }
 
-  if (!user) {
-    router.push("/auth/login");
-    return null;
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-
-    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
-    setError("");
-  };
-
-  const validate = () => {
-    const result = schema.safeParse(form);
-
-    if (result.success) {
-      setFieldErrors({});
-      return true;
-    }
-
-    const nextErrors: FormErrors = {};
-    for (const issue of result.error.issues) {
-      const key = issue.path[0] as keyof FormState;
-      if (key) nextErrors[key] = issue.message;
-    }
-    setFieldErrors(nextErrors);
-    return false;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    const ok = validate();
-    if (!ok) return;
-
-    setSaving(true);
-    try {
-      const payload = {
-        ...form,
-        phone: form.phone.trim() === "" ? undefined : form.phone.trim(),
-      };
-
-      const res = await coreApi.patch(`/users/${user.id}`, payload);
-      setUser(res.data);
-      router.push("/profile");
-    } catch {
-      setError("Failed to update profile");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Edit profile</h1>
+    <div className="min-h-screen bg-white px-5">
+      <EditProfileHeader onCancel={handleCancel} />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <input
-            name="firstName"
-            value={form.firstName}
-            onChange={handleChange}
-            placeholder="First name"
-            className="w-full border p-2 rounded"
-          />
-          {fieldErrors.firstName && (
-            <p className="text-red-600 text-sm mt-1">{fieldErrors.firstName}</p>
-          )}
+      <main className="lg:max-w-3xl lg:mx-auto pb-8">
+        <ProfilePhotoSection username={formData.username} />
+
+        {error && (
+          <div className="px-4 md:px-8 py-3 bg-red-50 border-l-4 border-red-500">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        )}
+
+        <Input
+          label="First Name"
+          name="firstName"
+          value={formData.firstName}
+          onChange={handleChange}
+          placeholder="First Name"
+        />
+
+        <Input
+          label="Last Name"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleChange}
+          placeholder="Last Name"
+        />
+
+        <Input
+          label="Username"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          placeholder="Username"
+        />
+
+        <Input
+          label="Email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Email"
+          type="email"
+        />
+
+        <Input
+          label="Phone"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          placeholder="Phone (optional)"
+          type="tel"
+        />
+
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8 py-4 px-4 md:px-8 border-b border-gray-200">
+          <label className="font-semibold text-sm md:text-base md:w-32 flex-shrink-0 md:text-right">
+            Private Account
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              name="isPrivate"
+              checked={formData.isPrivate}
+              onChange={handleChange}
+              className="w-5 h-5 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-600">
+              Make your account private
+            </span>
+          </div>
         </div>
 
-        <div>
-          <input
-            name="lastName"
-            value={form.lastName}
-            onChange={handleChange}
-            placeholder="Last name"
-            className="w-full border p-2 rounded"
-          />
-          {fieldErrors.lastName && (
-            <p className="text-red-600 text-sm mt-1">{fieldErrors.lastName}</p>
-          )}
-        </div>
+        <SubmitButtonSection 
+          onSubmit={handleSubmit} 
+          onCancel={handleCancel}
+          loading={loading}
+        />
 
-        <div>
-          <input
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            placeholder="Username"
-            className="w-full border p-2 rounded"
-          />
-          {fieldErrors.username && (
-            <p className="text-red-600 text-sm mt-1">{fieldErrors.username}</p>
-          )}
-        </div>
-
-        <div>
-          <input
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-            placeholder="Phone"
-            className="w-full border p-2 rounded"
-          />
-          {fieldErrors.phone && (
-            <p className="text-red-600 text-sm mt-1">{fieldErrors.phone}</p>
-          )}
-        </div>
-
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="isPrivate"
-            checked={form.isPrivate}
-            onChange={handleChange}
-          />
-          Private profile
-        </label>
-
-        {error && <p className="text-red-600">{error}</p>}
-
-        <div className="flex gap-2">
-          <button
-            disabled={saving}
-            className="bg-black text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/profile")}
-            className="border px-4 py-2 rounded"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
+      </main>
     </div>
   );
 }

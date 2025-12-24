@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { setTokens } from "@/client_app/lib/auth";
 import { authApi, coreApi } from "@/client_app/lib/api";
+import { setAccessToken } from "@/client_app/lib/auth";
 import { useAuth } from "@/client_app/context/AuthContext";
 
 export default function GoogleCallbackClient() {
@@ -12,32 +12,25 @@ export default function GoogleCallbackClient() {
   const { setUser } = useAuth();
 
   useEffect(() => {
-    const accessToken = params.get("accessToken");
-
-    if (!accessToken) {
-      router.push("/auth/login");
+    const token = params.get("accessToken");
+    if (!token) {
+      router.replace("/auth/login");
       return;
     }
 
-    setTokens(accessToken, "");
+    setAccessToken(token);
 
-    async function loadUser() {
-      try {
-        const authMe = await authApi.get("/auth/me");
+    const load = async () => {
+      const me = await authApi.get("/auth/me");
+      const core = await coreApi.get("/users", {
+        params: { email: me.data.email },
+      });
+      setUser(core.data);
+      router.replace("/");
+    };
 
-        const coreRes = await coreApi.get("/users", {
-          params: { email: authMe.data.email },
-        });
-
-        setUser(coreRes.data);
-        router.push("/");
-      } catch {
-        router.push("/auth/login");
-      }
-    }
-
-    loadUser();
-  }, [params, router, setUser]);
+    load().catch(() => router.replace("/auth/login"));
+  }, []);
 
   return null;
 }

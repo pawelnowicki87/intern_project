@@ -8,6 +8,12 @@ import { JwtPayloadDto } from './dto/jwt-payload.dto';
 import { ValidatedUserDto } from './dto/validated-user.dto';
 import { CoreUsersAdapter } from '../adapters/core-users.adapter';
 import type { Response } from 'express';
+import { OAuth2Client } from 'google-auth-library';
+
+
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+);
 
 @Injectable()
 export class AuthService {
@@ -190,44 +196,54 @@ export class AuthService {
     return res.json({ message: 'Logged out' });
   }
 
-  async googleAuthRedirect(googleUser: any, res: Response) {
-    const email = googleUser.email;
-    const firstName = googleUser.given_name ?? '';
-    const lastName = googleUser.family_name ?? '';
+  async loginWithGoogleToken(idToken: string, res: Response) {
 
-    const baseUsername = (firstName + lastName)
-      .toLowerCase()
-      .replace(/\s+/g, '');
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
 
-    let username = baseUsername;
+    const payload = ticket.getPayload();
 
-    let coreUser = await this.coreUsersAdapter.getUserByEmail(email);
+    if (!payload?.email) {
+      throw new UnauthorizedException('Invalid Google token');
+    }
 
-    if (!coreUser) {
-      const existing =
-        await this.coreUsersAdapter.getUserByUsername(username);
+    const email = payload.email;
+    const firstName = payload.given_name ?? '';
+    const lastName = payload.family_name ?? '';
 
-      if (existing) {
-        username = `${baseUsername}_${Math.floor(Math.random() * 10000)}`;
-      }
+    let user = await this.coreUsersAdapter.getUserByEmail(email);
 
-      coreUser = await this.coreUsersAdapter.createOAuthUser({
+    if (!user) {
+      user = await this.coreUsersAdapter.createOAuthUser({
         firstName,
         lastName,
-        username,
         email,
       });
     }
 
     const { accessToken, refreshToken } = await this.generateTokens({
-      id: coreUser.id,
-      email: coreUser.email,
+      id: user.id,
+      email: user.email,
     });
 
-    res.cookie('refreshToken', refreshToken, this.getRefreshCookieOptions());
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
-    return res.redirect(
-      `${process.env.CLIENT_URL}/auth/google/callback?accessToken=${accessToken}`,
+    await this.coreUsersAdapter.updateUserCredentials(user.id, {
+      refreshTokenHash,
+    });
+
+    res.cookie(
+      'refreshToken',
+      refreshToken,
+      this.getRefreshCookieOptions(),
     );
+
+    return res.json({
+      accessToken,
+      user,
+    });
   }
+
 }
