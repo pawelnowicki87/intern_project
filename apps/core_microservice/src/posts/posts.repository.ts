@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, Repository } from 'typeorm';
 import { Post } from './entities/posts.entity';
 import { PostStatus } from './entities/post-status.enum';
-import { PostResponseDto } from './dto/post-response.dto';
 
 @Injectable()
 export class PostsRepository {

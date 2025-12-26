@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Stories() {
   const stories = [
     { id: 1, username: 'Your story', avatar: 'm', isYourStory: true, hasStory: true },
@@ -9,14 +11,18 @@ export default function Stories() {
   ];
 
   return (
-    <div className="sticky top-[53px] md:top-[57px] z-10 w-full bg-white border-b md:border border-gray-300 rounded-none md:rounded-lg mb-0 md:mb-6">
+    <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6">
       <div className="p-3 md:p-4 overflow-x-auto scrollbar-hide">
         <div className="flex gap-3 md:gap-4 lg:gap-6">
           {stories.map((story) => (
-            <div key={story.id} className="flex flex-col items-center flex-shrink-0">
+            <Link 
+              href={story.isYourStory ? '/stories/create' : `/stories/${story.username}`} 
+              key={story.id}
+              className="flex flex-col items-center flex-shrink-0 cursor-pointer group"
+            >
               <div className={`relative ${story.hasStory ? 'p-0.5 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-full' : ''}`}>
                 <div className="w-14 h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 bg-white p-0.5 rounded-full">
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center transition-transform group-hover:scale-105">
                     <span className="text-white font-bold text-sm md:text-base">{story.avatar}</span>
                   </div>
                 </div>
@@ -29,7 +35,7 @@ export default function Stories() {
               <span className="text-xs mt-1 text-center max-w-[60px] truncate">
                 {story.username}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

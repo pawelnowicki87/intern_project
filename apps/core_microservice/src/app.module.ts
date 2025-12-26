@@ -50,6 +50,8 @@ import { WebsocketModule } from './websecket/websocket.module';
     ProfileConfigModule,
     WebsocketModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
 

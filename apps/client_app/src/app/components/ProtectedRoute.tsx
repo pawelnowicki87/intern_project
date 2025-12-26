@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from "react";
 import { useAuth } from "@/client_app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { Loader } from "./ui/Loader";
 
 interface Props {
   children: ReactNode;
@@ -19,11 +20,7 @@ export default function ProtectedRoute({ children }: Props) {
   }, [loading, user, router]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+    return <Loader fullScreen />;
   }
 
   if (!user) return null;

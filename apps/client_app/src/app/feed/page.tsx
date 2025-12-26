@@ -5,6 +5,7 @@ import FeedHeader from "../components/feed/FeedHeader";
 import Post from "../components/feed/Post";
 import Stories from "../components/feed/Stories";
 import Suggestions from "../components/feed/Suggestions";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function FeedPage() {
   const posts = [
@@ -38,33 +39,36 @@ export default function FeedPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <FeedHeader />
-      
-      {/* Main scrollable content */}
-      <main className="w-full pt-4 pb-20 md:pb-6">
-        {/* Centered container */}
-        <div className="max-w-[935px] mx-auto px-4 lg:px-0">
-          <div className="flex gap-8 justify-center lg:justify-between">
-            {/* Feed - centered on tablet, left on desktop */}
-            <div className="w-full max-w-[615px]">
-              <Stories />
-              
-              {/* Posts list */}
-              {posts.map(post => (
-                <Post key={post.id} post={post} />
-              ))}
-            </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+            <FeedHeader />
+            
+            {/* Main scrollable content */}
+            <main className="w-full pt-4 pb-20 md:pb-6">
+              {/* Centered container */}
+              <div className="max-w-[935px] mx-auto px-4 lg:px-0">
+                <div className="flex gap-8 justify-center lg:justify-between">
+                  {/* Feed - centered on tablet, left on desktop */}
+                  <div className="w-full max-w-[615px]">
+                    <Stories />
+                    
+                    {/* Posts list */}
+                    {posts.map(post => (
+                      <Post key={post.id} post={post} />
+                    ))}
+                  </div>
 
-            {/* Sidebar - Desktop only */}
-            <div className="hidden lg:block">
-              <Suggestions />
-            </div>
+                  {/* Sidebar - Desktop only */}
+                  <div className="hidden lg:block">
+                    <Suggestions />
+                  </div>
+                </div>
+              </div>
+            </main>
+
+            <BottomNav />
           </div>
-        </div>
-      </main>
-
-      <BottomNav />
-    </div>
+    </ProtectedRoute>
+    
   );
 }

@@ -17,6 +17,7 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "db:migrate": "turbo run db:migrate",
+    "db:generate": "turbo run db:generate --filter=core_microservice --",
     "db:seed": "turbo run db:seed"
   },
   "devDependencies": {

@@ -2,10 +2,12 @@
 
 import { useAuth } from "@/client_app/context/AuthContext";
 import { useState, useEffect } from "react";
-import EditProfileHeader from "./profile/edit/EditProfileHeader";
-import ProfilePhotoSection from "./profile/edit/ProfilePhotoSection";
-import SubmitButtonSection from "./profile/edit/SubmitButtonSection";
-import Input from "./ui/Input";
+import { coreApi } from "@/client_app/lib/api";
+import EditProfileHeader from "./EditProfileHeader";
+import ProfilePhotoSection from "./ProfilePhotoSection";
+import SubmitButtonSection from "./SubmitButtonSection";
+import Input from "../../ui/Input";
+import { Loader } from "../../ui/Loader";
 import { useRouter } from "next/navigation";
 
 export default function EditProfilePage() {
@@ -60,13 +62,12 @@ export default function EditProfilePage() {
     setError('');
 
     try {
-      // Tu będzie API call do aktualizacji profilu
-      // const response = await coreApi.put('/users/me', formData);
+      if (!user) return;
       
-      // Symulacja API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call API to update profile
+      await coreApi.patch(`/users/${user.id}`, formData);
       
-      // Aktualizuj dane w kontekście
+      // Update context with new data
       if (user) {
         setUser({
           ...user,
@@ -79,7 +80,7 @@ export default function EditProfilePage() {
         });
       }
 
-      // Przekieruj z powrotem do profilu
+      // Redirect back to profile
       router.push('/profile');
     } catch (err) {
       setError('Failed to update profile. Please try again.');
@@ -96,7 +97,7 @@ export default function EditProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <p>Loading...</p>
+        <Loader size="lg" />
       </div>
     );
   }
