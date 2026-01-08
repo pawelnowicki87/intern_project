@@ -15,7 +15,7 @@ export default function StoryPage() {
 
   return (
     <ProtectedRoute>
-      <StoryViewer username={username} onClose={handleClose} />;
+      <StoryViewer username={username} onClose={handleClose} />
     </ProtectedRoute>
   )
   

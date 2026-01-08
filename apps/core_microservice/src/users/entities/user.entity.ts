@@ -39,6 +39,12 @@ export class User {
   @Column({ type: 'varchar', length: 20, nullable: true })
     phone?: string;
 
+  @Column({ type: 'text', nullable: true })
+    bio?: string;
+
+  @Column({ name: 'avatar_url', type: 'varchar', length: 255, nullable: true })
+    avatarUrl?: string;
+
   @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 

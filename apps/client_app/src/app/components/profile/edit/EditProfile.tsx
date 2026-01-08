@@ -20,6 +20,7 @@ export default function EditProfilePage() {
     username: '',
     email: '',
     phone: '',
+    bio: '',
     isPrivate: false
   });
 
@@ -35,6 +36,7 @@ export default function EditProfilePage() {
         username: user.username || '',
         email: user.email || '',
         phone: user.phone || '',
+        bio: (user as any).bio || '',
         isPrivate: user.isPrivate || false
       });
     }
@@ -76,6 +78,7 @@ export default function EditProfilePage() {
           username: formData.username,
           email: formData.email,
           phone: formData.phone || null,
+          bio: formData.bio || null,
           isPrivate: formData.isPrivate
         });
       }
@@ -156,6 +159,17 @@ export default function EditProfilePage() {
           placeholder="Phone (optional)"
           type="tel"
         />
+
+        <div className="space-y-1 px-4 md:px-8 py-4 border-b border-gray-200">
+          <label className="text-sm font-medium">Bio</label>
+          <textarea
+            name="bio"
+            value={formData.bio}
+            onChange={handleChange}
+            placeholder="Tell something about yourself"
+            className="w-full border rounded p-2 h-24"
+          />
+        </div>
 
         <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8 py-4 px-4 md:px-8 border-b border-gray-200">
           <label className="font-semibold text-sm md:text-base md:w-32 flex-shrink-0 md:text-right">

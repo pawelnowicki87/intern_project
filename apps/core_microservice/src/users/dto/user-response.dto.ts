@@ -5,5 +5,7 @@ export class UserResponseDto {
   username: string;
   email: string;
   phone?: string;
+  bio?: string;
+  avatarUrl?: string;
   isPrivate: boolean;
 }

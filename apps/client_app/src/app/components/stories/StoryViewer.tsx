@@ -7,6 +7,7 @@ import StoryControls from './StoryControls';
 import StoryHeader from './StoryHeader';
 import StoryNavigation from './StoryNavigation';
 import StoryInput from './StoryInput';
+import { useRouter } from 'next/navigation';
 
 interface Story {
   id: number;
@@ -26,13 +27,15 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
+  const router = useRouter();
+
   // Mock data - replace with real data
   const allStories = [
     {
       username: 'leon_tu',
       stories: [
         { id: 1, username: 'leon_tu', avatar: 'L', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '2h' }
-      ]
+      ] 
     },
     {
       username: 'katarina',
@@ -64,6 +67,16 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
   const currentUser = allStories[currentUserIndex];
   const currentStory = currentUser?.stories[currentStoryIndex];
 
+  useEffect(() => {
+    if (currentUserIndex === -1) {
+      onClose();
+    }
+  }, [currentUserIndex, onClose]);
+
+  if (currentUserIndex === -1) {
+    return null;
+  }
+
   // Auto-advance timer
   useEffect(() => {
     if (isPaused || !currentStory) return;
@@ -82,7 +95,7 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
       // Move to next user
       if (currentUserIndex < allStories.length - 1) {
         const nextUser = allStories[currentUserIndex + 1];
-        window.location.href = `/stories/${nextUser.username}`;
+        router.push('/stories/${nextUser.username}');
       } else {
         onClose();
       }
@@ -96,7 +109,7 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
       // Move to previous user
       if (currentUserIndex > 0) {
         const prevUser = allStories[currentUserIndex - 1];
-        window.location.href = `/stories/${prevUser.username}`;
+        router.push(`/stories/${prevUser.username}`);
       }
     }
   };
@@ -104,7 +117,7 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
   const handleNextUser = () => {
     if (currentUserIndex < allStories.length - 1) {
       const nextUser = allStories[currentUserIndex + 1];
-      window.location.href = `/stories/${nextUser.username}`;
+      router.push(`/stories/${nextUser.username}`);
     } else {
       onClose();
     }
@@ -113,7 +126,7 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
   const handlePreviousUser = () => {
     if (currentUserIndex > 0) {
       const prevUser = allStories[currentUserIndex - 1];
-      window.location.href = `/stories/${prevUser.username}`;
+      router.push(`/stories/${prevUser.username}`);
     }
   };
 

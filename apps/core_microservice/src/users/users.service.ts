@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   NotFoundError,
   ConflictError,
@@ -12,10 +12,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { HiddenUserDto } from './dto/hidden-user.dto';
 
-import type { IVisibilityReader } from './ports/visibility-reader.port';
-import { VISIBILITY_READER } from './ports/tokens';
 import { CreateUserWithPasswordDto } from './dto/create-user.dto';
 import { CreateOAuthUserDto } from './dto/create-OAuth-user.dto';
+import { VisibilityService } from '../visibility/visibility.service';
+
 
 @Injectable()
 export class UsersService {
@@ -24,15 +24,15 @@ export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: UsersCredentialRepository,
-    @Inject(VISIBILITY_READER)
-    private readonly visibilityReader: IVisibilityReader,
+    private readonly visibilityService: VisibilityService,
   ) {}
 
   private toHiddenUserDto(user: any): HiddenUserDto {
     return {
       id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      username: user.username,
+      avatarUrl: user.avatarUrl ?? null,
+      isPrivate: user.isPrivate,
     };
   }
 
@@ -79,6 +79,8 @@ export class UsersService {
       email: user.email,
       phone: user.phone,
       isPrivate: user.isPrivate,
+      bio: user.bio ?? null,
+      avatarUrl: user.avatarUrl ?? null,
     }));
   }
 
@@ -88,7 +90,7 @@ export class UsersService {
       throw new NotFoundError(`User with ID ${ownerId} not found`);
     }
 
-    const canView = await this.visibilityReader.canViewProfile(
+    const canView = await this.visibilityService.canViewProfile(
       viewerId,
       ownerId,
     );
@@ -98,8 +100,11 @@ export class UsersService {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
+        username: user.username,
         email: user.email,
         phone: user.phone,
+        bio: user.bio ?? null,
+        avatarUrl: user.avatarUrl ?? null,
         isPrivate: user.isPrivate,
       }
       : this.toHiddenUserDto(user);
@@ -144,6 +149,8 @@ export class UsersService {
       username: user.username,
       email: user.email,
       phone: user.phone,
+      bio: user.bio ?? null,
+      avatarUrl: user.avatarUrl ?? null,
       isPrivate: user.isPrivate,
     };
   }
@@ -162,6 +169,8 @@ export class UsersService {
       email: updated.email,
       phone: updated.phone,
       isPrivate: updated.isPrivate,
+      bio: updated.bio ?? null,
+      avatarUrl: updated.avatarUrl ?? null,
     };
   }
 
@@ -209,6 +218,8 @@ export class UsersService {
         email: existing.email,
         phone: existing.phone,
         isPrivate: existing.isPrivate,
+        bio: existing.bio ?? null,
+        avatarUrl: existing.avatarUrl ?? null,
       };
     }
 
@@ -235,6 +246,8 @@ export class UsersService {
       username: user.username,
       email: user.email,
       phone: user.phone,
+      bio: user.bio ?? null,
+      avatarUrl: user.avatarUrl ?? null,
       isPrivate: user.isPrivate,
     };
   }

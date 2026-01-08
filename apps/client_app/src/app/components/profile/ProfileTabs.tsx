@@ -1,8 +1,11 @@
+import { Dispatch, SetStateAction } from 'react';
 import { Grid3x3, Film, Bookmark } from 'lucide-react';
 
+export type ProfileTab = 'posts' | 'reels' | 'saved';
+
 interface ProfileTabsProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab: ProfileTab;
+  setActiveTab: Dispatch<SetStateAction<ProfileTab>>;
 }
 
 export default function ProfileTabs({ activeTab, setActiveTab }: ProfileTabsProps) {
@@ -15,8 +18,11 @@ export default function ProfileTabs({ activeTab, setActiveTab }: ProfileTabsProp
         }`}
       >
         <Grid3x3 className="w-5 h-5" />
-        <span className="hidden md:inline text-xs font-semibold tracking-wide">PUBLICATIONS</span>
+        <span className="hidden md:inline text-xs font-semibold tracking-wide">
+          PUBLICATIONS
+        </span>
       </button>
+
       <button
         onClick={() => setActiveTab('reels')}
         className={`flex items-center gap-2 py-3 px-8 border-t-2 ${
@@ -24,8 +30,11 @@ export default function ProfileTabs({ activeTab, setActiveTab }: ProfileTabsProp
         }`}
       >
         <Film className="w-5 h-5" />
-        <span className="hidden md:inline text-xs font-semibold tracking-wide">REELS</span>
+        <span className="hidden md:inline text-xs font-semibold tracking-wide">
+          REELS
+        </span>
       </button>
+
       <button
         onClick={() => setActiveTab('saved')}
         className={`flex items-center gap-2 py-3 px-8 border-t-2 ${
@@ -33,7 +42,9 @@ export default function ProfileTabs({ activeTab, setActiveTab }: ProfileTabsProp
         }`}
       >
         <Bookmark className="w-5 h-5" />
-        <span className="hidden md:inline text-xs font-semibold tracking-wide">MARKS</span>
+        <span className="hidden md:inline text-xs font-semibold tracking-wide">
+          MARKS
+        </span>
       </button>
     </div>
   );

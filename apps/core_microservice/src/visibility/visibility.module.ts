@@ -3,7 +3,6 @@ import { VisibilityService } from './visibility.service';
 import { UsersModule } from 'src/users/users.module';
 import { FollowsModule } from 'src/follows/follows.module';
 import { VISIBILITY_READER } from 'src/users/ports/tokens';
-import { VisibilityAdapter } from './adapters/visibility-profile.adapter';
 import { VISIBILITY_POST_READER } from 'src/posts/ports/tokens';
 import { VisibilityPostAdapter } from './adapters/Visibility-posts.adapter';
 import { FollowVisibilityAdapter } from 'src/follows/adapters/follows-visibility-adapter';
@@ -33,6 +32,7 @@ import { UserVisibilityReaderAdapter } from 'src/users/adapters/user-visibility.
   ],
   controllers: [],
   exports: [
+    VisibilityService,
     VISIBILITY_READER,
     VISIBILITY_POST_READER,
   ],

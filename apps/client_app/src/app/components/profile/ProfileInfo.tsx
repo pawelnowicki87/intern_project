@@ -1,8 +1,18 @@
-import { useAuth } from '@/client_app/context/AuthContext';
 import { UserPlus } from 'lucide-react';
 
-export default function ProfileInfo() {
-  const { user } = useAuth();
+interface ProfileInfoProps {
+  profile: {
+    id: number;
+    username: string;
+    bio?: string | null;
+    avatarUrl?: string | null;
+    isPrivate?: boolean;
+  };
+}
+
+export default function ProfileInfo({ profile }: ProfileInfoProps) {
+  const firstLetter = profile.username?.charAt(0).toUpperCase() ?? 'U';
+
   return (
     <div className="px-4 py-3 md:px-8 md:py-6">
       <div className="flex gap-4 md:gap-8 items-start">
@@ -10,8 +20,18 @@ export default function ProfileInfo() {
         <div className="w-20 h-20 md:w-36 md:h-36 flex-shrink-0">
           <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-pink-500 p-0.5">
             <div className="w-full h-full rounded-full bg-white p-1">
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-600 to-pink-600 flex items-center justify-center">
-                <span className="text-white text-2xl md:text-4xl font-bold">m</span>
+              <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-pink-600 flex items-center justify-center">
+                {profile.avatarUrl ? (
+                  <img
+                    src={profile.avatarUrl}
+                    alt={profile.username}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white text-2xl md:text-4xl font-bold">
+                    {firstLetter}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -38,7 +58,7 @@ export default function ProfileInfo() {
           {/* Desktop Stats */}
           <div className="hidden md:block">
             <div className="flex items-center gap-4 mb-5">
-              <h1 className="text-xl font-light">{ user?.username }</h1>
+              <h1 className="text-xl font-light">{profile.username}</h1>
               <button className="px-6 py-1.5 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600">
                 Follow
               </button>
@@ -50,9 +70,16 @@ export default function ProfileInfo() {
               </button>
             </div>
             <div className="flex gap-10 mb-5">
-              <div><span className="font-semibold">1,132</span> posts</div>
-              <div><span className="font-semibold">60K</span> followers</div>
-              <div><span className="font-semibold">4</span> following</div>
+              {/* TODO: podpiąć prawdziwe statystyki z API */}
+              <div>
+                <span className="font-semibold">1,132</span> posts
+              </div>
+              <div>
+                <span className="font-semibold">60K</span> followers
+              </div>
+              <div>
+                <span className="font-semibold">4</span> following
+              </div>
             </div>
           </div>
         </div>
@@ -72,12 +99,13 @@ export default function ProfileInfo() {
       </div>
 
       {/* Bio Section */}
-      <div className="mt-3 md:mt-4">
-        <div className="font-semibold text-sm">Mediamodifier-Building Brands</div>
-        <div className="text-sm text-gray-600">Product/service</div>
-        <div className="text-sm mt-1">We provide essential tools to help entrepreneurs grow their businesses online.</div>
-        <a href="#" className="text-sm text-blue-900 font-semibold">mediamodifier.com</a>
-      </div>
+      {profile.bio && (
+        <div className="mt-3 md:mt-4">
+          <div className="font-semibold text-sm whitespace-pre-line">
+            {profile.bio}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

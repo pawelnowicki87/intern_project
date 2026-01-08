@@ -23,6 +23,7 @@ import { UserMentionAdapter } from './adapters/user-mention.adapter';
     TypeOrmModule.forFeature([User, UserCredentials]),
     forwardRef(() => FollowsModule),
     forwardRef(() => VisibilityModule),
+    VisibilityModule,
   ],
   providers: [
     UsersService,
