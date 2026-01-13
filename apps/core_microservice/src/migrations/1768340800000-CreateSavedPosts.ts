@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateSavedPosts1768340800000 implements MigrationInterface {
-  name = 'CreateSavedPosts1768340800000'
+  name = 'CreateSavedPosts1768340800000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -17,7 +17,7 @@ export class CreateSavedPosts1768340800000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS saved_posts;`);
+    await queryRunner.query('DROP TABLE IF EXISTS saved_posts;');
   }
 }
 

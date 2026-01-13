@@ -143,8 +143,10 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         {/* Likes */}
         <div className="mb-2">
           <span className="font-semibold text-sm md:text-base">
-            Liked by <span className="font-semibold">you</span> and{' '}
-            <span className="font-semibold">{post.likes.toLocaleString()} others</span>
+            {(!isLiked && post.likes === 0) && '0 people like this post'}
+            {(isLiked && post.likes === 0) && 'You like this post'}
+            {(!isLiked && post.likes > 0) && `${post.likes.toLocaleString()} people like this post`}
+            {(isLiked && post.likes > 0) && `You and ${post.likes.toLocaleString()} people like this post`}
           </span>
         </div>
 

@@ -57,8 +57,10 @@ export class PostsRepository {
 
   async delete(id: number): Promise<boolean> {
     try {
-      const result = await this.repo.delete(id);
-      return (result.affected ?? 0) > 0;
+      const existing = await this.repo.findOne({ where: { id } });
+      if (!existing) return false;
+      await this.repo.remove(existing);
+      return true;
     } catch (error) {
       this.logger.error(error.message);
       return false;
