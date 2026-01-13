@@ -4,12 +4,15 @@ import { SavePost } from './entities/save-post.entity';
 import { SavedPostsRepository } from './saved-posts.repository';
 import { SavedPostsService } from './saved-posts.service';
 import { SavedPostsController } from './saved-posts.controller';
-import { PostsRepository } from 'src/posts/posts.repository';
-import { Post } from 'src/posts/entities/posts.entity';
+import { PostsModule } from 'src/posts/posts.module';
+import { SAVED_POSTS_POST_READER } from './ports/tokens';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SavePost, Post])],
-  providers: [SavedPostsRepository, SavedPostsService, PostsRepository],
+  imports: [TypeOrmModule.forFeature([SavePost]), PostsModule],
+  providers: [
+    SavedPostsRepository,
+    SavedPostsService,
+  ],
   controllers: [SavedPostsController],
   exports: [SavedPostsService],
 })

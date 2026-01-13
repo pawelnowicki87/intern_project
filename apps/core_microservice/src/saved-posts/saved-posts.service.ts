@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { SavedPostsRepository } from './saved-posts.repository';
 import { CreateSavePostDto } from './dto/create-save-post.dto';
 import { SavePostResponseDto } from './dto/save-post-response.dto';
 import { InternalError, NotFoundError, ForbiddenError } from '@shared/errors/domain-errors';
-import { PostsRepository } from 'src/posts/posts.repository';
+import { SAVED_POSTS_POST_READER } from './ports/tokens';
+import type { IPostReader } from './ports/post-reader.port';
 
 @Injectable()
 export class SavedPostsService {
   constructor(
     private readonly repo: SavedPostsRepository,
-    private readonly postsRepo: PostsRepository,
+    @Inject(SAVED_POSTS_POST_READER) private readonly postReader: IPostReader,
   ) {}
 
   private toResponseDto(save: any): SavePostResponseDto {
@@ -40,9 +41,9 @@ export class SavedPostsService {
   }
 
   async create(data: CreateSavePostDto): Promise<SavePostResponseDto> {
-    const post = await this.postsRepo.findById(data.postId);
-    if (!post) throw new NotFoundError('Post not found');
-    if (post.userId === data.userId) throw new ForbiddenError('Cannot save own post');
+    const ownerId = await this.postReader.findOwnerId(data.postId);
+    if (!ownerId) throw new NotFoundError('Post not found');
+    if (ownerId === data.userId) throw new ForbiddenError('Cannot save own post');
     const created = await this.repo.create(data);
     if (!created) throw new InternalError('Failed to create saved post');
     const save = await this.repo.findOne(created.userId, created.postId);
@@ -57,9 +58,9 @@ export class SavedPostsService {
   }
 
   async toggleSave(userId: number, postId: number): Promise<{ saved: boolean }> {
-    const post = await this.postsRepo.findById(postId);
-    if (!post) throw new NotFoundError('Post not found');
-    if (post.userId === userId) throw new ForbiddenError('Cannot save own post');
+    const ownerId = await this.postReader.findOwnerId(postId);
+    if (!ownerId) throw new NotFoundError('Post not found');
+    if (ownerId === userId) throw new ForbiddenError('Cannot save own post');
     const existing = await this.repo.findOne(userId, postId);
     if (existing) {
       const success = await this.repo.delete(userId, postId);
