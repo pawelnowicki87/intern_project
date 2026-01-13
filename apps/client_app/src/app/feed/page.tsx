@@ -18,6 +18,7 @@ export default function FeedPage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editPost, setEditPost] = useState<any | null>(null);
 
   const fetchFeed = useCallback(async () => {
     if (!user) return;
@@ -75,7 +76,12 @@ export default function FeedPage() {
                   </div>
                 )}
                 {!loading && !error && posts.map((post) => (
-                  <Post key={post.id} post={post} />
+                  <Post
+                    key={post.id}
+                    post={post}
+                    onChanged={fetchFeed}
+                    onEdit={(p) => setEditPost(p)}
+                  />
                 ))}
               </div>
 
@@ -91,9 +97,14 @@ export default function FeedPage() {
 
         {/* Create Post Modal */}
         <CreatePostModal 
-          isOpen={isCreatePostOpen} 
-          onClose={() => setIsCreatePostOpen(false)} 
+          isOpen={isCreatePostOpen || !!editPost} 
+          onClose={() => {
+            setIsCreatePostOpen(false);
+            setEditPost(null);
+          }} 
           onCreated={fetchFeed}
+          mode={editPost ? 'edit' : 'create'}
+          initialPost={editPost}
         />
       </div>
     </ProtectedRoute>

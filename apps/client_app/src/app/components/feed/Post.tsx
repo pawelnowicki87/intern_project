@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
+import { useAuth } from '@/client_app/context/AuthContext';
+import { coreApi } from '@/client_app/lib/api';
 
 interface PostAsset {
   id: number;
@@ -15,6 +17,7 @@ interface PostProps {
     body: string;
     assets: PostAsset[];
     user: {
+      id: number;
       username: string;
     };
     createdAt: string;
@@ -22,11 +25,30 @@ interface PostProps {
     comments: number;
     timeAgo: string;
   };
+  onChanged?: () => void;
+  onEdit?: (post: PostProps['post']) => void;
 }
 
-export default function Post({ post }: PostProps) {
+export default function Post({ post, onChanged, onEdit }: PostProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const { user } = useAuth();
+
+  const canManage = user?.id === post.user.id;
+
+  const handleDelete = async () => {
+    try {
+      await coreApi.delete(`/posts/${post.id}`);
+      if (onChanged) onChanged();
+    } catch (e) {
+      console.error('Delete post failed', e);
+    } finally {
+      setShowMenu(false);
+    }
+  };
+
+  const handleSaveEdit = async () => {};
 
   return (
     <article className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6">
@@ -38,9 +60,37 @@ export default function Post({ post }: PostProps) {
           </div>
           <span className="font-semibold text-sm md:text-base">{post.user.username}</span>
         </div>
-        <button>
-          <MoreHorizontal className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
+        <div className="relative">
+          <button onClick={() => setShowMenu((v) => !v)}>
+            <MoreHorizontal className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+          {showMenu && (
+            <div className="absolute right-0 mt-2 bg-white border border-gray-200 rounded shadow text-sm z-10">
+              {canManage && (
+                <>
+                  <button
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-50"
+                    onClick={() => {
+                      setShowMenu(false);
+                      if (onEdit) onEdit(post);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+              {!canManage && (
+                <div className="px-4 py-2 text-gray-500">No actions available</div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Post Image */}
