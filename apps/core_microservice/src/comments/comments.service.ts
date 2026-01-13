@@ -21,14 +21,12 @@ export class CommentsService {
     return new CommentResponseDto({
       id: comment.id,
       body: comment.body,
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
+      createdAt: comment.createdAt.toISOString(),
+      updatedAt: comment.updatedAt.toISOString(),
       parentId: comment.parentId,
       user: {
         id: comment.user.id,
-        firstName: comment.user.firstName,
-        lastName: comment.user.lastName,
-        email: comment.user.email,
+        username: comment.user.username,
       },
       post: {
         id: comment.post.id,

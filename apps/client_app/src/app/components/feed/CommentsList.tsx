@@ -1,0 +1,247 @@
+import { useEffect, useState } from 'react';
+import { coreApi } from '@/client_app/lib/api';
+import { useAuth } from '@/client_app/context/AuthContext';
+
+interface CommentUser {
+  id: number;
+  username: string;
+}
+
+interface CommentPostRef {
+  id: number;
+  title?: string;
+}
+
+interface CommentResponse {
+  id: number;
+  body?: string;
+  createdAt: string;
+  updatedAt: string;
+  parentId?: number;
+  children: CommentResponse[];
+  user: CommentUser;
+  post: CommentPostRef;
+}
+
+const formatTimeAgo = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diff < 90) return 'now';
+  const mins = Math.floor(diff / 60);
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} d`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks} wk`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} mo`;
+  const years = Math.floor(days / 365);
+  return `${years} y`;
+};
+
+const flattenToOneLevel = (nodes: CommentResponse[]): CommentResponse[] => {
+  const res: CommentResponse[] = [];
+  const stack = [...nodes];
+  while (stack.length) {
+    const n = stack.shift()!;
+    res.push({ ...n, children: [] });
+    if (n.children?.length) stack.push(...n.children);
+  }
+  return res;
+};
+
+export default function CommentsList({ postId, refreshKey = 0 }: { postId: number; refreshKey?: number }) {
+  const [comments, setComments] = useState<CommentResponse[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [replyOpen, setReplyOpen] = useState<Set<number>>(new Set());
+  const [replyText, setReplyText] = useState<Record<number, string>>({});
+  const { user } = useAuth();
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    setError(null);
+    coreApi
+      .get<CommentResponse[]>(`/comments/post/${postId}`)
+      .then((res) => {
+        if (!mounted) return;
+        const roots = res.data ?? [];
+        setComments(roots);
+      })
+      .catch((e) => {
+        if (!mounted) return;
+        setError('Failed to load comments');
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [postId, refreshKey]);
+
+  const toggleExpand = (id: number) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleReply = (id: number) => {
+    setReplyOpen((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const onReplyChange = (id: number, value: string) => {
+    setReplyText((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const renderReplyInput = (id: number) => {
+    if (!replyOpen.has(id)) return null;
+    return (
+      <div className="mt-3 flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+        <input
+          className="flex-1 text-sm px-3 py-2 bg-white border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          placeholder="Add a reply…"
+          value={replyText[id] ?? ''}
+          onChange={(e) => onReplyChange(id, e.target.value)}
+        />
+        <button
+          className="text-sm px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
+          onClick={() => submitReply(id)}
+        >
+          Publish
+        </button>
+      </div>
+    );
+  };
+
+  const submitReply = async (parentId: number) => {
+    const text = (replyText[parentId] ?? '').trim();
+    if (!text || !user?.id) return;
+    try {
+      await coreApi.post('/comments', {
+        userId: user.id,
+        postId,
+        parentId,
+        body: text,
+      });
+      setReplyText((prev) => ({ ...prev, [parentId]: '' }));
+      setReplyOpen((prev) => {
+        const next = new Set(prev);
+        next.delete(parentId);
+        return next;
+      });
+      setExpanded((prev) => {
+        const next = new Set(prev);
+        next.add(parentId);
+        return next;
+      });
+      const res = await coreApi.get<CommentResponse[]>(`/comments/post/${postId}`);
+      setComments(res.data ?? []);
+    } catch {
+      setError('Failed to add reply');
+    }
+  };
+
+  if (loading) {
+    return <div className="text-sm text-gray-500">Loading comments…</div>;
+  }
+  if (error) {
+    return <div className="text-sm text-red-600">{error}</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {comments.map((root) => {
+        const replies = flattenToOneLevel(root.children ?? []);
+        return (
+          <div key={root.id} className="space-y-3">
+            <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shrink-0 shadow-sm">
+                <span className="text-sm font-bold text-white">
+                  {root.user.username?.[0]?.toUpperCase() ?? 'U'}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-gray-900">
+                    {root.user.username}
+                  </span>
+                  <span className="text-xs text-gray-400">•</span>
+                  <span className="text-xs text-gray-500">{formatTimeAgo(root.createdAt)}</span>
+                </div>
+                <div className="text-sm text-gray-800 leading-relaxed break-words">
+                  {root.body}
+                </div>
+                <div className="mt-2 flex items-center gap-3">
+                  {root.children?.length > 0 && (
+                    <button
+                      className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                      onClick={() => toggleExpand(root.id)}
+                    >
+                      {expanded.has(root.id) ? '↑ Hide replies' : `↓ Show replies (${root.children.length})`}
+                    </button>
+                  )}
+                  <button
+                    className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                    onClick={() => toggleReply(root.id)}
+                  >
+                    💬 Reply
+                  </button>
+                </div>
+                {renderReplyInput(root.id)}
+              </div>
+            </div>
+            {replies.length > 0 && expanded.has(root.id) && (
+              <div className="space-y-3 pl-12 border-l-2 border-gray-200 ml-5">
+                {replies.map((r) => (
+                  <div key={r.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center shrink-0 shadow-sm">
+                      <span className="text-xs font-bold text-white">
+                        {r.user.username?.[0]?.toUpperCase() ?? 'U'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">
+                          Reply
+                        </span>
+                        <span className="font-semibold text-sm text-gray-900">
+                          {r.user.username}
+                        </span>
+                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs text-gray-500">{formatTimeAgo(r.createdAt)}</span>
+                      </div>
+                      <div className="text-sm text-gray-800 leading-relaxed break-words">
+                        {r.body}
+                      </div>
+                      <div className="mt-2">
+                        <button
+                          className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                          onClick={() => toggleReply(r.id)}
+                        >
+                          💬 Reply
+                        </button>
+                      </div>
+                      {renderReplyInput(r.id)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

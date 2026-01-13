@@ -18,6 +18,11 @@ export class CommentsController {
     return this.commentsService.findOne(id);
   }
 
+  @Get('post/:postId')
+  findByPost(@Param('postId') postId: number): Promise<CommentResponseDto[]> {
+    return this.commentsService.getCommentsTreeForPost(postId);
+  }
+
   @Post()
   create(@Body() data: CreateCommentDto): Promise<CommentResponseDto> {
     return this.commentsService.create(data);

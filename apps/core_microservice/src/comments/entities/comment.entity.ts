@@ -30,10 +30,10 @@ export class Comment {
   @Column({ name: 'parent_id', type: 'int', nullable: true })
     parentId?: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
     createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
     updatedAt: Date;
 
   // relations

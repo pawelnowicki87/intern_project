@@ -27,12 +27,21 @@ async function bootstrap() {
     // Security middleware
     app.use(helmet());
     app.use(compression());
-    app.use(
-      rateLimit({
-        windowMs: 15 * 60 * 1000,
-        max: 100,
-      }),
-    );
+    const isProd = process.env.NODE_ENV === 'production';
+    if (isProd) {
+      app.use(
+        rateLimit({
+          windowMs: 15 * 60 * 1000,
+          max: 500,
+          standardHeaders: true,
+          legacyHeaders: false,
+          skip: (req) =>
+            req.method === 'GET' ||
+            req.path.startsWith('/users/oauth') ||
+            req.path.startsWith('/users/auth'),
+        }),
+      );
+    }
 
     // Global validation pipe for DTO validation
     app.useGlobalPipes(

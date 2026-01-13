@@ -34,7 +34,7 @@ export default function FeedPage() {
       });
       setPosts(res.data ?? []);
     } catch (e) {
-      setError('Nie udało się załadować feedu');
+      setError('Failed to load feed');
       console.error('Feed load error', e);
     } finally {
       setLoading(false);
@@ -62,7 +62,7 @@ export default function FeedPage() {
                 {/* Posts list */}
                 {loading && (
                   <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
-                    Ładowanie postów...
+                    Loading posts...
                   </div>
                 )}
                 {error && (
@@ -72,7 +72,7 @@ export default function FeedPage() {
                 )}
                 {!loading && !error && posts.length === 0 && (
                   <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
-                    Brak postów do wyświetlenia
+                    No posts to display
                   </div>
                 )}
                 {!loading && !error && posts.map((post) => (

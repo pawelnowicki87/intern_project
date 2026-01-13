@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '@/client_app/context/AuthContext';
 import { coreApi } from '@/client_app/lib/api';
+import CommentsList from './CommentsList';
 
 interface PostAsset {
   id: number;
@@ -33,6 +34,8 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
   const { user } = useAuth();
 
   const canManage = user?.id === post.user.id;
@@ -136,9 +139,12 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         </div>
 
         {/* View Comments */}
-        <button className="text-sm md:text-base text-gray-500 mb-1">
-          View all {post.comments} comments
-        </button>
+        <div className="mb-2">
+          <div className="text-sm md:text-base text-gray-500 mb-2">
+            Comments: {post.comments}
+          </div>
+          <CommentsList postId={post.id} refreshKey={refreshKey} />
+        </div>
 
         {/* Time */}
         <div className="text-xs text-gray-400 uppercase">
@@ -153,8 +159,29 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
           type="text"
           placeholder="Add a comment..."
           className="flex-1 text-sm md:text-base outline-none"
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
         />
-        <button className="text-blue-500 font-semibold text-sm md:text-base">Publish</button>
+        <button
+          className="text-blue-500 font-semibold text-sm md:text-base"
+          onClick={async () => {
+            const text = commentText.trim();
+            if (!text || !user?.id) return;
+            try {
+              await coreApi.post('/comments', {
+                userId: user.id,
+                postId: post.id,
+                body: text,
+              });
+              setCommentText('');
+              setRefreshKey((k) => k + 1);
+            } catch (e) {
+              console.error('Publish comment failed', e);
+            }
+          }}
+        >
+          Publish
+        </button>
       </div>
     </article>
   );

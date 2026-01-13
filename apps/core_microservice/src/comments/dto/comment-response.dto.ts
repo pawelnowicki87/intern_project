@@ -1,16 +1,14 @@
 export class CommentResponseDto {
   id: number;
   body?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   parentId?: number;
   children: CommentResponseDto[] = [];
 
   user: {
     id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
+    username: string;
   };
 
   post: {
@@ -21,15 +19,13 @@ export class CommentResponseDto {
   constructor(init?: {
     id: number;
     body?: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
     parentId?: number;
     children?: CommentResponseDto[];
     user: {
       id: number;
-      firstName: string;
-      lastName: string;
-      email: string;
+      username: string;
     };
     post: {
       id: number;
