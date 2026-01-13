@@ -8,9 +8,10 @@ import { coreApi } from '@/client_app/lib/api';
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCreated?: () => void;
 }
 
-export default function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
+export default function CreatePostModal({ isOpen, onClose, onCreated }: CreatePostModalProps) {
   const { user } = useAuth();
   const [caption, setCaption] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
@@ -72,6 +73,7 @@ export default function CreatePostModal({ isOpen, onClose }: CreatePostModalProp
       setCaption('');
       setSelectedMedia(null);
       setMediaType(null);
+      if (onCreated) onCreated();
       onClose();
     } catch (error) {
       console.error('Error creating post:', error);

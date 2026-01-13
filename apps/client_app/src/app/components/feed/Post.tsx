@@ -12,7 +12,6 @@ interface PostAsset {
 interface PostProps {
   post: {
     id: number;
-    title: string;
     body: string;
     assets: PostAsset[];
     user: {

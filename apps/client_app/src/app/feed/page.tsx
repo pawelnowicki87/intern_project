@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import BottomNav from "../components/feed/BottomNav";
 import CreatePostModal from "../components/feed/CreatePostModal";
 import FeedHeader from "../components/feed/FeedHeader";
@@ -8,32 +8,41 @@ import Post from "../components/feed/Post";
 import Stories from "../components/feed/Stories";
 import Suggestions from "../components/feed/Suggestions";
 import ProtectedRoute from "../components/ProtectedRoute";
-
-const posts = [
-  {
-    id: 1,
-    title: '',
-    body: 'Test post from backend model',
-    assets: [
-      {
-        id: 1,
-        url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe',
-        type: 'image'
-      }
-    ],
-    user: {
-      username: 'mediamodifier'
-    },
-    createdAt: new Date().toISOString(),
-    likes: 123,
-    comments: 45,
-    timeAgo: new Date().toISOString()
-  }
-];
+import { useAuth } from "@/client_app/context/AuthContext";
+import { coreApi } from "@/client_app/lib/api";
 
 
 export default function FeedPage() {
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const { user } = useAuth();
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFeed = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await coreApi.get(`/posts/feed/${user.id}`, {
+        params: {
+          sort: 'desc',
+          page: 1,
+          limit: 10,
+        },
+      });
+      setPosts(res.data ?? []);
+    } catch (e) {
+      setError('Nie udało się załadować feedu');
+      console.error('Feed load error', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchFeed();
+  }, [fetchFeed]);
 
   return (
     <ProtectedRoute>
@@ -50,7 +59,22 @@ export default function FeedPage() {
                 <Stories />
                 
                 {/* Posts list */}
-                {posts.map(post => (
+                {loading && (
+                  <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
+                    Ładowanie postów...
+                  </div>
+                )}
+                {error && (
+                  <div className="w-full bg-red-50 border border-red-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
+                {!loading && !error && posts.length === 0 && (
+                  <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
+                    Brak postów do wyświetlenia
+                  </div>
+                )}
+                {!loading && !error && posts.map((post) => (
                   <Post key={post.id} post={post} />
                 ))}
               </div>
@@ -69,6 +93,7 @@ export default function FeedPage() {
         <CreatePostModal 
           isOpen={isCreatePostOpen} 
           onClose={() => setIsCreatePostOpen(false)} 
+          onCreated={fetchFeed}
         />
       </div>
     </ProtectedRoute>

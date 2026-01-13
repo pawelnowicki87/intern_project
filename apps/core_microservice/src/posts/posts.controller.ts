@@ -72,8 +72,8 @@ export class PostsController {
   findFeed(
     @Param('userId', ParseIntPipe) userId: number,
     @Query('sort') sort: 'asc' | 'desc' = 'desc',
-    @Query('pare') page = 1,
-    @Query('limit') limit = 10,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
   ): Promise<PostResponseDto[]> {
     return this.postsService.findFeedForUser(Number(userId), sort, Number(page), Number(limit));
   }
