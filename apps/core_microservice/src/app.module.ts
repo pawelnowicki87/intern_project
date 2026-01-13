@@ -20,6 +20,7 @@ import { ProfileConfigModule } from './profile-config/profile-config.module';
 import dataSource from './data-source';
 import { CloudinaryModule } from './common/config/cloudinary.module';
 import { WebsocketModule } from './websecket/websocket.module';
+import { SavedPostsModule } from './saved-posts/saved-posts.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { WebsocketModule } from './websecket/websocket.module';
     ChatParticipantsModule,
     ProfileConfigModule,
     WebsocketModule,
+    SavedPostsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

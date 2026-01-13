@@ -3,12 +3,24 @@ import { PostResponseDto } from './dto/post-response.dto';
 
 export class PostMapper {
   static toResponseDto(post: Post): PostResponseDto {
+    const assetTypes = (post.assets ?? [])
+      .map((a) => a.file?.fileType)
+      .filter((t): t is string => !!t);
+    let contentType: 'IMAGE' | 'CAROUSEL' | 'REEL' = 'IMAGE';
+    if (assetTypes.includes('video')) {
+      contentType = 'REEL';
+    } else if ((post.assets?.length ?? 0) > 1) {
+      contentType = 'CAROUSEL';
+    } else {
+      contentType = 'IMAGE';
+    }
     return {
       id: post.id,
       body: post.body,
       status: post.status,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
+      contentType,
 
       user: post.user
         ? {

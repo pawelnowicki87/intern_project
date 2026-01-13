@@ -8,6 +8,7 @@ export class PostResponseDto {
   createdAt: Date;
   updatedAt: Date;
   user: UserResponseDto | null;
+  contentType?: 'IMAGE' | 'CAROUSEL' | 'REEL';
 
   assets: {
     id: number;

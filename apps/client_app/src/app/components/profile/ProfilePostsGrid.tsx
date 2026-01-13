@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { coreApi } from "@/client_app/lib/api";
 import type { ProfileTab } from "./ProfileTabs";
 import { useAuth } from "@/client_app/context/AuthContext";
+import Link from "next/link";
 
 interface PostAsset {
   id: number;
@@ -36,15 +37,12 @@ export default function ProfilePostsGrid({ userId, tab }: { userId: number; tab:
         if (tab === 'posts') {
           if (mounted) setItems(ownPosts);
         } else if (tab === 'reels') {
-          const reels = ownPosts.filter((p) => p.assets?.some((a) => a.type === 'video'));
+          const reels = ownPosts.filter((p: any) => p.contentType === 'REEL');
           if (mounted) setItems(reels);
         } else if (tab === 'saved') {
-          // Saved: fetch liked posts by current user as a proxy for bookmarks
-          const likesRes = await coreApi.get('/likes-posts');
-          const likedByMeIds: number[] = (likesRes.data ?? [])
-            .filter((lp: any) => lp.userId === user?.id)
-            .map((lp: any) => lp.postId);
-          const uniqueIds = Array.from(new Set(likedByMeIds)).slice(0, 30);
+          const savesRes = await coreApi.get(`/saved-posts/${user?.id}`);
+          const savedIds: number[] = (savesRes.data ?? []).map((sp: any) => sp.postId);
+          const uniqueIds = Array.from(new Set(savedIds)).slice(0, 30);
           const posts = await Promise.all(
             uniqueIds.map((id) => coreApi.get(`/posts/${id}`).then((r) => r.data).catch(() => null)),
           );
@@ -73,13 +71,25 @@ export default function ProfilePostsGrid({ userId, tab }: { userId: number; tab:
   return (
     <div className="grid grid-cols-3 gap-0.5 bg-gray-200">
       {items.map((post) => (
-        <div key={post.id} className="aspect-square bg-gray-100">
-          <img
-            src={post.assets?.[0]?.url}
-            alt=""
-            className="w-full h-full object-cover"
-          />
-        </div>
+        tab === 'posts' ? (
+          <Link key={post.id} href={`/posts/${post.id}`}>
+            <div className="aspect-square bg-gray-100 cursor-pointer">
+              <img
+                src={post.assets?.[0]?.url}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </Link>
+        ) : (
+          <div key={post.id} className="aspect-square bg-gray-100">
+            <img
+              src={post.assets?.[0]?.url}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )
       ))}
       {items.length === 0 && (
         <div className="col-span-3 px-4 py-6 text-center text-sm text-gray-500">No items</div>

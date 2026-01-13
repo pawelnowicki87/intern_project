@@ -11,6 +11,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { LikePost } from '../../likes-posts/entities/like-post.entity';
+import { SavePost } from '../../saved-posts/entities/save-post.entity';
 import { PostAsset } from '../../post-assets/entities/post-asset.entity';
 import { PostStatus } from './post-status.enum';
 
@@ -43,6 +44,9 @@ export class Post {
 
   @OneToMany(() => LikePost, (likePost) => likePost.post, { cascade: true })
     likes: LikePost[];
+
+  @OneToMany(() => SavePost, (savePost) => savePost.post, { cascade: true })
+    saves: SavePost[];
 
   @OneToMany(() => PostAsset, (pa) => pa.post, { cascade: true })
     assets: PostAsset[];

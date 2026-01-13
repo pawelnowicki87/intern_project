@@ -11,6 +11,7 @@ import { Post } from '../../posts/entities/posts.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { LikePost } from '../../likes-posts/entities/like-post.entity';
 import { LikeComment } from '../../likes-comments/entities/like-comment.entity';
+import { SavePost } from '../../saved-posts/entities/save-post.entity';
 import { Follow } from '../../follows/entities/follow.entity';
 import { Message } from '../../messages/entities/message.entity';
 import { File } from '../../files/entities/file.entity';
@@ -64,6 +65,9 @@ export class User {
 
   @OneToMany(() => LikePost, (likePost) => likePost.user)
     likedPosts: LikePost[];
+  
+  @OneToMany(() => SavePost, (savePost) => savePost.user)
+    savedPosts: SavePost[];
 
   @OneToMany(() => LikeComment, (likeComment) => likeComment.user)
     likedComments: LikeComment[];
