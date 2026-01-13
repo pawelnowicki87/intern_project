@@ -4,6 +4,9 @@ import { ILike, In, Repository } from 'typeorm';
 import { Post } from './entities/posts.entity';
 import { PostStatus } from './entities/post-status.enum';
 import { PostAsset } from 'src/post-assets/entities/post-asset.entity';
+import { Comment } from 'src/comments/entities/comment.entity';
+import { LikePost } from 'src/likes-posts/entities/like-post.entity';
+import { SavePost } from 'src/saved-posts/entities/save-post.entity';
 import { InternalError } from '@shared/errors/domain-errors';
 
 @Injectable()
@@ -59,7 +62,17 @@ export class PostsRepository {
     try {
       const existing = await this.repo.findOne({ where: { id } });
       if (!existing) return false;
-      await this.repo.remove(existing);
+      await this.repo.manager.transaction(async (manager) => {
+        await manager.query(
+          'DELETE FROM likes_comments WHERE comment_id IN (SELECT id FROM comments WHERE post_id = $1)',
+          [id],
+        );
+        await manager.getRepository(Comment).delete({ postId: id });
+        await manager.getRepository(SavePost).delete({ postId: id });
+        await manager.getRepository(LikePost).delete({ postId: id });
+        await manager.getRepository(PostAsset).delete({ postId: id });
+        await manager.getRepository(Post).delete({ id });
+      });
       return true;
     } catch (error) {
       this.logger.error(error.message);

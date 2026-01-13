@@ -1,4 +1,6 @@
+'use client';
 import { UserPlus } from 'lucide-react';
+import { useAuth } from '@/client_app/context/AuthContext';
 
 interface ProfileInfoProps {
   profile: {
@@ -11,6 +13,8 @@ interface ProfileInfoProps {
 }
 
 export default function ProfileInfo({ profile }: ProfileInfoProps) {
+  const { user } = useAuth();
+  const isOwner = user?.id === profile.id;
   const firstLetter = profile.username?.charAt(0).toUpperCase() ?? 'U';
 
   return (
@@ -59,12 +63,16 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
           <div className="hidden md:block">
             <div className="flex items-center gap-4 mb-5">
               <h1 className="text-xl font-light">{profile.username}</h1>
-              <button className="px-6 py-1.5 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600">
-                Follow
-              </button>
-              <button className="px-6 py-1.5 bg-gray-200 text-black rounded-lg text-sm font-semibold hover:bg-gray-300">
-                Message
-              </button>
+              {!isOwner && (
+                <>
+                  <button className="px-6 py-1.5 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600">
+                    Follow
+                  </button>
+                  <button className="px-6 py-1.5 bg-gray-200 text-black rounded-lg text-sm font-semibold hover:bg-gray-300">
+                    Message
+                  </button>
+                </>
+              )}
               <button className="p-1.5 hover:bg-gray-100 rounded">
                 <UserPlus className="w-5 h-5" />
               </button>
@@ -87,12 +95,16 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
 
       {/* Mobile Action Buttons */}
       <div className="px-0 py-3 flex gap-2 md:hidden">
-        <button className="flex-1 bg-blue-500 text-white py-1.5 rounded-lg text-sm font-semibold">
-          Follow
-        </button>
-        <button className="flex-1 bg-gray-200 text-black py-1.5 rounded-lg text-sm font-semibold">
-          Message
-        </button>
+        {!isOwner && (
+          <>
+            <button className="flex-1 bg-blue-500 text-white py-1.5 rounded-lg text-sm font-semibold">
+              Follow
+            </button>
+            <button className="flex-1 bg-gray-200 text-black py-1.5 rounded-lg text-sm font-semibold">
+              Message
+            </button>
+          </>
+        )}
         <button className="px-3 bg-gray-200 rounded-lg">
           <UserPlus className="w-5 h-5" />
         </button>

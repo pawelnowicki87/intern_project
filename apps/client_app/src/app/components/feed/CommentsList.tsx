@@ -55,7 +55,15 @@ const flattenToOneLevel = (nodes: CommentResponse[]): CommentResponse[] => {
   return res;
 };
 
-export default function CommentsList({ postId, refreshKey = 0 }: { postId: number; refreshKey?: number }) {
+export default function CommentsList({
+  postId,
+  refreshKey = 0,
+  onCountChange,
+}: {
+  postId: number;
+  refreshKey?: number;
+  onCountChange?: (count: number) => void;
+}) {
   const [comments, setComments] = useState<CommentResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,8 +84,12 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
         if (!mounted) return;
         const roots = res.data ?? [];
         setComments(roots);
+        if (onCountChange) {
+          const total = roots.reduce((acc, r) => acc + 1 + flattenToOneLevel(r.children ?? []).length, 0);
+          onCountChange(total);
+        }
       })
-      .catch((e) => {
+      .catch(() => {
         if (!mounted) return;
         setError('Failed to load comments');
       })
@@ -89,6 +101,15 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
       mounted = false;
     };
   }, [postId, refreshKey]);
+
+  useEffect(() => {
+    if (!onCountChange) return;
+    const total = comments.reduce((acc, r) => {
+      const childCount = flattenToOneLevel(r.children ?? []).length;
+      return acc + 1 + childCount;
+    }, 0);
+    onCountChange(total);
+  }, [comments, onCountChange]);
 
   useEffect(() => {
     const fetchLikesInfo = async () => {
@@ -114,6 +135,7 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
               await coreApi.get(`/likes-comments/${user.id}/${id}`);
               likedSet.add(id);
             } catch {
+              console.debug('like-check failed');
             }
           }
         }),
@@ -131,7 +153,11 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
   const toggleExpand = (id: number) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -139,7 +165,11 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
   const toggleReply = (id: number) => {
     setReplyOpen((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -151,14 +181,18 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
   const toggleLikeComment = async (id: number) => {
     if (!user?.id) return;
     try {
-      const res = await coreApi.post<{ liked: boolean }>(`/likes-comments/toggle`, {
-        userId: user.id,
-        commentId: id,
-      });
+      const res = await coreApi.post<{ liked: boolean }>(
+        '/likes-comments/toggle',
+        { userId: user.id, commentId: id },
+      );
       const liked = res.data?.liked === true;
       setLikedByMe((prev) => {
         const next = new Set(prev);
-        liked ? next.add(id) : next.delete(id);
+        if (liked) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
         return next;
       });
       setCommentLikes((prev) => {
@@ -167,6 +201,7 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
         return { ...prev, [id]: nextCount };
       });
     } catch {
+      console.debug('toggle like failed');
     }
   };
 

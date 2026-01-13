@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/client_app/context/AuthContext";
-import { useState, useEffect } from "react";
-import { coreApi } from "@/client_app/lib/api";
-import EditProfileHeader from "./EditProfileHeader";
-import ProfilePhotoSection from "./ProfilePhotoSection";
-import SubmitButtonSection from "./SubmitButtonSection";
-import Input from "../../ui/Input";
-import { Loader } from "../../ui/Loader";
-import { useRouter } from "next/navigation";
+import { useAuth } from '@/client_app/context/AuthContext';
+import { useState, useEffect } from 'react';
+import { coreApi } from '@/client_app/lib/api';
+import EditProfileHeader from './EditProfileHeader';
+import ProfilePhotoSection from './ProfilePhotoSection';
+import SubmitButtonSection from './SubmitButtonSection';
+import Input from '../../ui/Input';
+import { Loader } from '../../ui/Loader';
+import { useRouter } from 'next/navigation';
 
 export default function EditProfilePage() {
   const { user, setUser } = useAuth();
@@ -20,7 +20,8 @@ export default function EditProfilePage() {
     username: '',
     email: '',
     phone: '',
-    isPrivate: false
+    bio: '',
+    isPrivate: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,8 @@ export default function EditProfilePage() {
         username: user.username || '',
         email: user.email || '',
         phone: user.phone || '',
-        isPrivate: user.isPrivate || false
+        bio: (user as any).bio || '',
+        isPrivate: user.isPrivate || false,
       });
     }
   }, [user]);
@@ -47,12 +49,12 @@ export default function EditProfilePage() {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({
         ...prev,
-        [name]: checked
+        [name]: checked,
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -76,7 +78,9 @@ export default function EditProfilePage() {
           username: formData.username,
           email: formData.email,
           phone: formData.phone || null,
-          isPrivate: formData.isPrivate
+          avatarUrl: user.avatarUrl ?? null,
+          bio: formData.bio || null,
+          isPrivate: formData.isPrivate,
         });
       }
 
@@ -156,6 +160,20 @@ export default function EditProfilePage() {
           placeholder="Phone (optional)"
           type="tel"
         />
+
+        <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-8 py-4 px-4 md:px-8 border-b border-gray-200">
+          <label className="font-semibold text-sm md:text-base md:w-32 flex-shrink-0 md:text-right">
+            Bio
+          </label>
+          <textarea
+            name="bio"
+            value={formData.bio}
+            onChange={handleChange}
+            rows={4}
+            className="w-full border rounded p-2 text-sm outline-none"
+            placeholder="Krótki opis profilu"
+          />
+        </div>
 
         <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8 py-4 px-4 md:px-8 border-b border-gray-200">
           <label className="font-semibold text-sm md:text-base md:w-32 flex-shrink-0 md:text-right">

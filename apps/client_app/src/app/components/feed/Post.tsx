@@ -38,6 +38,7 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [commentCount, setCommentCount] = useState<number | null>(null);
   const { user } = useAuth();
 
   const canManage = user?.id === post.user.id;
@@ -53,7 +54,7 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
     }
   };
 
-  const handleSaveEdit = async () => {};
+  // removed unused handleSaveEdit
 
   return (
     <article className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6">
@@ -159,9 +160,13 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         {/* View Comments */}
         <div className="mb-2">
           <div className="text-sm md:text-base text-gray-500 mb-2">
-            Comments: {post.comments}
+            Comments: {(commentCount ?? post.comments).toLocaleString()}
           </div>
-          <CommentsList postId={post.id} refreshKey={refreshKey} />
+          <CommentsList
+            postId={post.id}
+            refreshKey={refreshKey}
+            onCountChange={(cnt) => setCommentCount(cnt)}
+          />
         </div>
 
         {/* Time */}

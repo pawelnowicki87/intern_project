@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, Image as ImageIcon, Video, Trash2 } from 'lucide-react';
 import { useAuth } from '@/client_app/context/AuthContext';
 import { coreApi } from '@/client_app/lib/api';
@@ -20,6 +21,7 @@ interface CreatePostModalProps {
 
 export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'create', initialPost }: CreatePostModalProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const [caption, setCaption] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
@@ -49,44 +51,44 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
     formData.append('file', file);
 
     try {
-        const res = await coreApi.post('/files/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-});
-
-        console.log('UPLOAD RESPONSE:', res.data);
-
-        setSelectedMedia(res.data.url);
-        setUploadedFileId(res.data.id);
-    } catch (err) {
-        console.error('UPLOAD ERROR:', err);
-    }
-    };
-
-    const handleRemoveMedia = () => {
-      setSelectedMedia(null);
-      setMediaType(null);
-      setUploadedFileId(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      const res = await coreApi.post('/files/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setSelectedMedia(res.data.url);
+      setUploadedFileId(res.data.id);
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        router.push('/auth/login');
+        return;
       }
-    };
+      console.error('UPLOAD ERROR:', err);
+    }
+  };
+
+  const handleRemoveMedia = () => {
+    setSelectedMedia(null);
+    setMediaType(null);
+    setUploadedFileId(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async () => {
-    if (!caption.trim()) return;
+    const text = caption.trim();
+    if (text.length < 3 || !user?.id) return;
 
     setIsSubmitting(true);
     try {
       if (isEdit && initialPost) {
         await coreApi.patch(`/posts/${initialPost.id}`, {
-          body: caption,
+          body: text,
         });
       } else {
         await new Promise(resolve => setTimeout(resolve, 1500));
         await coreApi.post('/posts', {
-          body: caption,
-          userId: user?.id,
+          body: text,
+          userId: user.id,
           fileIds: uploadedFileId ? [uploadedFileId] : [],
         });
       }
@@ -125,7 +127,7 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
           <h2 className="font-semibold text-base">{isEdit ? 'Edit post' : 'Create new post'}</h2>
           <button
             onClick={handleSubmit}
-            disabled={!caption.trim() || isSubmitting}
+            disabled={isSubmitting || caption.trim().length < 3 || !user?.id}
             className="text-blue-500 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (isEdit ? 'Saving...' : 'Sharing...') : (isEdit ? 'Save' : 'Share')}
@@ -149,7 +151,7 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
             <textarea
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
-              placeholder={isEdit ? "Update your caption..." : "What's on your mind?"}
+              placeholder={isEdit ? 'Update your caption...' : 'What\'s on your mind?'}
               className="w-full h-32 resize-none outline-none text-sm"
               maxLength={2200}
               autoFocus

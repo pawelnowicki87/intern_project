@@ -14,6 +14,7 @@ interface User {
   phone?: string | null;
   isPrivate: boolean;
   avatarUrl?: string | null;
+  bio?: string | null;
 }
 
 interface AuthContextType {
@@ -97,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       setUser(core.data);
     } catch (error) {
-      console.error("Login with Google failed:", error);
+      console.error('Login with Google failed:', error);
       throw error;
     }
   };
@@ -118,10 +119,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     try {
       await authApi.post('/auth/logout');
-    } catch {}
+    } catch {
+      console.debug('logout failed');
+    }
     clearTokens();
     setUser(null);
-    router.push('/auth/login')
+    router.push('/auth/login');
   };
 
   return (
