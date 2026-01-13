@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { coreApi } from '@/client_app/lib/api';
 import { useAuth } from '@/client_app/context/AuthContext';
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
 
 interface CommentUser {
   id: number;
@@ -61,6 +62,8 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [replyOpen, setReplyOpen] = useState<Set<number>>(new Set());
   const [replyText, setReplyText] = useState<Record<number, string>>({});
+  const [commentLikes, setCommentLikes] = useState<Record<number, number>>({});
+  const [likedByMe, setLikedByMe] = useState<Set<number>>(new Set());
   const { user } = useAuth();
 
   useEffect(() => {
@@ -87,6 +90,44 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
     };
   }, [postId, refreshKey]);
 
+  useEffect(() => {
+    const fetchLikesInfo = async () => {
+      const allIds: number[] = [];
+      comments.forEach((root) => {
+        allIds.push(root.id);
+        const childIds = flattenToOneLevel(root.children ?? []).map((c) => c.id);
+        allIds.push(...childIds);
+      });
+      if (allIds.length === 0) return;
+      const countsEntries: Array<[number, number]> = [];
+      const likedSet = new Set<number>();
+      await Promise.all(
+        allIds.map(async (id) => {
+          try {
+            const countRes = await coreApi.get<number>(`/likes-comments/comment/${id}/count`);
+            countsEntries.push([id, countRes.data ?? 0]);
+          } catch {
+            countsEntries.push([id, 0]);
+          }
+          if (user?.id) {
+            try {
+              await coreApi.get(`/likes-comments/${user.id}/${id}`);
+              likedSet.add(id);
+            } catch {
+            }
+          }
+        }),
+      );
+      const countsObj: Record<number, number> = {};
+      countsEntries.forEach(([id, cnt]) => {
+        countsObj[id] = cnt;
+      });
+      setCommentLikes(countsObj);
+      setLikedByMe(likedSet);
+    };
+    fetchLikesInfo();
+  }, [comments, user?.id]);
+
   const toggleExpand = (id: number) => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -105,6 +146,38 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
 
   const onReplyChange = (id: number, value: string) => {
     setReplyText((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const toggleLikeComment = async (id: number) => {
+    if (!user?.id) return;
+    try {
+      const res = await coreApi.post<{ liked: boolean }>(`/likes-comments/toggle`, {
+        userId: user.id,
+        commentId: id,
+      });
+      const liked = res.data?.liked === true;
+      setLikedByMe((prev) => {
+        const next = new Set(prev);
+        liked ? next.add(id) : next.delete(id);
+        return next;
+      });
+      setCommentLikes((prev) => {
+        const curr = prev[id] ?? 0;
+        const nextCount = liked ? curr + 1 : Math.max(0, curr - 1);
+        return { ...prev, [id]: nextCount };
+      });
+    } catch {
+    }
+  };
+
+  const likeTextFor = (id: number) => {
+    const count = commentLikes[id] ?? 0;
+    const me = likedByMe.has(id);
+    if (!me && count === 0) return '0 people like this comment';
+    if (me && count === 1) return 'You like this comment';
+    if (me && count > 1) return `You and ${(count - 1).toLocaleString()} people like this comment`;
+    if (!me && count > 0) return `${count.toLocaleString()} people like this comment`;
+    return '';
   };
 
   const renderReplyInput = (id: number) => {
@@ -196,6 +269,16 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
                   {root.body}
                 </div>
                 <div className="mt-2 flex items-center gap-3">
+                  <button
+                    className="text-xs font-medium text-gray-600 hover:text-red-600 transition-colors flex items-center gap-1"
+                    onClick={() => toggleLikeComment(root.id)}
+                  >
+                    <Heart className={`w-4 h-4 ${likedByMe.has(root.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                    Like
+                  </button>
+                  <span className="text-xs text-gray-700 font-medium">
+                    {likeTextFor(root.id)}
+                  </span>
                   {root.children?.length > 0 && (
                     <button
                       className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
@@ -247,7 +330,17 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
                       <div className="text-sm text-gray-800 leading-relaxed break-words">
                         {r.body}
                       </div>
-                      <div className="mt-2">
+                      <div className="mt-2 flex items-center gap-3">
+                        <button
+                          className="text-xs font-medium text-gray-600 hover:text-red-600 transition-colors flex items-center gap-1"
+                          onClick={() => toggleLikeComment(r.id)}
+                        >
+                          <Heart className={`w-4 h-4 ${likedByMe.has(r.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                          Like
+                        </button>
+                        <span className="text-xs text-gray-700 font-medium">
+                          {likeTextFor(r.id)}
+                        </span>
                         <button
                           className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
                           onClick={() => toggleReply(r.id)}
