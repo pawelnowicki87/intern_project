@@ -5,6 +5,7 @@ import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-rea
 import { useAuth } from '@/client_app/context/AuthContext';
 import { coreApi } from '@/client_app/lib/api';
 import CommentsList from './CommentsList';
+import Link from 'next/link';
 
 interface PostAsset {
   id: number;
@@ -20,6 +21,7 @@ interface PostProps {
     user: {
       id: number;
       username: string;
+      avatarUrl?: string | null;
     };
     createdAt: string;
     likes: number;
@@ -58,10 +60,24 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
       {/* Post Header */}
       <div className="flex items-center justify-between p-3 md:p-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">m</span>
-          </div>
-          <span className="font-semibold text-sm md:text-base">{post.user.username}</span>
+          {post.user?.avatarUrl ? (
+            <img
+              src={post.user.avatarUrl || undefined}
+              alt="User avatar"
+              className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-gray-200"
+            />
+          ) : (
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">
+                {post.user.username?.[0]?.toUpperCase()}
+              </span>
+            </div>
+          )}
+          <Link href={`/profile/${post.user.id}`}>
+            <span className="font-semibold text-sm md:text-base hover:underline cursor-pointer">
+              {post.user.username}
+            </span>
+          </Link>
         </div>
         <div className="relative">
           <button onClick={() => setShowMenu((v) => !v)}>

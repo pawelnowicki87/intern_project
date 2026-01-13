@@ -3,6 +3,7 @@ import { useAuth } from '@/client_app/context/AuthContext';
 
 export default function Suggestions() {
   const { user } = useAuth();
+  const avatarUrl = (user as any)?.avatarUrl as string | undefined;
   
   const suggestions = [
     { username: 'lucas', mutual: 'Followed by mark + 2 more' },
@@ -17,11 +18,19 @@ export default function Suggestions() {
       {/* User Profile */}
       <div className="flex items-center justify-between mb-4">
         <Link href="/profile" className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">
-              {user?.username?.charAt(0).toUpperCase() || 'M'}
-            </span>
-          </div>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Avatar"
+              className="w-14 h-14 rounded-full object-cover border border-gray-200"
+            />
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">
+                {user?.username?.charAt(0).toUpperCase() || 'M'}
+              </span>
+            </div>
+          )}
           <div>
             <div className="font-semibold text-sm">{user?.username || 'mediamodifier'}</div>
             <div className="text-xs text-gray-500">

@@ -2,12 +2,14 @@
 
 import { Heart, MessageCircle, Send, Search, PlusSquare, Home, Compass } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/client_app/context/AuthContext';
 
 interface FeedHeaderProps {
   onCreatePost?: () => void;
 }
 
 export default function FeedHeader({ onCreatePost }: FeedHeaderProps) {
+  const { user } = useAuth();
   return (
     <header className="bg-white border-b border-gray-300 sticky top-0 z-10">
       <div className="max-w-[935px] mx-auto px-4 py-2 md:py-3 flex items-center justify-between">
@@ -56,7 +58,13 @@ export default function FeedHeader({ onCreatePost }: FeedHeaderProps) {
             <Heart className="w-6 h-6" />
           </button>
           <Link href="/profile">
-            <button className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-pink-500"></button>
+            <button className="w-7 h-7 rounded-full overflow-hidden border border-gray-200">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="block w-full h-full bg-gradient-to-br from-blue-500 to-pink-500" />
+              )}
+            </button>
           </Link>
         </div>
       </div>

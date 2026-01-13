@@ -9,6 +9,7 @@ export class CommentResponseDto {
   user: {
     id: number;
     username: string;
+    avatarUrl?: string;
   };
 
   post: {
@@ -26,6 +27,7 @@ export class CommentResponseDto {
     user: {
       id: number;
       username: string;
+      avatarUrl?: string;
     };
     post: {
       id: number;

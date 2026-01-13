@@ -1,4 +1,5 @@
 import { useAuth } from '@/client_app/context/AuthContext';
+import Link from 'next/link';
 import { Home, Mail, PlusSquare, Compass, Heart, ArrowLeft, MoreVertical } from 'lucide-react';
 
 export default function ProfileHeader() {
@@ -16,8 +17,10 @@ const { user, logout } = useAuth();
 
         {/* Desktop Header */}
         <div className="hidden md:flex items-center justify-between w-full">
-          <h1 className="text-2xl font-serif italic">Instagram</h1>
-          <div className="flex items-center gap-6">
+          <Link href="/feed">
+            <h1 className="text-2xl font-serif italic cursor-pointer">Instagram</h1>
+          </Link>
+          <div className="flex gap-5 items-center">
             <input
               type="text"
               placeholder="Search"
@@ -30,7 +33,13 @@ const { user, logout } = useAuth();
               <button><PlusSquare className="w-6 h-6" /></button>
               <button><Compass className="w-6 h-6" /></button>
               <button><Heart className="w-6 h-6" /></button>
-              <button className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-pink-500"></button>
+              <button className="w-7 h-7 rounded-full overflow-hidden border border-gray-200">
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="block w-full h-full bg-gradient-to-br from-blue-500 to-pink-500" />
+                )}
+              </button>
             </div>
           </div>
         </div>

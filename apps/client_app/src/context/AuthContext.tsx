@@ -13,6 +13,7 @@ interface User {
   lastName: string;
   phone?: string | null;
   isPrivate: boolean;
+  avatarUrl?: string | null;
 }
 
 interface AuthContextType {

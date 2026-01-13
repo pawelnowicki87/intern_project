@@ -27,6 +27,7 @@ export class CommentsService {
       user: {
         id: comment.user.id,
         username: comment.user.username,
+        avatarUrl: comment.user.avatarUrl ?? null,
       },
       post: {
         id: comment.post.id,

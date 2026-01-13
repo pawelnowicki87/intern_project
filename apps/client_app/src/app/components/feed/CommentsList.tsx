@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { coreApi } from '@/client_app/lib/api';
 import { useAuth } from '@/client_app/context/AuthContext';
+import Link from 'next/link';
 
 interface CommentUser {
   id: number;
   username: string;
+  avatarUrl?: string;
 }
 
 interface CommentPostRef {
@@ -167,16 +169,26 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
         return (
           <div key={root.id} className="space-y-3">
             <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shrink-0 shadow-sm">
-                <span className="text-sm font-bold text-white">
-                  {root.user.username?.[0]?.toUpperCase() ?? 'U'}
-                </span>
-              </div>
+              {root.user.avatarUrl ? (
+                <img
+                  src={root.user.avatarUrl}
+                  alt="User avatar"
+                  className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0 shadow-sm"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shrink-0 shadow-sm">
+                  <span className="text-sm font-bold text-white">
+                    {root.user.username?.[0]?.toUpperCase() ?? 'U'}
+                  </span>
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-gray-900">
-                    {root.user.username}
-                  </span>
+                  <Link href={`/profile/${root.user.id}`}>
+                    <span className="font-semibold text-gray-900 hover:underline cursor-pointer">
+                      {root.user.username}
+                    </span>
+                  </Link>
                   <span className="text-xs text-gray-400">•</span>
                   <span className="text-xs text-gray-500">{formatTimeAgo(root.createdAt)}</span>
                 </div>
@@ -189,7 +201,7 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
                       className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
                       onClick={() => toggleExpand(root.id)}
                     >
-                      {expanded.has(root.id) ? '↑ Hide replies' : `↓ Show replies (${root.children.length})`}
+                      {expanded.has(root.id) ? '↑ Hide replies' : `↓ Show replies (${replies.length})`}
                     </button>
                   )}
                   <button
@@ -206,19 +218,29 @@ export default function CommentsList({ postId, refreshKey = 0 }: { postId: numbe
               <div className="space-y-3 pl-12 border-l-2 border-gray-200 ml-5">
                 {replies.map((r) => (
                   <div key={r.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center shrink-0 shadow-sm">
-                      <span className="text-xs font-bold text-white">
-                        {r.user.username?.[0]?.toUpperCase() ?? 'U'}
-                      </span>
-                    </div>
+                    {r.user.avatarUrl ? (
+                      <img
+                        src={r.user.avatarUrl}
+                        alt="User avatar"
+                        className="w-7 h-7 rounded-full object-cover border border-gray-200 shrink-0 shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center shrink-0 shadow-sm">
+                        <span className="text-xs font-bold text-white">
+                          {r.user.username?.[0]?.toUpperCase() ?? 'U'}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">
                           Reply
                         </span>
-                        <span className="font-semibold text-sm text-gray-900">
-                          {r.user.username}
-                        </span>
+                        <Link href={`/profile/${r.user.id}`}>
+                          <span className="font-semibold text-sm text-gray-900 hover:underline cursor-pointer">
+                            {r.user.username}
+                          </span>
+                        </Link>
                         <span className="text-xs text-gray-400">•</span>
                         <span className="text-xs text-gray-500">{formatTimeAgo(r.createdAt)}</span>
                       </div>
