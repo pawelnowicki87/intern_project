@@ -52,13 +52,19 @@ export class PostsService {
   }
 
   async create(data: CreatePostDto): Promise<PostResponseDto> {
-    const created = await this.postsRepository.create(data);
+    const { fileIds, ...postData } = data;
+
+    const created = await this.postsRepository.create(postData);
     if (!created) throw new InternalError('Post creation failed');
 
-    const post = await this.postsRepository.findById(created.id);
-    if (!post) throw new NotFoundError('Error fetching created post');
+    if (fileIds?.length) {
+      for (const fileId of fileIds) {
+        await this.postsRepository.attachAsset(created.id, fileId);
+      }
+    }
 
-    await this.postMentionsReader.processMentions(data.body, post.id, data.userId);
+    const post = await this.postsRepository.findById(created.id);
+    if (!post) throw new NotFoundError('Post not found after creation');
 
     return PostMapper.toResponseDto(post);
   }

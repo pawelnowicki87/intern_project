@@ -12,7 +12,6 @@ interface User {
   firstName: string;
   lastName: string;
   phone?: string | null;
-  bio?: string | null;
   isPrivate: boolean;
 }
 

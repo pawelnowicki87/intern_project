@@ -32,7 +32,6 @@ export class CommentsService {
       },
       post: {
         id: comment.post.id,
-        title: comment.post.title,
       },
       children: [],
     });

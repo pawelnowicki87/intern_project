@@ -53,7 +53,7 @@ export class CoreUsersAdapter {
     }
   }
 
-async createOAuthUser(user: CreateOAuthUserDto) {
+  async createOAuthUser(user: CreateOAuthUserDto) {
     const payload = {
       firstName: user.firstName,
       lastName: user.lastName,

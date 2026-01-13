@@ -5,11 +5,11 @@ export class PostMapper {
   static toResponseDto(post: Post): PostResponseDto {
     return {
       id: post.id,
-      title: post.title,
       body: post.body,
       status: post.status,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
+
       user: post.user
         ? {
           id: post.user.id,
@@ -21,6 +21,17 @@ export class PostMapper {
           isPrivate: post.user.isPrivate,
         }
         : null,
+
+      assets: post.assets
+        ? post.assets.map((a) => ({
+          id: a.file?.id,
+          url: a.file?.url,
+          type: a.file?.fileType,
+        }))
+        : [],
+      likes: post.likes?.length ?? 0,
+      comments: post.comments?.length ?? 0,
+      timeAgo: post.createdAt,
     };
   }
 

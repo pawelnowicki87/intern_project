@@ -1,7 +1,13 @@
+'use client';
+
 import { Heart, MessageCircle, Send, Search, PlusSquare, Home, Compass } from 'lucide-react';
 import Link from 'next/link';
 
-export default function FeedHeader() {
+interface FeedHeaderProps {
+  onCreatePost?: () => void;
+}
+
+export default function FeedHeader({ onCreatePost }: FeedHeaderProps) {
   return (
     <header className="bg-white border-b border-gray-300 sticky top-0 z-10">
       <div className="max-w-[935px] mx-auto px-4 py-2 md:py-3 flex items-center justify-between">
@@ -24,7 +30,7 @@ export default function FeedHeader() {
 
         {/* Icons */}
         <div className="flex items-center gap-4 md:gap-5">
-          <button className="md:hidden">
+          <button onClick={onCreatePost} className="md:hidden">
             <PlusSquare className="w-6 h-6" />
           </button>
           <button className="md:hidden">
@@ -34,13 +40,13 @@ export default function FeedHeader() {
             <Send className="w-6 h-6" />
           </button>
           
-          <button className="hidden md:block">
+          <Link href="/feed" className="hidden md:block">
             <Home className="w-6 h-6" />
-          </button>
+          </Link>
           <button className="hidden md:block">
             <Send className="w-6 h-6" />
           </button>
-          <button className="hidden md:block">
+          <button onClick={onCreatePost} className="hidden md:block">
             <PlusSquare className="w-6 h-6" />
           </button>
           <button className="hidden md:block">

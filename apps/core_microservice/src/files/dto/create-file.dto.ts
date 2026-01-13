@@ -1,16 +1,16 @@
 import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, IsUrl } from 'class-validator';
+import { User } from 'src/users/entities/user.entity';
 
 export class CreateFileDto {
-  @IsUrl({}, { message: 'Invalid file URL.' })
-  @IsNotEmpty({ message: 'File URL is required.' })
+  @IsUrl()
     url: string;
 
-  @IsInt()
-  @IsNotEmpty({ message: 'Owner ID is required.' })
+  @IsString()
     publicId: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(50, { message: 'File type can have up to 50 characters.' })
     fileType?: string;
+
+  owner: User;
 }

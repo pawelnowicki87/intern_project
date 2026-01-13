@@ -22,7 +22,6 @@ export class PostAssetsService {
       postId,
       fileId,
       createdAt,
-      postTitle: post?.title,
       fileUrl: file?.url,
     }));
   }
@@ -44,7 +43,6 @@ export class PostAssetsService {
       postId,
       fileId,
       createdAt,
-      postTitle: post?.title,
       fileUrl: file?.url,
     };
   }
@@ -69,7 +67,6 @@ export class PostAssetsService {
       postId,
       fileId,
       createdAt,
-      postTitle: post?.title,
       fileUrl: file?.url,
     };
   }

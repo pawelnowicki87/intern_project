@@ -4,6 +4,7 @@ import { CloudinaryConfig } from 'src/common/config/cloudinary.config';
 import { UploadApiResponse } from 'cloudinary';
 import * as streamifier from 'streamifier';
 import { FileRepository } from './files.repository';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class FilesService {
@@ -12,7 +13,7 @@ export class FilesService {
     private readonly fileRepository: FileRepository,
   ) {}
 
-  async uploadImage(file: Express.Multer.File) {
+  async uploadImage(file: Express.Multer.File, owner: User) {
     if (!file) {
       throw new InternalError('No file provided');
     }
@@ -35,13 +36,19 @@ export class FilesService {
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
 
-    await this.fileRepository.createFile({
+    const saved = await this.fileRepository.createFile({
       url: uploadResult.secure_url,
       publicId: uploadResult.public_id,
       fileType: uploadResult.resource_type,
+      owner,
     });
 
-    return uploadResult;
+    return {
+      id: saved.id,
+      url: saved.url,
+      publicId: saved.publicId,
+      fileType: saved.fileType,
+    };
   }
 
   async deleteImage(publicId: string): Promise<{ deleted: boolean}> {

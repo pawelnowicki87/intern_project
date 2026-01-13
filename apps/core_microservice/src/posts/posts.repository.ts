@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, Repository } from 'typeorm';
 import { Post } from './entities/posts.entity';
 import { PostStatus } from './entities/post-status.enum';
+import { PostAsset } from 'src/post-assets/entities/post-asset.entity';
+import { InternalError } from '@shared/errors/domain-errors';
 
 @Injectable()
 export class PostsRepository {
@@ -19,7 +21,7 @@ export class PostsRepository {
     skip = 0,
   ): Promise<Post[]> {
     return this.repo.find({
-      relations: ['user'],
+      relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
       order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
       take,
       skip,
@@ -29,7 +31,7 @@ export class PostsRepository {
   async findById(id: number): Promise<Post | null> {
     return this.repo.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
     });
   }
 
@@ -66,7 +68,7 @@ export class PostsRepository {
   async findArchived(): Promise<Post[]> {
     return this.repo.find({ 
       where: { status: PostStatus.ARCHIVED},
-      relations: [ 'user' ],
+      relations: [ 'user', 'assets', 'assets.file', 'likes', 'comments'],
       order: { createdAt: 'DESC'},
     });
   }
@@ -102,7 +104,7 @@ export class PostsRepository {
         userId: In(allUsersIds),
         status: PostStatus.PUBLISHED,
       },
-      relations: ['user'],
+      relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
       order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
       take,
       skip,
@@ -117,14 +119,27 @@ export class PostsRepository {
   ): Promise<Post[]> {
     return this.repo.find({
       where: [
-        { title: ILike(`%${query}%`), status: PostStatus.PUBLISHED },
         { body: ILike(`%${query}%`), status: PostStatus.PUBLISHED },
       ],
-      relations: ['user'],
+      relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
       order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
       take,
       skip,
     });
   }
+
+  async attachAsset(postId: number, fileId: number) {
+    if (!postId) {
+      throw new InternalError('Invalid postId for asset attachment');
+    }
+    if (!fileId) {
+      throw new InternalError('Invalid fileId for asset attachment');
+    }
+    await this.repo.manager.getRepository(PostAsset).insert({
+      postId,
+      fileId,
+    });
+  }
+
 
 }

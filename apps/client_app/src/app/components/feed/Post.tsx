@@ -3,13 +3,23 @@
 import { useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 
+interface PostAsset {
+  id: number;
+  url: string;
+  type?: string;
+}
+
 interface PostProps {
   post: {
     id: number;
-    username: string;
-    image: string;
+    title: string;
+    body: string;
+    assets: PostAsset[];
+    user: {
+      username: string;
+    };
+    createdAt: string;
     likes: number;
-    caption: string;
     comments: number;
     timeAgo: string;
   };
@@ -27,7 +37,7 @@ export default function Post({ post }: PostProps) {
           <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
             <span className="text-white font-bold text-sm">m</span>
           </div>
-          <span className="font-semibold text-sm md:text-base">{post.username}</span>
+          <span className="font-semibold text-sm md:text-base">{post.user.username}</span>
         </div>
         <button>
           <MoreHorizontal className="w-5 h-5 md:w-6 md:h-6" />
@@ -37,7 +47,7 @@ export default function Post({ post }: PostProps) {
       {/* Post Image */}
       <div className="w-full aspect-square bg-gradient-to-br from-teal-600 to-teal-400 relative overflow-hidden">
         <img 
-          src={post.image} 
+          src={post.assets?.[0]?.url}
           alt="Post" 
           className="w-full h-full object-cover"
         />
@@ -72,8 +82,8 @@ export default function Post({ post }: PostProps) {
 
         {/* Caption */}
         <div className="mb-1 md:mb-2">
-          <span className="font-semibold text-sm md:text-base mr-2">{post.username}</span>
-          <span className="text-sm md:text-base">{post.caption}</span>
+          <span className="font-semibold text-sm md:text-base mr-2">{post.user.username}</span>
+          <span className="text-sm md:text-base">{post.body}</span>
         </div>
 
         {/* View Comments */}
@@ -83,7 +93,7 @@ export default function Post({ post }: PostProps) {
 
         {/* Time */}
         <div className="text-xs text-gray-400 uppercase">
-          {post.timeAgo}
+          {new Date(post.timeAgo).toLocaleDateString()}
         </div>
       </div>
 
