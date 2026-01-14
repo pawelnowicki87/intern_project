@@ -143,6 +143,25 @@ export class PostsService {
     return PostMapper.toResponseList(popularVisible);
   }
 
+  async findFeedMostLikedForUser(
+    userId: number,
+    page = 1,
+    limit = 10,
+  ): Promise<PostResponseDto[]> {
+    const skip = (page - 1) * limit;
+    const popularIds = await this.postsRepository.findMostLikedPublishedIds(limit, skip);
+    const popularPosts = await this.postsRepository.findByIdsOrdered(popularIds);
+
+    const visible: Post[] = [];
+    for (const post of popularPosts) {
+      if (await this.canViewPost(userId, post)) {
+        visible.push(post);
+      }
+    }
+
+    return PostMapper.toResponseList(visible);
+  }
+
   async searchPosts(query: string): Promise<PostResponseDto[]> {
     if (!query || query.trim() === '') return [];
 

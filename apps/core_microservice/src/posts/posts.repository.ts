@@ -134,9 +134,9 @@ export class PostsRepository {
       .leftJoin('post.likes', 'likes')
       .where('post.status = :status', { status: PostStatus.PUBLISHED })
       .select('post.id', 'id')
-      .addSelect('COUNT(likes.userId)', '"likesCount"')
+      .addSelect('COUNT(likes.userId)', 'likesCount')
       .groupBy('post.id')
-      .orderBy('"likesCount"', 'DESC')
+      .orderBy('COUNT(likes.userId)', 'DESC')
       .addOrderBy('post.createdAt', 'DESC')
       .take(take)
       .skip(skip);

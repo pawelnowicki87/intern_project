@@ -78,6 +78,15 @@ export class PostsController {
     return this.postsService.findFeedForUser(Number(userId), sort, Number(page), Number(limit));
   }
 
+  @Get('feed/:userId/most-liked')
+  findMostLikedFeed(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+  ): Promise<PostResponseDto[]> {
+    return this.postsService.findFeedMostLikedForUser(Number(userId), Number(page), Number(limit));
+  }
+
   @Get('search')
   search(
     @Query('query') query: string,

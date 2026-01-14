@@ -28,13 +28,17 @@ export default function FeedPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await coreApi.get(`/posts/feed/${user.id}`, {
-        params: {
-          sort: sortBy === 'date' ? sortOrder : 'desc',
-          page: 1,
-          limit: 10,
-        },
-      });
+      const res = sortBy === 'likes'
+        ? await coreApi.get(`/posts/feed/${user.id}/most-liked`, {
+            params: { page: 1, limit: 10 },
+          })
+        : await coreApi.get(`/posts/feed/${user.id}`, {
+            params: {
+              sort: sortOrder,
+              page: 1,
+              limit: 10,
+            },
+          });
       setPosts(res.data ?? []);
     } catch (e) {
       setError('Failed to load feed');
