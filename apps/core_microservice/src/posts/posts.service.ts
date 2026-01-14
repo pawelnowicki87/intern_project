@@ -126,7 +126,21 @@ export class PostsService {
       }
     }
 
-    return PostMapper.toResponseList(visible);
+    if (visible.length > 0) {
+      return PostMapper.toResponseList(visible);
+    }
+
+    const popularIds = await this.postsRepository.findMostLikedPublishedIds(limit, skip);
+    const popularPosts = await this.postsRepository.findByIdsOrdered(popularIds);
+
+    const popularVisible: Post[] = [];
+    for (const post of popularPosts) {
+      if (await this.canViewPost(userId, post)) {
+        popularVisible.push(post);
+      }
+    }
+
+    return PostMapper.toResponseList(popularVisible);
   }
 
   async searchPosts(query: string): Promise<PostResponseDto[]> {

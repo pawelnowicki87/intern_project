@@ -126,6 +126,34 @@ export class PostsRepository {
     });
   } 
 
+  async findMostLikedPublishedIds(
+    take = 10,
+    skip = 0,
+  ): Promise<number[]> {
+    const qb = this.repo.createQueryBuilder('post')
+      .leftJoin('post.likes', 'likes')
+      .where('post.status = :status', { status: PostStatus.PUBLISHED })
+      .select('post.id', 'id')
+      .addSelect('COUNT(likes.id)', 'likesCount')
+      .groupBy('post.id')
+      .orderBy('likesCount', 'DESC')
+      .addOrderBy('post.createdAt', 'DESC')
+      .take(take)
+      .skip(skip);
+    const raw = await qb.getRawMany();
+    return raw.map((r: any) => Number(r.id));
+  }
+
+  async findByIdsOrdered(ids: number[]): Promise<Post[]> {
+    if (!ids.length) return [];
+    const posts = await this.repo.find({
+      where: { id: In(ids), status: PostStatus.PUBLISHED },
+      relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
+    });
+    const order = new Map<number, number>(ids.map((id, idx) => [id, idx]));
+    return posts.sort((a, b) => (order.get(a.id)! - order.get(b.id)!));
+  }
+
   async searchByQuery(
     query: string,
     sort: 'asc' | 'desc' = 'desc',

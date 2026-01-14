@@ -25,6 +25,7 @@ export class FollowsService {
       followerId: follow.followerId,
       followedId: follow.followedId,
       createdAt: follow.createdAt,
+      status: follow.status,
       followerFirstName: follow.follower.firstName,
       followerLastName: follow.follower.lastName,
       followedFirstName: follow.followed.firstName,

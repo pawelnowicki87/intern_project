@@ -8,7 +8,9 @@ interface FeedHeaderProps {
   onCreatePost?: () => void;
 }
 
-export default function FeedHeader({ onCreatePost }: FeedHeaderProps) {
+export default function FeedHeader({
+  onCreatePost,
+}: FeedHeaderProps) {
   const { user } = useAuth();
   return (
     <header className="bg-white border-b border-gray-300 sticky top-0 z-10">

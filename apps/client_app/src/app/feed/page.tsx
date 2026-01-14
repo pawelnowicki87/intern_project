@@ -19,6 +19,9 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editPost, setEditPost] = useState<any | null>(null);
+  const [sortBy, setSortBy] = useState<'date' | 'likes'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [filterType, setFilterType] = useState<'ALL' | 'IMAGE' | 'CAROUSEL' | 'REEL'>('ALL');
 
   const fetchFeed = useCallback(async () => {
     if (!user) return;
@@ -27,7 +30,7 @@ export default function FeedPage() {
     try {
       const res = await coreApi.get(`/posts/feed/${user.id}`, {
         params: {
-          sort: 'desc',
+          sort: sortBy === 'date' ? sortOrder : 'desc',
           page: 1,
           limit: 10,
         },
@@ -39,16 +42,45 @@ export default function FeedPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchFeed();
   }, [fetchFeed]);
 
+  const processedPosts = (() => {
+    let list = posts.slice();
+    if (filterType !== 'ALL') {
+      list = list.filter((p) => p.contentType === filterType);
+    }
+    if (sortBy === 'likes') {
+      list.sort((a, b) => {
+        const diff = (a.likes ?? 0) - (b.likes ?? 0);
+        return sortOrder === 'asc' ? diff : -diff;
+      });
+    } else {
+      list.sort((a, b) => {
+        const ad = new Date(a.createdAt).getTime();
+        const bd = new Date(b.createdAt).getTime();
+        const diff = ad - bd;
+        return sortOrder === 'asc' ? diff : -diff;
+      });
+    }
+    return list;
+  })();
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <FeedHeader onCreatePost={() => setIsCreatePostOpen(true)} />
+        <FeedHeader
+          onCreatePost={() => setIsCreatePostOpen(true)}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          filterType={filterType}
+          onChangeSortBy={setSortBy}
+          onChangeSortOrder={setSortOrder}
+          onChangeFilterType={setFilterType}
+        />
         
         {/* Main scrollable content */}
         <main className="w-full pt-4 pb-20 md:pb-6">
@@ -58,6 +90,41 @@ export default function FeedPage() {
               {/* Feed - centered on tablet, left on desktop */}
               <div className="w-full max-w-[615px]">
                 <Stories />
+                
+                <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-3 md:p-4 flex flex-wrap items-center gap-2 md:gap-3">
+                  <label className="text-sm text-gray-600">Sort by</label>
+                  <select
+                    aria-label="Sort by"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'date' | 'likes')}
+                    className="text-sm border border-gray-300 rounded px-2 py-1 bg-white"
+                  >
+                    <option value="date">Newest</option>
+                    <option value="likes">Top Liked</option>
+                  </select>
+                  <label className="text-sm text-gray-600">Order</label>
+                  <select
+                    aria-label="Sort order"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                    className="text-sm border border-gray-300 rounded px-2 py-1 bg-white"
+                  >
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                  </select>
+                  <label className="text-sm text-gray-600">Type</label>
+                  <select
+                    aria-label="Content type filter"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value as 'ALL' | 'IMAGE' | 'CAROUSEL' | 'REEL')}
+                    className="text-sm border border-gray-300 rounded px-2 py-1 bg-white"
+                  >
+                    <option value="ALL">All</option>
+                    <option value="IMAGE">Images</option>
+                    <option value="CAROUSEL">Carousels</option>
+                    <option value="REEL">Reels</option>
+                  </select>
+                </div>
                 
                 {/* Posts list */}
                 {loading && (
@@ -70,12 +137,12 @@ export default function FeedPage() {
                     {error}
                   </div>
                 )}
-                {!loading && !error && posts.length === 0 && (
+                {!loading && !error && processedPosts.length === 0 && (
                   <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
                     No posts to display
                   </div>
                 )}
-                {!loading && !error && posts.map((post) => (
+                {!loading && !error && processedPosts.map((post) => (
                   <Post
                     key={post.id}
                     post={post}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '@/client_app/context/AuthContext';
 import { coreApi } from '@/client_app/lib/api';
@@ -39,9 +39,47 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
   const [commentText, setCommentText] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [commentCount, setCommentCount] = useState<number | null>(null);
+  const [likesCount, setLikesCount] = useState<number>(post.likes ?? 0);
   const { user } = useAuth();
 
   const canManage = user?.id === post.user.id;
+
+  useEffect(() => {
+    let mounted = true;
+    const loadLiked = async () => {
+      if (!user?.id || !post?.id) return;
+      try {
+        await coreApi.get(`/likes-posts/${user.id}/${post.id}`);
+        if (mounted) setIsLiked(true);
+      } catch {
+        if (mounted) setIsLiked(false);
+      }
+    };
+    loadLiked();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id, post?.id]);
+
+  const toggleLike = async () => {
+    if (!user?.id) return;
+    const prev = isLiked;
+    try {
+      const res = await coreApi.post('/likes-posts/toggle', {
+        userId: user.id,
+        postId: post.id,
+      });
+      const liked = !!res.data?.liked;
+      setIsLiked(liked);
+      if (!prev && liked) {
+        setLikesCount((c) => c + 1);
+      } else if (prev && !liked) {
+        setLikesCount((c) => Math.max(0, c - 1));
+      }
+    } catch (e) {
+      console.error('Toggle like failed', e);
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -126,17 +164,17 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
       <div className="p-3 md:p-4">
         <div className="flex items-center justify-between mb-2 md:mb-3">
           <div className="flex items-center gap-4 md:gap-5">
-            <button onClick={() => setIsLiked(!isLiked)}>
+            <button type="button" onClick={toggleLike}>
               <Heart className={`w-6 h-6 md:w-7 md:h-7 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
             </button>
-            <button>
+            <button type="button">
               <MessageCircle className="w-6 h-6 md:w-7 md:h-7" />
             </button>
-            <button>
+            <button type="button">
               <Send className="w-6 h-6 md:w-7 md:h-7" />
             </button>
           </div>
-          <button onClick={() => setIsSaved(!isSaved)}>
+          <button type="button" onClick={() => setIsSaved(!isSaved)}>
             <Bookmark className={`w-6 h-6 md:w-7 md:h-7 ${isSaved ? 'fill-black' : ''}`} />
           </button>
         </div>
@@ -144,10 +182,11 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         {/* Likes */}
         <div className="mb-2">
           <span className="font-semibold text-sm md:text-base">
-            {(!isLiked && post.likes === 0) && '0 people like this post'}
-            {(isLiked && post.likes === 0) && 'You like this post'}
-            {(!isLiked && post.likes > 0) && `${post.likes.toLocaleString()} people like this post`}
-            {(isLiked && post.likes > 0) && `You and ${post.likes.toLocaleString()} people like this post`}
+            {(!isLiked && likesCount === 0) && '0 people liked this post'}
+            {(!isLiked && likesCount === 1) && '1 person liked this post'}
+            {(!isLiked && likesCount > 1) && `${likesCount.toLocaleString()} people liked this post`}
+            {(isLiked && likesCount <= 1) && 'You liked this post'}
+            {(isLiked && likesCount > 1) && `You and ${(likesCount - 1).toLocaleString()} people liked this post`}
           </span>
         </div>
 

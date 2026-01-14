@@ -1,6 +1,8 @@
 'use client';
 import { UserPlus } from 'lucide-react';
 import { useAuth } from '@/client_app/context/AuthContext';
+import { useEffect, useState } from 'react';
+import { coreApi } from '@/client_app/lib/api';
 
 interface ProfileInfoProps {
   profile: {
@@ -16,6 +18,48 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
   const { user } = useAuth();
   const isOwner = user?.id === profile.id;
   const firstLetter = profile.username?.charAt(0).toUpperCase() ?? 'U';
+  const [followStatus, setFollowStatus] = useState<'none' | 'pending' | 'accepted'>('none');
+  const [followLoading, setFollowLoading] = useState(false);
+
+  useEffect(() => {
+    const checkFollow = async () => {
+      if (!user || !profile?.id) return;
+      try {
+        const res = await coreApi.get(`/follows/${user.id}/${profile.id}`);
+        const status = res.data?.status as 'pending' | 'accepted' | 'rejected' | undefined;
+        setFollowStatus(status === 'pending' ? 'pending' : status === 'accepted' ? 'accepted' : 'none');
+      } catch {
+        setFollowStatus('none');
+      }
+    };
+    checkFollow();
+  }, [user, profile?.id]);
+
+  const handleFollow = async () => {
+    if (!user) return;
+    setFollowLoading(true);
+    try {
+      const res = await coreApi.post('/follows', {
+        followerId: user.id,
+        followedId: profile.id,
+      });
+      const status = res.data?.status as 'pending' | 'accepted' | 'rejected' | undefined;
+      setFollowStatus(status === 'pending' ? 'pending' : 'accepted');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!user) return;
+    setFollowLoading(true);
+    try {
+      await coreApi.delete(`/follows/${user.id}/${profile.id}`);
+      setFollowStatus('none');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   return (
     <div className="px-4 py-3 md:px-8 md:py-6">
@@ -65,9 +109,27 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
               <h1 className="text-xl font-light">{profile.username}</h1>
               {!isOwner && (
                 <>
-                  <button className="px-6 py-1.5 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600">
-                    Follow
-                  </button>
+                  {followStatus === 'accepted' ? (
+                    <button
+                      onClick={handleUnfollow}
+                      disabled={followLoading}
+                      className="px-6 py-1.5 bg-gray-200 text-black rounded-lg text-sm font-semibold hover:bg-gray-300"
+                    >
+                      Unfollow
+                    </button>
+                  ) : followStatus === 'pending' ? (
+                    <span className="px-4 py-1.5 bg-gray-200 text-black rounded-lg text-sm font-semibold">
+                      Wysłano prośbę
+                    </span>
+                  ) : (
+                    <button
+                      onClick={handleFollow}
+                      disabled={followLoading}
+                      className="px-6 py-1.5 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600"
+                    >
+                      Follow
+                    </button>
+                  )}
                   <button className="px-6 py-1.5 bg-gray-200 text-black rounded-lg text-sm font-semibold hover:bg-gray-300">
                     Message
                   </button>
@@ -97,9 +159,27 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
       <div className="px-0 py-3 flex gap-2 md:hidden">
         {!isOwner && (
           <>
-            <button className="flex-1 bg-blue-500 text-white py-1.5 rounded-lg text-sm font-semibold">
-              Follow
-            </button>
+            {followStatus === 'accepted' ? (
+              <button
+                onClick={handleUnfollow}
+                disabled={followLoading}
+                className="flex-1 bg-gray-200 text-black py-1.5 rounded-lg text-sm font-semibold"
+              >
+                Unfollow
+              </button>
+            ) : followStatus === 'pending' ? (
+              <span className="flex-1 bg-gray-200 text-black py-1.5 rounded-lg text-sm font-semibold text-center">
+                Wysłano prośbę
+              </span>
+            ) : (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className="flex-1 bg-blue-500 text-white py-1.5 rounded-lg text-sm font-semibold"
+              >
+                Follow
+              </button>
+            )}
             <button className="flex-1 bg-gray-200 text-black py-1.5 rounded-lg text-sm font-semibold">
               Message
             </button>
