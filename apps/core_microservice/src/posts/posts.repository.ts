@@ -134,15 +134,17 @@ export class PostsRepository {
       .leftJoin('post.likes', 'likes')
       .where('post.status = :status', { status: PostStatus.PUBLISHED })
       .select('post.id', 'id')
-      .addSelect('COUNT(likes.id)', 'likesCount')
+      .addSelect('COUNT(likes.userId)', '"likesCount"')
       .groupBy('post.id')
-      .orderBy('likesCount', 'DESC')
+      .orderBy('"likesCount"', 'DESC')
       .addOrderBy('post.createdAt', 'DESC')
       .take(take)
       .skip(skip);
+
     const raw = await qb.getRawMany();
     return raw.map((r: any) => Number(r.id));
   }
+
 
   async findByIdsOrdered(ids: number[]): Promise<Post[]> {
     if (!ids.length) return [];

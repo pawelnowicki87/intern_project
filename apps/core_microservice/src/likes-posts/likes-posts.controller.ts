@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { LikesPostsService } from './likes-posts.service';
 import { CreateLikePostDto } from './dto/create-like-post.dto';
 import { LikePostResponseDto } from './dto/like-post-response.dto';
@@ -13,11 +14,17 @@ export class LikesPostsController {
   }
 
   @Get(':userId/:postId')
-  findOne(
+  async findOne(
     @Param('userId') userId: number,
     @Param('postId') postId: number,
-  ): Promise<LikePostResponseDto> {
-    return this.likesPostsService.findOne(userId, postId);
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      const like = await this.likesPostsService.findOne(userId, postId);
+      res.status(200).json(like);
+    } catch (e) {
+      res.status(404).send();
+    }
   }
 
   @Post()

@@ -1,15 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react";
-import BottomNav from "../components/feed/BottomNav";
-import CreatePostModal from "../components/feed/CreatePostModal";
-import FeedHeader from "../components/feed/FeedHeader";
-import Post from "../components/feed/Post";
-import Stories from "../components/feed/Stories";
-import Suggestions from "../components/feed/Suggestions";
-import ProtectedRoute from "../components/ProtectedRoute";
-import { useAuth } from "@/client_app/context/AuthContext";
-import { coreApi } from "@/client_app/lib/api";
+import { useCallback, useEffect, useState } from 'react';
+import BottomNav from '../components/feed/BottomNav';
+import CreatePostModal from '../components/feed/CreatePostModal';
+import FeedHeader from '../components/feed/FeedHeader';
+import Post from '../components/feed/Post';
+import Stories from '../components/feed/Stories';
+import Suggestions from '../components/feed/Suggestions';
+import ProtectedRoute from '../components/ProtectedRoute';
+import { useAuth } from '@/client_app/context/AuthContext';
+import { coreApi } from '@/client_app/lib/api';
 
 
 export default function FeedPage() {
@@ -74,12 +74,6 @@ export default function FeedPage() {
       <div className="min-h-screen bg-gray-50">
         <FeedHeader
           onCreatePost={() => setIsCreatePostOpen(true)}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          filterType={filterType}
-          onChangeSortBy={setSortBy}
-          onChangeSortOrder={setSortOrder}
-          onChangeFilterType={setFilterType}
         />
         
         {/* Main scrollable content */}

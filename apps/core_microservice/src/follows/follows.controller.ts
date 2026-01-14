@@ -7,7 +7,9 @@ import {
   Body,
   Patch,
   Query,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FollowsService } from './follows.service';
 import { CreateFollowDto } from './dto/create-follow.dto';
 import { FollowResponseDto } from './dto/follow-response.dto';
@@ -22,11 +24,17 @@ export class FollowsController {
   }
 
   @Get(':followerId/:followedId')
-  findOne(
+  async findOne(
     @Param('followerId') followerId: number,
     @Param('followedId') followedId: number,
-  ): Promise<FollowResponseDto> {
-    return this.followsService.findOne(followerId, followedId);
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      const follow = await this.followsService.findOne(followerId, followedId);
+      res.status(200).json(follow);
+    } catch {
+      res.status(404).send();
+    }
   }
 
   @Post()
