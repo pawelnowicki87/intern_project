@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { X, UserPlus, UserMinus } from 'lucide-react';
-import { coreApi } from '@/client_app/lib/api';
-import { useAuth } from '@/client_app/context/AuthContext';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 
 interface User {
   id: number;

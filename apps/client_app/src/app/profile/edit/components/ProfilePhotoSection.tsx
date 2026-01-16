@@ -1,6 +1,6 @@
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 import { useRef, useState } from 'react';
-import { useAuth } from '@/client_app/context/AuthContext';
-import { coreApi } from '@/client_app/lib/api';
 
 interface ProfilePhotoSectionProps {
   username: string;

@@ -4,9 +4,9 @@ import { Send, MoreHorizontal } from 'lucide-react';
 import type { ChatItem } from './ChatSidebar';
 import { useSearchParams } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
-import { getAccessToken } from '@/client_app/lib/auth';
-import { useAuth } from '@/client_app/context/AuthContext';
-import { coreApi } from '@/client_app/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
+import { getAccessToken } from '@/lib/auth';
 
 type Message = {
   id?: number;

@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Heart, MessageCircle, UserPlus, AtSign, Bell } from 'lucide-react';
-import { useAuth } from '@/client_app/context/AuthContext';
-import { notificationsApi, coreApi } from '@/client_app/lib/api';
 import { useRouter } from 'next/navigation';
 import { navigateForNotification } from './nav';
+import { useAuth } from '@/context/AuthContext';
+import { notificationsApi, coreApi } from '@/lib/api';
 
 interface Notification {
   id: number;

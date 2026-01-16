@@ -1,8 +1,8 @@
 'use client';
 
+import { useAuth } from '@/context/AuthContext';
 import { Home, Search, Film, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@/client_app/context/AuthContext';
 
 interface BottomNavProps {
   onCreatePost?: () => void;

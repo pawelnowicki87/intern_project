@@ -2,16 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import BottomNav from '../../components/BottomNav';
-import CreatePostModal from '@/client_app/src/components/post/CreatePostModal';
 import FeedHeader from './components/FeedHeader';
 import Post from './components/Post';
 import Stories from './components/Stories';
 import Suggestions from './components/Suggestions';
 import FeedFilterBar from './components/FeedFilterBar';
-import ProtectedRoute from '@/client_app/src/components/ProtectedRoute';
-import { useAuth } from '@/client_app/context/AuthContext';
-import { coreApi } from '@/client_app/lib/api';
-
+import CreatePostModal from '@/components/CreatePostModal';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 
 export default function FeedPage() {
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
@@ -31,15 +30,15 @@ export default function FeedPage() {
     try {
       const res = sortBy === 'likes'
         ? await coreApi.get(`/posts/feed/${user.id}/most-liked`, {
-            params: { page: 1, limit: 10 },
-          })
+          params: { page: 1, limit: 10 },
+        })
         : await coreApi.get(`/posts/feed/${user.id}`, {
-            params: {
-              sort: sortOrder,
-              page: 1,
-              limit: 10,
-            },
-          });
+          params: {
+            sort: sortOrder,
+            page: 1,
+            limit: 10,
+          },
+        });
       setPosts(res.data ?? []);
     } catch (e) {
       setError('Failed to load feed');

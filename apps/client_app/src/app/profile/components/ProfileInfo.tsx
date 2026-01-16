@@ -1,10 +1,10 @@
 'use client';
 import { UserPlus } from 'lucide-react';
-import { useAuth } from '@/client_app/context/AuthContext';
 import { useEffect, useState } from 'react';
-import { coreApi } from '@/client_app/lib/api';
 import Link from 'next/link';
 import FollowersModal from './ProfileFollowersModal';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 
 interface ProfileInfoProps {
   profile: {

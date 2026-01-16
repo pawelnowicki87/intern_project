@@ -1,13 +1,13 @@
-import ProtectedRoute from "@/client_app/src/components/ProtectedRoute";
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/client_app/context/AuthContext';
-import { coreApi } from '@/client_app/lib/api';
 import ProfileHeader from './components/ProfileHeader';
 import ProfileHighlights from './components/ProfileHighlights';
 import ProfileInfo from './components/ProfileInfo';
 import ProfileTabs from './components/ProfileTabs';
 import ProfilePostsGrid from './components/ProfilePostsGrid';
-import CreatePostModal from '@/client_app/src/components/post/CreatePostModal';
+import CreatePostModal from '@/components/CreatePostModal';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 
 export default function Page() {
   const { user } = useAuth();

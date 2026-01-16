@@ -1,14 +1,14 @@
 'use client';
 
-import { useAuth } from '@/client_app/context/AuthContext';
 import { useState, useEffect } from 'react';
-import { coreApi } from '@/client_app/lib/api';
 import EditProfileHeader from './EditProfileHeader';
 import ProfilePhotoSection from './ProfilePhotoSection';
 import Input from '../../../../components/ui/Input';
 import { Loader } from '../../../../components/ui/Loader';
 import { useRouter } from 'next/navigation';
 import SubmitButtonSection from './SubmitButtonSection';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 
 export default function EditProfilePage() {
   const { user, setUser } = useAuth();

@@ -1,9 +1,9 @@
-"use client";
-import { useEffect, useState } from "react";
-import { coreApi } from "@/client_app/lib/api";
-import type { ProfileTab } from "./ProfileTabs";
-import { useAuth } from "@/client_app/context/AuthContext";
-import Link from "next/link";
+'use client';
+import { useEffect, useState } from 'react';
+import type { ProfileTab } from './ProfileTabs';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 
 interface PostAsset {
   id: number;

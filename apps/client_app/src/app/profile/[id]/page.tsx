@@ -1,17 +1,17 @@
 'use client';
 
-import ProtectedRoute from "@/client_app/src/components/ProtectedRoute";
-import ProfileHeader from "../components/ProfileHeader";
-import BottomNavigation from "../../../components/BottomNavigation";
-import ProfileInfo from "../components/ProfileInfo";
-import ProfileHighlights from "../components/ProfileHighlights";
-import ProfileTabs from "../../components/profile/ProfileTabs";
-import ProfilePostsGrid from "../components/ProfilePostsGrid";
-import { useAuth } from "@/client_app/context/AuthContext";
-import { coreApi } from "@/client_app/lib/api";
-import { useEffect, useState } from "react";
-import React from "react";
-import CreatePostModal from "../../components/feed/CreatePostModal";
+import ProfileHeader from '../components/ProfileHeader';
+import BottomNavigation from '../../../components/BottomNavigation';
+import ProfileInfo from '../components/ProfileInfo';
+import ProfileHighlights from '../components/ProfileHighlights';
+import ProfileTabs from '../components/ProfileTabs';
+import ProfilePostsGrid from '../components/ProfilePostsGrid';
+import { useEffect, useState } from 'react';
+import React from 'react';
+import CreatePostModal from '../../../components/CreatePostModal';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const unwrapped = React.use(params);

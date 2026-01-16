@@ -2,8 +2,8 @@
 
 import { Send, Search, PlusSquare, Home, Compass } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@/client_app/context/AuthContext';
 import NotificationsDropdown from '../../../components/NotificationsDropdown';
+import { useAuth } from '@/context/AuthContext';
 
 interface FeedHeaderProps {
   onCreatePost?: () => void;

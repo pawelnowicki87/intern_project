@@ -5,10 +5,10 @@ import ChatSidebar from './components/ChatSidebar';
 import ChatWindow from './components/ChatWindow';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { coreApi } from '@/client_app/lib/api';
-import { useAuth } from '@/client_app/context/AuthContext';
 import { useRef } from 'react';
-import CreatePostModal from '@/client_app/components/CreatePostModal';
+import { useAuth } from '@/context/AuthContext';
+import CreatePostModal from '@/components/CreatePostModal';
+import { coreApi } from '@/lib/api';
 
 export default function ChatPage() {
   type ChatItem = {
