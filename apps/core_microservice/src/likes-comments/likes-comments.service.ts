@@ -88,4 +88,10 @@ export class LikesCommentsService {
 
     return count;
   }
+
+  async checkLiked(userId: number, commentIds: number[]): Promise<{ likedIds: number[] }> {
+    const likes = await this.likesRepo.findByUserAndCommentIds(userId, commentIds);
+    const likedIds = Array.from(new Set(likes.map((l) => l.commentId)));
+    return { likedIds };
+  }
 }

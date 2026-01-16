@@ -1,6 +1,6 @@
 import { useAuth } from '@/client_app/context/AuthContext';
 import Link from 'next/link';
-import { Home, Mail, PlusSquare, Compass, Heart, ArrowLeft, MoreVertical } from 'lucide-react';
+import { Home, Send, PlusSquare, Compass, Heart, ArrowLeft, MoreVertical } from 'lucide-react';
 
 export default function ProfileHeader() {
 const { user, logout } = useAuth();
@@ -29,7 +29,7 @@ const { user, logout } = useAuth();
             <div className="flex gap-5 items-center">
               <button onClick={logout} className="text-sm font-semibold">Logout</button>
               <button><Home className="w-6 h-6" /></button>
-              <button><Mail className="w-6 h-6" /></button>
+              <Link href="/chat"><Send className="w-6 h-6" /></Link>
               <button><PlusSquare className="w-6 h-6" /></button>
               <button><Compass className="w-6 h-6" /></button>
               <button><Heart className="w-6 h-6" /></button>

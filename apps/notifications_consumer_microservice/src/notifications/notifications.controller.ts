@@ -13,6 +13,11 @@ export class NotificationsController {
     return this.notificationsService.findAll();
   }
 
+  @Get('user/:userId')
+  findByUser(@Param('userId') userId: number): Promise<NotificationResponseDto[]> {
+    return this.notificationsService.findByRecipient(Number(userId));
+  }
+
   @Get(':id')
   findOne(@Param('id') id: number): Promise<NotificationResponseDto> {
     return this.notificationsService.findOne(id);

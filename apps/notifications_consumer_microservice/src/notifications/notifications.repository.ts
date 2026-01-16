@@ -21,6 +21,13 @@ export class NotificationsRepository {
     return this.repo.findOne({ where: { id } });
   }
 
+  findByRecipientId(recipientId: number): Promise<Notification[]> {
+    return this.repo.find({
+      where: { recipientId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async create(data: CreateNotificationDto): Promise<Notification | null> {
     try {
       const notification = this.repo.create(data);

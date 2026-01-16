@@ -1,16 +1,15 @@
 'use client';
 
-import { Heart, MessageCircle, Send, Search, PlusSquare, Home, Compass } from 'lucide-react';
+import { Send, Search, PlusSquare, Home, Compass } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/client_app/context/AuthContext';
+import NotificationsDropdown from './NotificationsDropdown';
 
 interface FeedHeaderProps {
   onCreatePost?: () => void;
 }
 
-export default function FeedHeader({
-  onCreatePost,
-}: FeedHeaderProps) {
+export default function FeedHeader({ onCreatePost }: FeedHeaderProps) {
   const { user } = useAuth();
   return (
     <header className="bg-white border-b border-gray-300 sticky top-0 z-10">
@@ -37,9 +36,9 @@ export default function FeedHeader({
           <button onClick={onCreatePost} className="md:hidden">
             <PlusSquare className="w-6 h-6" />
           </button>
-          <button className="md:hidden">
-            <Heart className="w-6 h-6" />
-          </button>
+          <div className="md:hidden">
+            <NotificationsDropdown />
+          </div>
           <button className="md:hidden">
             <Send className="w-6 h-6" />
           </button>
@@ -56,9 +55,9 @@ export default function FeedHeader({
           <button className="hidden md:block">
             <Compass className="w-6 h-6" />
           </button>
-          <button className="hidden md:block">
-            <Heart className="w-6 h-6" />
-          </button>
+          <div className="hidden md:block">
+            <NotificationsDropdown />
+          </div>
           <Link href="/profile">
             <button className="w-7 h-7 rounded-full overflow-hidden border border-gray-200">
               {user?.avatarUrl ? (

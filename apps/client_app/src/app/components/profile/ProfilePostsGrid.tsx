@@ -28,11 +28,10 @@ export default function ProfilePostsGrid({ userId, tab }: { userId: number; tab:
       setLoading(true);
       setError(null);
       try {
-        const postsRes = await coreApi.get('/posts', {
-          params: { sort: 'desc', page: 1, limit: 50 },
+        const postsRes = await coreApi.get(`/posts/user/${userId}`, {
+          params: { viewerId: user?.id, sort: 'desc', page: 1, limit: 50 },
         });
-        const allPosts: PostItem[] = postsRes.data ?? [];
-        const ownPosts = allPosts.filter((p) => p.user?.id === userId);
+        const ownPosts: PostItem[] = postsRes.data ?? [];
 
         if (tab === 'posts') {
           if (mounted) setItems(ownPosts);
@@ -44,13 +43,23 @@ export default function ProfilePostsGrid({ userId, tab }: { userId: number; tab:
           const savedIds: number[] = (savesRes.data ?? []).map((sp: any) => sp.postId);
           const uniqueIds = Array.from(new Set(savedIds)).slice(0, 30);
           const posts = await Promise.all(
-            uniqueIds.map((id) => coreApi.get(`/posts/${id}`).then((r) => r.data).catch(() => null)),
+            uniqueIds.map((id) =>
+              coreApi
+                .get(`/posts/${id}`, { params: { viewerId: user?.id } })
+                .then((r) => r.data)
+                .catch(() => null),
+            ),
           );
           const result = posts.filter(Boolean) as PostItem[];
           if (mounted) setItems(result);
         }
       } catch (e) {
-        if (mounted) setError('Failed to load posts');
+        const status = (e as any)?.response?.status;
+        if (status === 403) {
+          if (mounted) setError('Ten profil jest prywatny');
+        } else {
+          if (mounted) setError('Nie udało się wczytać postów');
+        }
       } finally {
         if (mounted) setLoading(false);
       }

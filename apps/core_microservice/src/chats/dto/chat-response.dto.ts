@@ -3,6 +3,7 @@ export class ChatResponseDto {
   createdAt: Date;
   participants: {
     userId: number;
+    username?: string;
     firstName: string;
     lastName: string;
     email: string;

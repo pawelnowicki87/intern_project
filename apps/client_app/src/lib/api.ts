@@ -15,6 +15,10 @@ export const coreApi = axios.create({
   baseURL: process.env.CORE_SERVICE_URL ?? 'http://localhost:3001',
 });
 
+export const notificationsApi = axios.create({
+  baseURL: process.env.NOTIFICATIONS_SERVICE_URL ?? 'http://localhost:3003',
+});
+
 const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/refresh'];
 
 authApi.interceptors.request.use((config) => {
@@ -68,4 +72,17 @@ authApi.interceptors.response.use(
 coreApi.interceptors.response.use(
   (response) => response,
   (error) => handle401(error, coreApi),
+);
+
+notificationsApi.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+notificationsApi.interceptors.response.use(
+  (response) => response,
+  (error) => handle401(error, notificationsApi),
 );

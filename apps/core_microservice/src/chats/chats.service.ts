@@ -14,6 +14,7 @@ export class ChatsService {
       createdAt: chat.createdAt,
       participants: chat.participants?.map((participant) => ({
         userId: participant.user.id,
+        username: participant.user.username,
         firstName: participant.user.firstName,
         lastName: participant.user.lastName,
         email: participant.user.email,
@@ -40,6 +41,12 @@ export class ChatsService {
   }
 
   async create(data: CreateChatDto): Promise<ChatResponseDto> {
+    if (data.participantIds && data.participantIds.length === 2) {
+      const existing = await this.chatsRepo.findDirectChatByParticipants(data.participantIds);
+      if (existing) {
+        return this.toResponseDto(existing);
+      }
+    }
     const created = await this.chatsRepo.create(data);
 
     if (!created) {

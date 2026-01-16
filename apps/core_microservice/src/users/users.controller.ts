@@ -69,6 +69,11 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
+  @Get(':id/stats')
+  getStats(@Param('id') id: number) {
+    return this.usersService.getStats(Number(id));
+  }
+
   @Post('oauth')
   createOAuth(@Body() data: CreateOAuthUserDto) {
     return this.usersService.createOAuthUser(data);

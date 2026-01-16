@@ -10,5 +10,9 @@ export class PostReaderAdapter implements IPostReader {
     const post = await this.postsRepo.findById(postId);
     return post?.userId ?? null;
   }
-}
 
+  countPublishedByUserId(userId: number): Promise<number> {
+    return this.postsRepo.countPublishedByUserId(userId);
+  }
+}
+ 

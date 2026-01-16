@@ -87,6 +87,23 @@ export class PostsController {
     return this.postsService.findFeedMostLikedForUser(Number(userId), Number(page), Number(limit));
   }
 
+  @Get('user/:userId')
+  findByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('viewerId') viewerId?: number,
+    @Query('sort') sort: 'asc' | 'desc' = 'desc',
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+  ): Promise<PostResponseDto[]> {
+    return this.postsService.findByUserVisible(
+      Number(userId),
+      viewerId ? Number(viewerId) : 0,
+      sort,
+      Number(page),
+      Number(limit),
+    );
+  }
+
   @Get('search')
   search(
     @Query('query') query: string,

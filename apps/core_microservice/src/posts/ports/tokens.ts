@@ -1,3 +1,4 @@
 export const FOLLOWS_READER = Symbol('FOLLOWS_READER');
 export const VISIBILITY_POST_READER = Symbol('VISIBILITY_POST_READER');
 export const POST_MENTIONS_READER = Symbol('POST_MENTIONS_READER');
+export const POST_READER = Symbol('POST_READER');

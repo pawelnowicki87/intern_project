@@ -44,6 +44,22 @@ export class ChatsRepository {
     }
   }
 
+  async findDirectChatByParticipants(userIds: number[]): Promise<Chat | null> {
+    try {
+      const all = await this.findAll();
+      const set = new Set(userIds);
+      const found = all.find((c) => {
+        const parts = c.participants ?? [];
+        if (parts.length !== 2) return false;
+        const ids = parts.map((p: any) => p.user?.id).filter(Boolean);
+        return ids.length === 2 && ids.every((id) => set.has(id)) && set.size === 2;
+      });
+      return found ?? null;
+    } catch (err) {
+      this.logger.error(err.message);
+      return null;
+    }
+  }
 
   async delete(id: number): Promise<boolean> {
     try {

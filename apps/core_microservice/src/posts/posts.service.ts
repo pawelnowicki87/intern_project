@@ -66,6 +66,10 @@ export class PostsService {
     const post = await this.postsRepository.findById(created.id);
     if (!post) throw new NotFoundError('Post not found after creation');
 
+    if (typeof post.body === 'string' && post.body.length > 0) {
+      await this.postMentionsReader.processMentions(post.body, post.id, post.userId);
+    }
+
     return PostMapper.toResponseDto(post);
   }
 
@@ -160,6 +164,22 @@ export class PostsService {
     }
 
     return PostMapper.toResponseList(visible);
+  }
+
+  async findByUserVisible(
+    ownerId: number,
+    viewerId: number,
+    sort: 'asc' | 'desc' = 'desc',
+    page = 1,
+    limit = 10,
+  ): Promise<PostResponseDto[]> {
+    const canView = await this.visibilityPostReader.canViewPosts(viewerId, ownerId);
+    if (!canView) {
+      throw new ForbiddenError('Posts are private');
+    }
+    const skip = (page - 1) * limit;
+    const posts = await this.postsRepository.findByUserId(ownerId, sort, limit, skip);
+    return PostMapper.toResponseList(posts);
   }
 
   async searchPosts(query: string): Promise<PostResponseDto[]> {

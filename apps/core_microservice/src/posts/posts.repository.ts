@@ -126,6 +126,24 @@ export class PostsRepository {
     });
   } 
 
+  async findByUserId(
+    userId: number,
+    sort: 'asc' | 'desc' = 'desc',
+    take = 10,
+    skip = 0,
+  ): Promise<Post[]> {
+    return this.repo.find({
+      where: {
+        userId,
+        status: PostStatus.PUBLISHED,
+      },
+      relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
+      order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
+      take,
+      skip,
+    });
+  }
+
   async findMostLikedPublishedIds(
     take = 10,
     skip = 0,
@@ -170,6 +188,15 @@ export class PostsRepository {
       order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
       take,
       skip,
+    });
+  }
+
+  async countPublishedByUserId(userId: number): Promise<number> {
+    return this.repo.count({
+      where: {
+        userId,
+        status: PostStatus.PUBLISHED,
+      },
     });
   }
 

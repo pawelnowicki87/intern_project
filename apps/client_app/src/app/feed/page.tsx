@@ -7,6 +7,7 @@ import FeedHeader from '../components/feed/FeedHeader';
 import Post from '../components/feed/Post';
 import Stories from '../components/feed/Stories';
 import Suggestions from '../components/feed/Suggestions';
+import FeedFilterBar from '../components/feed/FeedFilterBar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '@/client_app/context/AuthContext';
 import { coreApi } from '@/client_app/lib/api';
@@ -89,40 +90,14 @@ export default function FeedPage() {
               <div className="w-full max-w-[615px]">
                 <Stories />
                 
-                <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-3 md:p-4 flex flex-wrap items-center gap-2 md:gap-3">
-                  <label className="text-sm text-gray-600">Sort by</label>
-                  <select
-                    aria-label="Sort by"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as 'date' | 'likes')}
-                    className="text-sm border border-gray-300 rounded px-2 py-1 bg-white"
-                  >
-                    <option value="date">Newest</option>
-                    <option value="likes">Top Liked</option>
-                  </select>
-                  <label className="text-sm text-gray-600">Order</label>
-                  <select
-                    aria-label="Sort order"
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                    className="text-sm border border-gray-300 rounded px-2 py-1 bg-white"
-                  >
-                    <option value="desc">Descending</option>
-                    <option value="asc">Ascending</option>
-                  </select>
-                  <label className="text-sm text-gray-600">Type</label>
-                  <select
-                    aria-label="Content type filter"
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value as 'ALL' | 'IMAGE' | 'CAROUSEL' | 'REEL')}
-                    className="text-sm border border-gray-300 rounded px-2 py-1 bg-white"
-                  >
-                    <option value="ALL">All</option>
-                    <option value="IMAGE">Images</option>
-                    <option value="CAROUSEL">Carousels</option>
-                    <option value="REEL">Reels</option>
-                  </select>
-                </div>
+                <FeedFilterBar
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  filterType={filterType}
+                  onChangeSortBy={(v) => setSortBy(v)}
+                  onChangeSortOrder={(v) => setSortOrder(v)}
+                  onChangeFilterType={(v) => setFilterType(v)}
+                />
                 
                 {/* Posts list */}
                 {loading && (

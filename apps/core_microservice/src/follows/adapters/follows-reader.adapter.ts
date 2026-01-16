@@ -16,4 +16,11 @@ export class FollowsReaderAdapter implements IFollowsReader {
     return Boolean(follow && follow.status === FollowStatus.ACCEPTED);
   }
 
+  countFollowersByUserId(userId: number): Promise<number> {
+    return this.followsRepo.countFollowersByUserId(userId);
+  }
+
+  countFollowingByUserId(userId: number): Promise<number> {
+    return this.followsRepo.countFollowingByUserId(userId);
+  }
 }

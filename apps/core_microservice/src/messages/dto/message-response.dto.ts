@@ -2,7 +2,7 @@ export class MessageResponseDto {
   id: number;
   senderId: number;
   receiverId: number;
-  chatId:number;
+  chatId: number;
   body?: string;
   isRead: boolean;
   createdAt: Date;

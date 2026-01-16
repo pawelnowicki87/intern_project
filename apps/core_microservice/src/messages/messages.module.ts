@@ -16,14 +16,16 @@ import { MessageReadWebsocketAdapter } from './adapters/message-read-websocket.a
     MessagesService,
     MessagesRepository,
 
-    {
-      provide: MESSAGE_WEBSOCKET_READER,
-      useClass: MessageWebsocketAdapter,
-    },
+    MessageWebsocketAdapter,
+    MessageReadWebsocketAdapter,
 
     {
+      provide: MESSAGE_WEBSOCKET_READER,
+      useExisting: MessageWebsocketAdapter,
+    },
+    {
       provide: MESSAGE_READ_WEBSOCKET,
-      useClass: MessageReadWebsocketAdapter,
+      useExisting: MessageReadWebsocketAdapter,
     },
   ],
   exports: [
@@ -34,3 +36,4 @@ import { MessageReadWebsocketAdapter } from './adapters/message-read-websocket.a
   ],
 })
 export class MessagesModule {}
+

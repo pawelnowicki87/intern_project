@@ -101,4 +101,22 @@ export class FollowsRepository {
     });
   }
 
+  async countFollowersByUserId(userId: number): Promise<number> {
+    return this.repo.count({
+      where: {
+        followedId: userId,
+        status: FollowStatus.ACCEPTED,
+      },
+    });
+  }
+
+  async countFollowingByUserId(userId: number): Promise<number> {
+    return this.repo.count({
+      where: {
+        followerId: userId,
+        status: FollowStatus.ACCEPTED,
+      },
+    });
+  }
+
 }

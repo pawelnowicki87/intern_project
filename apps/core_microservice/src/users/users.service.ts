@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
   NotFoundError,
   ConflictError,
@@ -15,6 +15,9 @@ import { HiddenUserDto } from './dto/hidden-user.dto';
 import { CreateUserWithPasswordDto } from './dto/create-user.dto';
 import { CreateOAuthUserDto } from './dto/create-OAuth-user.dto';
 import { VisibilityService } from '../visibility/visibility.service';
+import type { IFollowsReader } from 'src/posts/ports/follows-reader.port';
+import type { IPostReader } from 'src/posts/ports/post-reader.port';
+import { FOLLOWS_READER, POST_READER } from 'src/posts/ports/tokens';
 
 
 @Injectable()
@@ -25,6 +28,10 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: UsersCredentialRepository,
     private readonly visibilityService: VisibilityService,
+    @Inject(FOLLOWS_READER)
+    private readonly followsReader: IFollowsReader,
+    @Inject(POST_READER)
+    private readonly postReader: IPostReader,
   ) {}
 
   private toHiddenUserDto(user: any): HiddenUserDto {
@@ -180,6 +187,15 @@ export class UsersService {
       throw new NotFoundError(`User with ID ${id} not found`);
     }
     return { deleted: true };
+  }
+
+  async getStats(userId: number): Promise<{ posts: number; followers: number; following: number }> {
+    const [posts, followers, following] = await Promise.all([
+      this.postReader.countPublishedByUserId(userId),
+      this.followsReader.countFollowersByUserId(userId),
+      this.followsReader.countFollowingByUserId(userId),
+    ]);
+    return { posts, followers, following };
   }
 
   async findByEmailForAuth(email: string) {

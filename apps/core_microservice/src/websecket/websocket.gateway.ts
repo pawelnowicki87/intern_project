@@ -51,15 +51,20 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
   @SubscribeMessage('join_room')
   async handleJoinRoom(
-    @MessageBody() body: { chatId: number },
-    @ConnectedSocket() client: Socket,
+  @MessageBody() body: { chatId: number },
+  @ConnectedSocket() client: Socket,
   ) {
     const userId = client.data.userId;
 
     const canJoin = await this.chatParticioantsReader.isUserInChat(body.chatId, userId);
-
     if (!canJoin) {
       return { error: 'You are not a participant of this chat.' };
+    }
+
+    for (const room of client.rooms) {
+      if (room.startsWith('chat_')) {
+        client.leave(room);
+      }
     }
 
     const roomName = `chat_${body.chatId}`;

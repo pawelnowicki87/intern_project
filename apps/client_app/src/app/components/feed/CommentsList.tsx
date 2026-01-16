@@ -72,6 +72,8 @@ export default function CommentsList({
   const [replyText, setReplyText] = useState<Record<number, string>>({});
   const [commentLikes, setCommentLikes] = useState<Record<number, number>>({});
   const [likedByMe, setLikedByMe] = useState<Set<number>>(new Set());
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editText, setEditText] = useState<Record<number, string>>({});
   const { user } = useAuth();
 
   useEffect(() => {
@@ -130,16 +132,19 @@ export default function CommentsList({
           } catch {
             countsEntries.push([id, 0]);
           }
-          if (user?.id) {
-            try {
-              await coreApi.get(`/likes-comments/${user.id}/${id}`);
-              likedSet.add(id);
-            } catch {
-              console.debug('like-check failed');
-            }
-          }
         }),
       );
+      if (user?.id) {
+        try {
+          const res = await coreApi.post(`/likes-comments/check-liked`, {
+            userId: user.id,
+            commentIds: allIds,
+          });
+          const likedIds: number[] = res.data?.likedIds ?? [];
+          likedIds.forEach((id: number) => likedSet.add(id));
+        } catch {
+        }
+      }
       const countsObj: Record<number, number> = {};
       countsEntries.forEach(([id, cnt]) => {
         countsObj[id] = cnt;
@@ -176,6 +181,43 @@ export default function CommentsList({
 
   const onReplyChange = (id: number, value: string) => {
     setReplyText((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const startEdit = (id: number, currentBody?: string) => {
+    setEditingId(id);
+    setEditText((prev) => ({ ...prev, [id]: currentBody ?? '' }));
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const onEditChange = (id: number, value: string) => {
+    setEditText((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const submitEdit = async (id: number) => {
+    const text = (editText[id] ?? '').trim();
+    if (!text) return;
+    try {
+      await coreApi.patch(`/comments/${id}`, { body: text });
+      const res = await coreApi.get<CommentResponse[]>(`/comments/post/${postId}`);
+      setComments(res.data ?? []);
+      setEditingId(null);
+    } catch {
+      setError('Failed to update comment');
+    }
+  };
+
+  const deleteComment = async (id: number) => {
+    try {
+      await coreApi.delete(`/comments/${id}`);
+      const res = await coreApi.get<CommentResponse[]>(`/comments/post/${postId}`);
+      setComments(res.data ?? []);
+      if (editingId === id) setEditingId(null);
+    } catch {
+      setError('Failed to delete comment');
+    }
   };
 
   const toggleLikeComment = async (id: number) => {
@@ -300,34 +342,80 @@ export default function CommentsList({
                   <span className="text-xs text-gray-400">•</span>
                   <span className="text-xs text-gray-500">{formatTimeAgo(root.createdAt)}</span>
                 </div>
-                <div className="text-sm text-gray-800 leading-relaxed break-words">
-                  {root.body}
-                </div>
-                <div className="mt-2 flex items-center gap-3">
-                  <button
-                    className="text-xs font-medium text-gray-600 hover:text-red-600 transition-colors flex items-center gap-1"
-                    onClick={() => toggleLikeComment(root.id)}
-                  >
-                    <Heart className={`w-4 h-4 ${likedByMe.has(root.id) ? 'fill-red-500 text-red-500' : ''}`} />
-                    Like
-                  </button>
-                  <span className="text-xs text-gray-700 font-medium">
-                    {likeTextFor(root.id)}
-                  </span>
-                  {root.children?.length > 0 && (
+                {editingId === root.id ? (
+                  <div className="mt-2 flex items-center gap-2">
+                    <input
+                      className="flex-1 text-sm px-3 py-2 bg-white border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                      value={editText[root.id] ?? root.body ?? ''}
+                      onChange={(e) => onEditChange(root.id, e.target.value)}
+                    />
                     <button
-                      className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                      onClick={() => toggleExpand(root.id)}
+                      className="text-sm px-3 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
+                      onClick={() => submitEdit(root.id)}
                     >
-                      {expanded.has(root.id) ? '↑ Hide replies' : `↓ Show replies (${replies.length})`}
+                      Save
                     </button>
+                    <button
+                      className="text-sm px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 transition-colors"
+                      onClick={cancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-800 leading-relaxed break-words">
+                    {root.body}
+                  </div>
+                )}
+                <div className="mt-2 flex items-center gap-3">
+                  {editingId === root.id ? (
+                    <>
+                      <span className="text-xs text-gray-700 font-medium">{likeTextFor(root.id)}</span>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="text-xs font-medium text-gray-600 hover:text-red-600 transition-colors flex items-center gap-1"
+                        onClick={() => toggleLikeComment(root.id)}
+                      >
+                        <Heart className={`w-4 h-4 ${likedByMe.has(root.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                        Like
+                      </button>
+                      <span className="text-xs text-gray-700 font-medium">
+                        {likeTextFor(root.id)}
+                      </span>
+                      {root.children?.length > 0 && (
+                        <button
+                          className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                          onClick={() => toggleExpand(root.id)}
+                        >
+                          {expanded.has(root.id) ? '↑ Hide replies' : `↓ Show replies (${replies.length})`}
+                        </button>
+                      )}
+                      <button
+                        className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                        onClick={() => toggleReply(root.id)}
+                      >
+                        💬 Reply
+                      </button>
+                      {user?.id === root.user.id && (
+                        <>
+                          <button
+                            className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                            onClick={() => startEdit(root.id, root.body)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="text-xs font-medium text-red-600 hover:text-red-700 transition-colors"
+                            onClick={() => deleteComment(root.id)}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </>
                   )}
-                  <button
-                    className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                    onClick={() => toggleReply(root.id)}
-                  >
-                    💬 Reply
-                  </button>
                 </div>
                 {renderReplyInput(root.id)}
               </div>
@@ -362,26 +450,72 @@ export default function CommentsList({
                         <span className="text-xs text-gray-400">•</span>
                         <span className="text-xs text-gray-500">{formatTimeAgo(r.createdAt)}</span>
                       </div>
-                      <div className="text-sm text-gray-800 leading-relaxed break-words">
-                        {r.body}
-                      </div>
+                      {editingId === r.id ? (
+                        <div className="mt-2 flex items-center gap-2">
+                          <input
+                            className="flex-1 text-sm px-3 py-2 bg-white border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                            value={editText[r.id] ?? r.body ?? ''}
+                            onChange={(e) => onEditChange(r.id, e.target.value)}
+                          />
+                          <button
+                            className="text-sm px-3 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
+                            onClick={() => submitEdit(r.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="text-sm px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300 transition-colors"
+                            onClick={cancelEdit}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-800 leading-relaxed break-words">
+                          {r.body}
+                        </div>
+                      )}
                       <div className="mt-2 flex items-center gap-3">
-                        <button
-                          className="text-xs font-medium text-gray-600 hover:text-red-600 transition-colors flex items-center gap-1"
-                          onClick={() => toggleLikeComment(r.id)}
-                        >
-                          <Heart className={`w-4 h-4 ${likedByMe.has(r.id) ? 'fill-red-500 text-red-500' : ''}`} />
-                          Like
-                        </button>
-                        <span className="text-xs text-gray-700 font-medium">
-                          {likeTextFor(r.id)}
-                        </span>
-                        <button
-                          className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                          onClick={() => toggleReply(r.id)}
-                        >
-                          💬 Reply
-                        </button>
+                        {editingId === r.id ? (
+                          <span className="text-xs text-gray-700 font-medium">
+                            {likeTextFor(r.id)}
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              className="text-xs font-medium text-gray-600 hover:text-red-600 transition-colors flex items-center gap-1"
+                              onClick={() => toggleLikeComment(r.id)}
+                            >
+                              <Heart className={`w-4 h-4 ${likedByMe.has(r.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                              Like
+                            </button>
+                            <span className="text-xs text-gray-700 font-medium">
+                              {likeTextFor(r.id)}
+                            </span>
+                            <button
+                              className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                              onClick={() => toggleReply(r.id)}
+                            >
+                              💬 Reply
+                            </button>
+                            {user?.id === r.user.id && (
+                              <>
+                                <button
+                                  className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                                  onClick={() => startEdit(r.id, r.body)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="text-xs font-medium text-red-600 hover:text-red-700 transition-colors"
+                                  onClick={() => deleteComment(r.id)}
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </>
+                        )}
                       </div>
                       {renderReplyInput(r.id)}
                     </div>

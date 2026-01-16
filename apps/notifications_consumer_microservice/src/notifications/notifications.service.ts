@@ -22,6 +22,19 @@ export class NotificationsService {
     }));
   }
 
+  async findByRecipient(userId: number): Promise<NotificationResponseDto[]> {
+    const notifications = await this.notificationsRepo.findByRecipientId(userId);
+    return notifications.map((notification) => ({
+      id: notification.id,
+      recipientId: notification.recipientId,
+      senderId: notification.senderId,
+      action: notification.action,
+      targetId: notification.targetId,
+      isRead: notification.isRead,
+      createdAt: notification.createdAt,
+    }));
+  }
+
   async findOne(id: number): Promise<NotificationResponseDto> {
     const notification = await this.notificationsRepo.findById(id);
     if (!notification) throw new NotFoundError(`Notification ${id} not found`);
