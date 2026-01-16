@@ -2,10 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import { Heart, MessageCircle, UserPlus, AtSign, Bell } from 'lucide-react';
 import { useAuth } from '@/client_app/context/AuthContext';
 import { notificationsApi, coreApi } from '@/client_app/lib/api';
+import { useRouter } from 'next/navigation';
+import { navigateForNotification } from './nav';
 
 interface Notification {
   id: number;
-  type: 'like_post' | 'like_comment' | 'comment' | 'reply' | 'mention' | 'follow';
+  type: 'like_post' | 'like_comment' | 'comment' | 'reply' | 'mention' | 'follow' | 'message';
+  action?: 'FOLLOW_REQUEST' | 'FOLLOW_ACCEPTED' | 'FOLLOW_REJECTED' | 'MENTION_COMMENT' | 'MENTION_POST' | 'MESSAGE_RECEIVED' | 'FOLLOW_STARTED';
+  targetId?: number;
   user: {
     id: number;
     username: string;
@@ -28,6 +32,7 @@ export default function NotificationsDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { user } = useAuth();
+  const router = useRouter();
 
   const [expandedNotifs, setExpandedNotifs] = useState<Set<number>>(new Set());
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,7 +61,7 @@ export default function NotificationsDropdown() {
           id: number;
           recipientId: number;
           senderId: number;
-          action: 'FOLLOW_REQUEST' | 'FOLLOW_ACCEPTED' | 'FOLLOW_REJECTED' | 'MENTION_COMMENT' | 'MENTION_POST';
+          action: 'FOLLOW_REQUEST' | 'FOLLOW_ACCEPTED' | 'FOLLOW_REJECTED' | 'MENTION_COMMENT' | 'MENTION_POST' | 'MESSAGE_RECEIVED' | 'FOLLOW_STARTED';
           targetId: number;
           isRead: boolean;
           createdAt: string;
@@ -79,11 +84,15 @@ export default function NotificationsDropdown() {
               const type: Notification['type'] =
                 n.action === 'MENTION_COMMENT' || n.action === 'MENTION_POST'
                   ? 'mention'
+                  : n.action === 'MESSAGE_RECEIVED'
+                  ? 'message'
                   : 'follow';
 
               return {
                 id: n.id,
                 type,
+                action: n.action,
+                targetId: n.targetId,
                 user: {
                   id: senderUser.id,
                   username: senderUser.username,
@@ -95,7 +104,14 @@ export default function NotificationsDropdown() {
             } catch {
               return {
                 id: n.id,
-                type: n.action === 'MENTION_COMMENT' || n.action === 'MENTION_POST' ? 'mention' : 'follow',
+                type:
+                  n.action === 'MENTION_COMMENT' || n.action === 'MENTION_POST'
+                    ? 'mention'
+                    : n.action === 'MESSAGE_RECEIVED'
+                    ? 'message'
+                    : 'follow',
+                action: n.action,
+                targetId: n.targetId,
                 user: {
                   id: n.senderId,
                   username: `user_${n.senderId}`,
@@ -114,6 +130,79 @@ export default function NotificationsDropdown() {
     };
     loadNotifications();
   }, [user?.id]);
+
+  useEffect(() => {
+    const refetchOnOpen = async () => {
+      if (!isOpen || !user?.id) return;
+      try {
+        const res = await notificationsApi.get(`/notifications/user/${user.id}`);
+        const items = (res.data ?? []) as {
+          id: number;
+          recipientId: number;
+          senderId: number;
+          action: 'FOLLOW_REQUEST' | 'FOLLOW_ACCEPTED' | 'FOLLOW_REJECTED' | 'MENTION_COMMENT' | 'MENTION_POST' | 'MESSAGE_RECEIVED' | 'FOLLOW_STARTED';
+          targetId: number;
+          isRead: boolean;
+          createdAt: string;
+        }[];
+        const mapped = await Promise.all(
+          items.map(async (n) => {
+            try {
+              const sender = await coreApi.get(`/users/${n.senderId}`, {
+                params: { viewerId: user.id },
+              });
+              const senderUser = sender.data as {
+                id: number;
+                username: string;
+                avatarUrl?: string | null;
+              };
+              const type: Notification['type'] =
+                n.action === 'MENTION_COMMENT' || n.action === 'MENTION_POST'
+                  ? 'mention'
+                  : n.action === 'MESSAGE_RECEIVED'
+                  ? 'message'
+                  : 'follow';
+              return {
+                id: n.id,
+                type,
+                action: n.action,
+                targetId: n.targetId,
+                user: {
+                  id: senderUser.id,
+                  username: senderUser.username,
+                  avatarUrl: senderUser.avatarUrl ?? undefined,
+                },
+                createdAt: n.createdAt,
+                isRead: n.isRead,
+              } as Notification;
+            } catch {
+              return {
+                id: n.id,
+                type:
+                  n.action === 'MENTION_COMMENT' || n.action === 'MENTION_POST'
+                    ? 'mention'
+                    : n.action === 'MESSAGE_RECEIVED'
+                    ? 'message'
+                    : 'follow',
+                action: n.action,
+                targetId: n.targetId,
+                user: {
+                  id: n.senderId,
+                  username: `user_${n.senderId}`,
+                },
+                createdAt: n.createdAt,
+                isRead: n.isRead,
+              } as Notification;
+            }
+          }),
+        );
+        setNotifications(mapped);
+      } catch {
+        // noop
+      }
+    };
+    refetchOnOpen();
+  }, [isOpen, user?.id]);
 
   const handleAcceptFollow = async (notifId: number, followerId: number) => {
     if (!user?.id) return;
@@ -175,14 +264,14 @@ export default function NotificationsDropdown() {
   };
 
   const getNotificationText = (notif: Notification) => {
-    switch (notif.type) {
-      case 'mention':
-        return 'wspomniano Cię';
-      case 'follow':
-        return 'prośba o obserwowanie';
-      default:
-        return 'powiadomienie';
-    }
+    if (notif.action === 'FOLLOW_REQUEST') return 'prośba o obserwowanie';
+    if (notif.action === 'FOLLOW_STARTED') return 'zaczął Cię obserwować';
+    if (notif.action === 'FOLLOW_ACCEPTED') return 'Twoja prośba została zaakceptowana';
+    if (notif.action === 'FOLLOW_REJECTED') return 'Twoja prośba została odrzucona';
+    if (notif.action === 'MESSAGE_RECEIVED') return 'wysłał(a) Ci wiadomość';
+    if (notif.type === 'mention') return 'wspomniano Cię';
+    if (notif.type === 'follow') return 'powiadomienie o obserwowaniu';
+    return 'powiadomienie';
   };
 
   const getNotificationIcon = (type: Notification['type']) => {
@@ -191,6 +280,8 @@ export default function NotificationsDropdown() {
         return <AtSign className="w-3 h-3 text-purple-500" />;
       case 'follow':
         return <UserPlus className="w-3 h-3 text-green-500" />;
+      case 'message':
+        return <MessageCircle className="w-3 h-3 text-blue-500" />;
       default:
         return null;
     }
@@ -218,8 +309,9 @@ export default function NotificationsDropdown() {
         className={`flex items-start gap-2 p-2 md:p-3 rounded-lg transition-all cursor-pointer ${
           !notif.isRead ? 'bg-blue-50' : 'hover:bg-gray-50'
         }`}
-        onClick={() => {
+        onClick={async () => {
           if (!notif.isRead) markAsRead(notif.id);
+          await navigateForNotification(router, notif);
           if (canExpand) toggleExpand(notif.id);
         }}
       >
@@ -367,3 +459,4 @@ export default function NotificationsDropdown() {
     </div>
   );
 }
+

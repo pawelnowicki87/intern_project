@@ -46,7 +46,7 @@ export default function ProfilePostsGrid({ userId, tab }: { userId: number; tab:
             uniqueIds.map((id) =>
               coreApi
                 .get(`/posts/${id}`, { params: { viewerId: user?.id } })
-                .then((r) => r.data)
+                .then((r: any) => r.data)
                 .catch(() => null),
             ),
           );

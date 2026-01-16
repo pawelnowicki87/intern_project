@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import GoogleLoginButton from "../../components/ui/GoogleLoginButton";
+import GoogleLoginButton from "../../../components/ui/GoogleLoginButton";
 
 const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),

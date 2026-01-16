@@ -1,14 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import BottomNav from '../components/feed/BottomNav';
-import CreatePostModal from '../components/feed/CreatePostModal';
-import FeedHeader from '../components/feed/FeedHeader';
-import Post from '../components/feed/Post';
-import Stories from '../components/feed/Stories';
-import Suggestions from '../components/feed/Suggestions';
-import FeedFilterBar from '../components/feed/FeedFilterBar';
-import ProtectedRoute from '../components/ProtectedRoute';
+import BottomNav from '../../components/BottomNav';
+import CreatePostModal from '@/client_app/src/components/post/CreatePostModal';
+import FeedHeader from './components/FeedHeader';
+import Post from './components/Post';
+import Stories from './components/Stories';
+import Suggestions from './components/Suggestions';
+import FeedFilterBar from './components/FeedFilterBar';
+import ProtectedRoute from '@/client_app/src/components/ProtectedRoute';
 import { useAuth } from '@/client_app/context/AuthContext';
 import { coreApi } from '@/client_app/lib/api';
 

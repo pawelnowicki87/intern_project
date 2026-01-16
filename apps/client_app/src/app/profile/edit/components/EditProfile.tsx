@@ -5,10 +5,10 @@ import { useState, useEffect } from 'react';
 import { coreApi } from '@/client_app/lib/api';
 import EditProfileHeader from './EditProfileHeader';
 import ProfilePhotoSection from './ProfilePhotoSection';
-import SubmitButtonSection from './SubmitButtonSection';
-import Input from '../../ui/Input';
-import { Loader } from '../../ui/Loader';
+import Input from '../../../../components/ui/Input';
+import { Loader } from '../../../../components/ui/Loader';
 import { useRouter } from 'next/navigation';
+import SubmitButtonSection from './SubmitButtonSection';
 
 export default function EditProfilePage() {
   const { user, setUser } = useAuth();

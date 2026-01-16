@@ -3,7 +3,7 @@
 import { Send, Search, PlusSquare, Home, Compass } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/client_app/context/AuthContext';
-import NotificationsDropdown from './NotificationsDropdown';
+import NotificationsDropdown from '../../../components/NotificationsDropdown';
 
 interface FeedHeaderProps {
   onCreatePost?: () => void;
@@ -14,12 +14,10 @@ export default function FeedHeader({ onCreatePost }: FeedHeaderProps) {
   return (
     <header className="bg-white border-b border-gray-300 sticky top-0 z-10">
       <div className="max-w-[935px] mx-auto px-4 py-2 md:py-3 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/feed">
           <h1 className="text-2xl md:text-3xl font-serif italic cursor-pointer">Instagram</h1>
         </Link>
 
-        {/* Search - Desktop only */}
         <div className="hidden md:block flex-1 max-w-xs mx-8">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -31,7 +29,6 @@ export default function FeedHeader({ onCreatePost }: FeedHeaderProps) {
           </div>
         </div>
 
-        {/* Icons */}
         <div className="flex items-center gap-4 md:gap-5">
           <button onClick={onCreatePost} className="md:hidden">
             <PlusSquare className="w-6 h-6" />
@@ -39,16 +36,16 @@ export default function FeedHeader({ onCreatePost }: FeedHeaderProps) {
           <div className="md:hidden">
             <NotificationsDropdown />
           </div>
-          <button className="md:hidden">
+          <Link href="/chat" className="md:hidden">
             <Send className="w-6 h-6" />
-          </button>
+          </Link>
           
           <Link href="/feed" className="hidden md:block">
             <Home className="w-6 h-6" />
           </Link>
-          <button className="hidden md:block">
+          <Link href="/chat" className="hidden md:block">
             <Send className="w-6 h-6" />
-          </button>
+          </Link>
           <button onClick={onCreatePost} className="hidden md:block">
             <PlusSquare className="w-6 h-6" />
           </button>

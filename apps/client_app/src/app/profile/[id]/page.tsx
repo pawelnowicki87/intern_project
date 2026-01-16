@@ -1,16 +1,17 @@
 'use client';
 
-import ProtectedRoute from "../../components/ProtectedRoute";
-import ProfileHeader from "../../components/profile/ProfileHeader";
-import BottomNavigation from "../../components/profile/BottomNavigation";
-import ProfileInfo from "../../components/profile/ProfileInfo";
-import ProfileHighlights from "../../components/profile/ProfileHighlights";
+import ProtectedRoute from "@/client_app/src/components/ProtectedRoute";
+import ProfileHeader from "../components/ProfileHeader";
+import BottomNavigation from "../../../components/BottomNavigation";
+import ProfileInfo from "../components/ProfileInfo";
+import ProfileHighlights from "../components/ProfileHighlights";
 import ProfileTabs from "../../components/profile/ProfileTabs";
-import ProfilePostsGrid from "../../components/profile/ProfilePostsGrid";
+import ProfilePostsGrid from "../components/ProfilePostsGrid";
 import { useAuth } from "@/client_app/context/AuthContext";
 import { coreApi } from "@/client_app/lib/api";
 import { useEffect, useState } from "react";
 import React from "react";
+import CreatePostModal from "../../components/feed/CreatePostModal";
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const unwrapped = React.use(params);
@@ -26,6 +27,7 @@ function ProfileById({ idParam }: { idParam: string }) {
   const [activeTab, setActiveTab] = useState<'posts' | 'reels' | 'saved'>('posts');
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   useEffect(() => {
     const id = Number(idParam);
@@ -55,7 +57,7 @@ function ProfileById({ idParam }: { idParam: string }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <ProfileHeader />
+      <ProfileHeader onCreatePost={() => setIsCreatePostOpen(true)} />
       <main className="lg:max-w-5xl lg:mx-auto pb-16 md:pb-0">
         <ProfileInfo profile={profile} />
         <ProfileHighlights />
@@ -63,6 +65,11 @@ function ProfileById({ idParam }: { idParam: string }) {
         <ProfilePostsGrid userId={profile.id} tab={activeTab} />
       </main>
       <BottomNavigation />
+      <CreatePostModal
+        isOpen={isCreatePostOpen}
+        onClose={() => setIsCreatePostOpen(false)}
+        onCreated={() => setIsCreatePostOpen(false)}
+      />
     </div>
   );
 }

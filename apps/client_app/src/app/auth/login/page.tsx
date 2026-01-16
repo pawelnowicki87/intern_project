@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/client_app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import GoogleLoginButton from "../../components/ui/GoogleLoginButton";
+import GoogleLoginButton from "../../../components/ui/GoogleLoginButton";
 
 const schema = z.object({
   email: z.string().email("Please enter a valid email"),

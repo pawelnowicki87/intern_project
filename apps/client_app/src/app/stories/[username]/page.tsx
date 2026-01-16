@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import StoryViewer from '../../components/stories/StoryViewer';
+import StoryViewer from '../components/StoryViewer';
 import ProtectedRoute from '../../components/ProtectedRoute';
 
 export default function StoryPage() {

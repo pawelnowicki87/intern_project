@@ -23,10 +23,12 @@ export class FollowsController {
 
   @Get(':followerId/:followedId')
   findOne(
-    @Param('followerId') followerId: number,
-    @Param('followedId') followedId: number,
+    @Param('followerId') followerId: string,
+    @Param('followedId') followedId: string,
   ): Promise<FollowResponseDto> {
-    return this.followsService.findOne(followerId, followedId);
+    const fId = Number.parseInt(followerId, 10);
+    const tId = Number.parseInt(followedId, 10);
+    return this.followsService.findOne(Number.isFinite(fId) ? fId : 0, Number.isFinite(tId) ? tId : 0);
   }
 
   @Post()
@@ -36,55 +38,61 @@ export class FollowsController {
 
   @Delete(':followerId/:followedId')
   remove(
-    @Param('followerId') followerId: number,
-    @Param('followedId') followedId: number,
+    @Param('followerId') followerId: string,
+    @Param('followedId') followedId: string,
   ): Promise<{ deleted: boolean }> {
-    return this.followsService.remove(followerId, followedId);
+    const fId = Number.parseInt(followerId, 10);
+    const tId = Number.parseInt(followedId, 10);
+    return this.followsService.remove(Number.isFinite(fId) ? fId : 0, Number.isFinite(tId) ? tId : 0);
   }
 
   @Patch(':followerId/:followedId/accept')
   async acceptFollow(
-    @Param('followerId') followerId: number,
-    @Param('followedId') followedId: number,
+    @Param('followerId') followerId: string,
+    @Param('followedId') followedId: string,
   ): Promise<{ accepted: boolean }> {
-    return this.followsService.acceptFollow(followerId, followedId);
+    const fId = Number.parseInt(followerId, 10);
+    const tId = Number.parseInt(followedId, 10);
+    return this.followsService.acceptFollow(Number.isFinite(fId) ? fId : 0, Number.isFinite(tId) ? tId : 0);
   }
 
   @Patch(':followerId/:followedId/reject')
   async rejectFollow(
-    @Param('followerId') followerId: number,
-    @Param('followedId') followedId: number,
+    @Param('followerId') followerId: string,
+    @Param('followedId') followedId: string,
   ): Promise<{ accepted: boolean }> {
-    return this.followsService.rejectFollow(followerId, followedId);
+    const fId = Number.parseInt(followerId, 10);
+    const tId = Number.parseInt(followedId, 10);
+    return this.followsService.rejectFollow(Number.isFinite(fId) ? fId : 0, Number.isFinite(tId) ? tId : 0);
   }
 
   @Get(':userId/followers')
   getFollowers(
-    @Param('userId') userId: number,
-    @Query('viewerId') viewerId?: number,
+    @Param('userId') userId: string,
+    @Query('viewerId') viewerId?: string,
   ): Promise<FollowResponseDto[]> {
-    return this.followsService.getFollowers(
-      Number(userId),
-      viewerId ? Number(viewerId) : 0,
-    );
+    const ownerId = Number.parseInt(userId, 10);
+    const viewer = viewerId !== undefined ? Number.parseInt(viewerId, 10) : 0;
+    return this.followsService.getFollowers(Number.isFinite(ownerId) ? ownerId : 0, Number.isFinite(viewer) ? viewer : 0);
   }
 
   @Get(':userId/following')
   getFollowing(
-    @Param('userId') userId: number,
-    @Query('viewerId') viewerId?: number,
+    @Param('userId') userId: string,
+    @Query('viewerId') viewerId?: string,
   ): Promise<FollowResponseDto[]> {
-    return this.followsService.getFollowing(
-      Number(userId),
-      viewerId ? Number(viewerId) : 0,
-    );
+    const ownerId = Number.parseInt(userId, 10);
+    const viewer = viewerId !== undefined ? Number.parseInt(viewerId, 10) : 0;
+    return this.followsService.getFollowing(Number.isFinite(ownerId) ? ownerId : 0, Number.isFinite(viewer) ? viewer : 0);
   }
 
   @Delete(':followerId/:followedId/cancel')
   cancelFollowRequest(
-    @Param('followerId') followerId: number,
-    @Param('followedId') followedId: number,
+    @Param('followerId') followerId: string,
+    @Param('followedId') followedId: string,
   ): Promise<{ cancelled: boolean }> {
-    return this.followsService.cancelFollowRequest(followerId, followedId);
+    const fId = Number.parseInt(followerId, 10);
+    const tId = Number.parseInt(followedId, 10);
+    return this.followsService.cancelFollowRequest(Number.isFinite(fId) ? fId : 0, Number.isFinite(tId) ? tId : 0);
   }
 }

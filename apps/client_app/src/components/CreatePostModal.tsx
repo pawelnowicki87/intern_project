@@ -93,7 +93,6 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
         });
       }
       
-      // Reset i zamknięcie
       setCaption('');
       setSelectedMedia(null);
       setMediaType(null);
@@ -117,9 +116,7 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      {/* Modal */}
-      <div className="bg-white rounded-lg w-full max-w-xl max-h-[90vh] flex flex-col">
-        {/* Header */}
+      <div className="bg-white rounded-lg w-full max-w-xl max-h[90vh] flex flex-col">
         <div className="flex items-center justify-between p-3 border-b border-gray-300">
           <button onClick={handleClose} className="p-1">
             <X className="w-6 h-6" />
@@ -134,9 +131,7 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          {/* User info */}
           <div className="flex items-center gap-3 p-4 border-b border-gray-200">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
               <span className="text-white font-bold">
@@ -146,7 +141,6 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
             <span className="font-semibold text-sm">{user?.username || 'mediamodifier'}</span>
           </div>
 
-          {/* Caption input */}
           <div className="p-4">
             <textarea
               value={caption}
@@ -163,7 +157,6 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
             </div>
           </div>
 
-          {/* Media preview */}
           {selectedMedia && (
             <div className="px-4 pb-4">
               <div className="relative rounded-lg overflow-hidden bg-gray-100">
@@ -190,7 +183,6 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
             </div>
           )}
 
-          {/* Add media buttons */}
           {!isEdit && (
             <div className="p-4 border-t border-gray-200">
               <div className="text-sm font-semibold mb-3 text-gray-700">Add to your post</div>

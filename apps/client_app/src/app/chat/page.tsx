@@ -1,13 +1,14 @@
 'use client';
 import React from 'react';
-import ChatHeader from '../components/chat/ChatHeader';
-import ChatSidebar from '../components/chat/ChatSidebar';
-import ChatWindow from '../components/chat/ChatWindow';
+import FeedHeader from '../feed/components/FeedHeader';
+import ChatSidebar from './components/ChatSidebar';
+import ChatWindow from './components/ChatWindow';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { coreApi } from '@/client_app/lib/api';
 import { useAuth } from '@/client_app/context/AuthContext';
 import { useRef } from 'react';
+import CreatePostModal from '@/client_app/components/CreatePostModal';
 
 export default function ChatPage() {
   type ChatItem = {
@@ -33,6 +34,7 @@ export default function ChatPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const activeChat = chats.find((c) => c.id === selectedId) ?? null;
   const searchParams = useSearchParams();
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   const dedupe = (arr: ChatItem[], currentUserId: number): ChatItem[] => {
     const groups = new Map<string, ChatItem[]>();
@@ -208,7 +210,7 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <ChatHeader />
+      <FeedHeader onCreatePost={() => setIsCreatePostOpen(true)} />
       <div className="max-w-[935px] mx-auto px-4 py-4">
         <div className="border border-gray-300 rounded-lg overflow-hidden flex">
           <ChatSidebar
@@ -221,6 +223,11 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+      <CreatePostModal
+        isOpen={isCreatePostOpen}
+        onClose={() => setIsCreatePostOpen(false)}
+        onCreated={() => setIsCreatePostOpen(false)}
+      />
     </div>
   );
 }

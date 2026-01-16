@@ -92,11 +92,8 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
     }
   };
 
-  // removed unused handleSaveEdit
-
   return (
     <article className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6">
-      {/* Post Header */}
       <div className="flex items-center justify-between p-3 md:p-4">
         <div className="flex items-center gap-3">
           {post.user?.avatarUrl ? (
@@ -151,7 +148,6 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         </div>
       </div>
 
-      {/* Post Image */}
       <div className="w-full aspect-square bg-gradient-to-br from-teal-600 to-teal-400 relative overflow-hidden">
         <img 
           src={post.assets?.[0]?.url}
@@ -160,7 +156,6 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         />
       </div>
 
-      {/* Post Actions */}
       <div className="p-3 md:p-4">
         <div className="flex items-center justify-between mb-2 md:mb-3">
           <div className="flex items-center gap-4 md:gap-5">
@@ -179,7 +174,6 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
           </button>
         </div>
 
-        {/* Likes */}
         <div className="mb-2">
           <span className="font-semibold text-sm md:text-base">
             {(!isLiked && likesCount === 0) && '0 people liked this post'}
@@ -190,13 +184,11 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
           </span>
         </div>
 
-        {/* Caption */}
         <div className="mb-1 md:mb-2">
           <span className="font-semibold text-sm md:text-base mr-2">{post.user.username}</span>
           <span className="text-sm md:text-base">{post.body}</span>
         </div>
 
-        {/* View Comments */}
         <div className="mb-2">
           <div className="text-sm md:text-base text-gray-500 mb-2">
             Comments: {(commentCount ?? post.comments).toLocaleString()}
@@ -208,13 +200,11 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
           />
         </div>
 
-        {/* Time */}
         <div className="text-xs text-gray-400 uppercase">
           {new Date(post.timeAgo).toLocaleDateString()}
         </div>
       </div>
 
-      {/* Add Comment - Desktop */}
       <div className="hidden md:flex border-t border-gray-300 p-3 md:p-4 items-center gap-3">
         <button className="text-xl md:text-2xl">😊</button>
         <input
