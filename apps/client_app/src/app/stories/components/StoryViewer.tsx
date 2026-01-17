@@ -9,14 +9,6 @@ import StoryNavigation from './StoryNavigation';
 import StoryInput from './StoryInput';
 import { useRouter } from 'next/navigation';
 
-interface Story {
-  id: number;
-  username: string;
-  avatar: string;
-  image: string;
-  timestamp: string;
-}
-
 interface StoryViewerProps {
   username: string;
   onClose: () => void;
@@ -34,33 +26,33 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
     {
       username: 'leon_tu',
       stories: [
-        { id: 1, username: 'leon_tu', avatar: 'L', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '2h' }
-      ] 
+        { id: 1, username: 'leon_tu', avatar: 'L', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '2h' },
+      ], 
     },
     {
       username: 'katarina',
       stories: [
-        { id: 2, username: 'katarina', avatar: 'K', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '3h' }
-      ]
+        { id: 2, username: 'katarina', avatar: 'K', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '3h' },
+      ],
     },
     {
       username: 'mediamodifier',
       stories: [
-        { id: 3, username: 'mediamodifier', avatar: 'm', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '25min' }
-      ]
+        { id: 3, username: 'mediamodifier', avatar: 'm', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '25min' },
+      ],
     },
     {
       username: 'brandon',
       stories: [
-        { id: 4, username: 'brandon', avatar: 'B', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '5h' }
-      ]
+        { id: 4, username: 'brandon', avatar: 'B', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '5h' },
+      ],
     },
     {
       username: 'maniscus',
       stories: [
-        { id: 5, username: 'maniscus', avatar: 'M', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '6h' }
-      ]
-    }
+        { id: 5, username: 'maniscus', avatar: 'M', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800', timestamp: '6h' },
+      ],
+    },
   ];
 
   const currentUserIndex = allStories.findIndex(u => u.username === username);
@@ -95,7 +87,7 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
       // Move to next user
       if (currentUserIndex < allStories.length - 1) {
         const nextUser = allStories[currentUserIndex + 1];
-        router.push('/stories/${nextUser.username}');
+        router.push(`/stories/${nextUser.username}`);
       } else {
         onClose();
       }

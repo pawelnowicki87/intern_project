@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Home, Send, PlusSquare, Compass, ArrowLeft, MoreVertical } from 'lucide-react';
-import NotificationsDropdown from '../../../components/NotificationsDropdown';
+import NotificationsDropdown from '@/components/NotificationsDropdown';
 import { useAuth } from '@/context/AuthContext';
 
 export default function ProfileHeader({ onCreatePost }: { onCreatePost?: () => void }) {

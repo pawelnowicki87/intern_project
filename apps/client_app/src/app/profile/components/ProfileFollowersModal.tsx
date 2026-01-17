@@ -50,17 +50,17 @@ export default function ProfileFollowersModal({ isOpen, onClose, type, userId }:
         const usersList: User[] = follows.map((f) =>
           type === 'followers'
             ? {
-                id: f.followerId,
-                username: '',
-                firstName: f.followerFirstName,
-                lastName: f.followerLastName,
-              }
+              id: f.followerId,
+              username: '',
+              firstName: f.followerFirstName,
+              lastName: f.followerLastName,
+            }
             : {
-                id: f.followedId,
-                username: '',
-                firstName: f.followedFirstName,
-                lastName: f.followedLastName,
-              },
+              id: f.followedId,
+              username: '',
+              firstName: f.followedFirstName,
+              lastName: f.followedLastName,
+            },
         );
         setUsers(usersList);
 
@@ -75,7 +75,7 @@ export default function ProfileFollowersModal({ isOpen, onClose, type, userId }:
               } catch {
                 return [u.id, false];
               }
-            })
+            }),
           );
           const statusMap = Object.fromEntries(statusChecks);
           setFollowingStatus(statusMap);
@@ -95,7 +95,7 @@ export default function ProfileFollowersModal({ isOpen, onClose, type, userId }:
     try {
       await coreApi.post('/follows', { 
         followerId: user.id, 
-        followedId: targetUserId 
+        followedId: targetUserId, 
       });
       setFollowingStatus(prev => ({ ...prev, [targetUserId]: true }));
     } catch (err) {

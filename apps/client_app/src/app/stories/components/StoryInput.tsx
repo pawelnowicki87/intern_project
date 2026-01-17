@@ -9,7 +9,7 @@ interface StoryInputProps {
   story: Story;
 }
 
-export default function StoryInput({ story }: StoryInputProps) {
+export default function StoryInput({ story: _story }: StoryInputProps) {
   const [message, setMessage] = useState('');
 
   const handleSend = () => {

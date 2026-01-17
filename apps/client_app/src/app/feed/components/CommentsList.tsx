@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { coreApi } from '@/client_app/lib/api';
-import { useAuth } from '@/client_app/context/AuthContext';
+import { coreApi } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
 
@@ -136,13 +136,14 @@ export default function CommentsList({
       );
       if (user?.id) {
         try {
-          const res = await coreApi.post(`/likes-comments/check-liked`, {
+          const res = await coreApi.post('/likes-comments/check-liked', {
             userId: user.id,
             commentIds: allIds,
           });
           const likedIds: number[] = res.data?.likedIds ?? [];
           likedIds.forEach((id: number) => likedSet.add(id));
-        } catch {
+        } catch (err) {
+          console.error('Failed to check liked comments', err);
         }
       }
       const countsObj: Record<number, number> = {};

@@ -5,10 +5,10 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import ProtectedRoute from '../../components/ProtectedRoute';
-import Post from '../../components/feed/Post';
-import { useAuth } from '@/client_app/context/AuthContext';
-import { coreApi } from '@/client_app/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Post from '@/app/feed/components/Post';
 
 export default function PostPage() {
   const params = useParams();

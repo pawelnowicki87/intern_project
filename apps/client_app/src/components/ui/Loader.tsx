@@ -1,4 +1,4 @@
-export const Loader = ({ size = "md", fullScreen = false }: { size?: "sm" | "md" | "lg"; fullScreen?: boolean }) => {
+export const Loader = ({ size = 'md', fullScreen = false }: { size?: 'sm' | 'md' | 'lg'; fullScreen?: boolean }) => {
   if (fullScreen) {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
@@ -9,13 +9,13 @@ export const Loader = ({ size = "md", fullScreen = false }: { size?: "sm" | "md"
   return <InstagramSpinner size={size} />;
 };
 
-const InstagramSpinner = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
+const InstagramSpinner = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
   return (
     <div className="flex items-center justify-center">
       <div className="relative">
         <svg
           className={`animate-spin ${
-            size === "sm" ? "w-6 h-6" : size === "lg" ? "w-16 h-16" : "w-10 h-10"
+            size === 'sm' ? 'w-6 h-6' : size === 'lg' ? 'w-16 h-16' : 'w-10 h-10'
           }`}
           viewBox="0 0 50 50"
         >
@@ -44,13 +44,13 @@ const InstagramSpinner = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
   );
 };
 
-export const DotsLoader = ({ size = "md" }: { size?: "sm" | "md" | "lg" }) => {
-  const dotSize = size === "sm" ? "w-1.5 h-1.5" : size === "lg" ? "w-3 h-3" : "w-2 h-2";
+export const DotsLoader = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
+  const dotSize = size === 'sm' ? 'w-1.5 h-1.5' : size === 'lg' ? 'w-3 h-3' : 'w-2 h-2';
   return (
     <div className="flex items-center justify-center gap-1">
-      <div className={`${dotSize} bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce`} style={{ animationDelay: "0ms" }}></div>
-      <div className={`${dotSize} bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce`} style={{ animationDelay: "150ms" }}></div>
-      <div className={`${dotSize} bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce`} style={{ animationDelay: "300ms" }}></div>
+      <div className={`${dotSize} bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce`} style={{ animationDelay: '0ms' }}></div>
+      <div className={`${dotSize} bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce`} style={{ animationDelay: '150ms' }}></div>
+      <div className={`${dotSize} bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce`} style={{ animationDelay: '300ms' }}></div>
     </div>
   );
 };

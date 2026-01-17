@@ -1,5 +1,5 @@
-import EditProfile from "./components/EditProfile";
-import ProtectedRoute from "../../components/ProtectedRoute";
+import EditProfile from './components/EditProfile';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function EditProfilePage() {
   return (

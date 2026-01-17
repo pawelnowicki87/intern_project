@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { ReactNode, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Loader } from "./ui/Loader";
-import { useAuth } from "@/context/AuthContext";
+import { ReactNode, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader } from './ui/Loader';
+import { useAuth } from '@/context/AuthContext';
 
 interface Props {
   children: ReactNode;
@@ -15,7 +15,7 @@ export default function ProtectedRoute({ children }: Props) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/auth/login");
+      router.replace('/auth/login');
     }
   }, [loading, user, router]);
 

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import StoryViewer from '../components/StoryViewer';
-import ProtectedRoute from '../../components/ProtectedRoute';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function StoryPage() {
   const params = useParams();
@@ -17,6 +17,6 @@ export default function StoryPage() {
     <ProtectedRoute>
       <StoryViewer username={username} onClose={handleClose} />
     </ProtectedRoute>
-  )
+  );
   
 }

@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Image as ImageIcon, Video, Trash2 } from 'lucide-react';
-import { useAuth } from '@/client_app/context/AuthContext';
-import { coreApi } from '@/client_app/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 
 interface CreatePostModalProps {
   isOpen: boolean;

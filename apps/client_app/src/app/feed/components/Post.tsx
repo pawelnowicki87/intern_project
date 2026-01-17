@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
-import { useAuth } from '@/client_app/context/AuthContext';
-import { coreApi } from '@/client_app/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { coreApi } from '@/lib/api';
 import CommentsList from './CommentsList';
 import Link from 'next/link';
 

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/client_app/context/AuthContext";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import GoogleLoginButton from "../../../components/ui/GoogleLoginButton";
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import GoogleLoginButton from '../../../components/ui/GoogleLoginButton';
 
 const schema = z.object({
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -31,10 +31,11 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await login(data.email, data.password);
-      router.push("/profile");
-    } catch (error) {
-      setError("root", {
-        message: "Invalid email or password. Please try again.",
+      router.push('/profile');
+    } catch (err) {
+      console.error('Login failed', err);
+      setError('root', {
+        message: 'Invalid email or password. Please try again.',
       });
     }
   };
@@ -64,9 +65,9 @@ export default function LoginPage() {
               <input
                 type="text"
                 placeholder="Phone number, username, or email"
-                {...register("email")}
+                {...register('email')}
                 className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
-                  errors.email ? "border-red-500" : "border-gray-300 focus:border-gray-400"
+                  errors.email ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
                 }`}
               />
               {errors.email && (
@@ -78,9 +79,9 @@ export default function LoginPage() {
               <input
                 type="password"
                 placeholder="Password"
-                {...register("password")}
+                {...register('password')}
                 className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
-                  errors.password ? "border-red-500" : "border-gray-300 focus:border-gray-400"
+                  errors.password ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
                 }`}
               />
               {errors.password && (
@@ -94,7 +95,7 @@ export default function LoginPage() {
               disabled={isSubmitting}
               className="w-full bg-blue-500 text-white py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed mt-4"
             >
-              {isSubmitting ? "Logging in..." : "Log in"}
+              {isSubmitting ? 'Logging in...' : 'Log in'}
             </button>
           </div>
 
@@ -109,10 +110,11 @@ export default function LoginPage() {
             onSuccess={async (credential) => {
               try {
                 await loginWithGoogle(credential);
-                router.push("/");
-              } catch (error) {
-                setError("root", {
-                  message: "Google login failed. Please try again.",
+                router.push('/');
+              } catch (err) {
+                console.error('Google login failed', err);
+                setError('root', {
+                  message: 'Google login failed. Please try again.',
                 });
               }
             }}
@@ -128,7 +130,7 @@ export default function LoginPage() {
 
         <div className="bg-white border border-gray-300 rounded-none md:rounded-sm p-6 text-center">
           <p className="text-sm">
-            Don't have an account?{" "}
+            Don't have an account?{' '}
             <Link href="/auth/register" className="text-blue-500 font-semibold hover:text-blue-600">
               Sign up
             </Link>

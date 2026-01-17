@@ -1,4 +1,4 @@
-import { coreApi } from '@/client_app/lib/api';
+import { coreApi } from '@/lib/api';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 export const navigateToChat = (router: AppRouterInstance, userId?: number) => {
@@ -16,8 +16,8 @@ export const navigateToPostFromComment = async (router: AppRouterInstance, comme
     if (postId) {
       router.push(`/posts/${postId}`);
     }
-  } catch {
-    // noop
+  } catch (err) {
+    console.error('Failed to navigate from comment', err);
   }
 };
 
@@ -58,4 +58,3 @@ export const navigateForNotification = async (
     }
   }
 };
-

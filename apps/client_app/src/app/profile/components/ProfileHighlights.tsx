@@ -6,7 +6,7 @@ export default function ProfileHighlights() {
     { name: 'Reviews', color: 'from-blue-500 to-blue-600' },
     { name: 'Mentions', color: 'from-pink-500 to-pink-600' },
     { name: 'Tips', color: 'from-blue-500 to-blue-600' },
-    { name: 'Blog', color: 'from-pink-500 to-pink-600' }
+    { name: 'Blog', color: 'from-pink-500 to-pink-600' },
   ];
 
   return (

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useAuth } from '@/client_app/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Stories() {
   const { user } = useAuth();

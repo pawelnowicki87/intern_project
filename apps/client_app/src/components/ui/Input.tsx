@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes } from 'react';
 
 interface Props extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -16,7 +16,7 @@ export default function Input({ label, error, ...props }: Props) {
       <input
         {...props}
         className={`w-full border rounded p-2 ${
-          error ? "border-red-500" : ""
+          error ? 'border-red-500' : ''
         }`}
       />
       {error && (

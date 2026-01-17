@@ -17,13 +17,13 @@ interface StoryContentProps {
 export default function StoryContent({ story, onTapLeft, onTapRight, onHold, onRelease }: StoryContentProps) {
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleTouchStart = (e: React.TouchEvent, side: 'left' | 'right') => {
+  const handleTouchStart = (_e: React.TouchEvent, _side: 'left' | 'right') => {
     holdTimerRef.current = setTimeout(() => {
       onHold();
     }, 200);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent, side: 'left' | 'right') => {
+  const handleTouchEnd = (_e: React.TouchEvent, side: 'left' | 'right') => {
     if (holdTimerRef.current) {
       clearTimeout(holdTimerRef.current);
     }

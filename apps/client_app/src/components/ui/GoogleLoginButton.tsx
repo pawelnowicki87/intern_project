@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 declare global {
   interface Window {
@@ -28,13 +28,13 @@ export default function GoogleLoginButton({
         },
       });
 
-      const el = document.getElementById("google-login-btn");
+      const el = document.getElementById('google-login-btn');
       if (!el) return;
 
       window.google.accounts.id.renderButton(el, {
-        theme: "outline",
-        size: "large",
-        text: "signin_with",
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
       });
     }, 100);
 
@@ -45,9 +45,9 @@ export default function GoogleLoginButton({
     <div
       id="google-login-btn"
       style={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
       }}
     />
   );

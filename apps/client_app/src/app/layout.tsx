@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Providers } from "./providers";
-import Script from "next/script";
+import type { Metadata } from 'next';
+import './globals.css';
+import { Providers } from './providers';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: "Inn0gram",
-  description: "Social platform built with Next.js",
+  title: 'Inn0gram',
+  description: 'Social platform built with Next.js',
 };
 
 export default function RootLayout({

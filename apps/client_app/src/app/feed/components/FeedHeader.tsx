@@ -2,7 +2,7 @@
 
 import { Send, Search, PlusSquare, Home, Compass } from 'lucide-react';
 import Link from 'next/link';
-import NotificationsDropdown from '../../../components/NotificationsDropdown';
+import NotificationsDropdown from '@/components/NotificationsDropdown';
 import { useAuth } from '@/context/AuthContext';
 
 interface FeedHeaderProps {

@@ -19,7 +19,7 @@ export class Message {
   @Column({ name: 'sender_id', type: 'int', nullable: false })
     senderId: number;
 
-  @Column({ name: 'receiver_id', type: 'int', nullable: false })
+  @Column({ name: 'receiver_id', type: 'int', nullable: true })
     receiverId?: number;
 
   @Column({ name: 'chat_id', type: 'int', nullable: true })

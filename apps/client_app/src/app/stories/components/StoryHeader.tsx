@@ -26,10 +26,10 @@ export default function StoryHeader({ story, totalStories, currentIndex, isPause
                 idx < currentIndex
                   ? 'w-full'
                   : idx === currentIndex
-                  ? isPaused
-                    ? 'w-1/2'
-                    : 'w-1/2 animate-progress'
-                  : 'w-0'
+                    ? isPaused
+                      ? 'w-1/2'
+                      : 'w-1/2 animate-progress'
+                    : 'w-0'
               }`}
             />
           </div>

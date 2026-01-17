@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { useAuth } from '@/client_app/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useEffect, useMemo, useState } from 'react';
-import { coreApi } from '@/client_app/lib/api';
+import { coreApi } from '@/lib/api';
 
 type UserLite = {
   id: number;
@@ -102,7 +102,9 @@ export default function Suggestions() {
                 friendOfFriendsCounts[id] = (friendOfFriendsCounts[id] ?? 0) + 1;
                 seedIds.push(id);
               });
-            } catch {}
+            } catch (err) {
+              console.error('Failed to load following for suggestions', err);
+            }
           }),
         );
 
@@ -117,7 +119,9 @@ export default function Suggestions() {
                 friendOfFriendsCounts[id] = (friendOfFriendsCounts[id] ?? 0) + 1;
                 seedIds.push(id);
               });
-            } catch {}
+            } catch (err) {
+              console.error('Failed to load followers for suggestions', err);
+            }
           }),
         );
 
@@ -167,7 +171,9 @@ export default function Suggestions() {
                 reason: 'Polecane',
               })),
             );
-          } catch {}
+          } catch (err) {
+            console.error('Failed to load fallback users for suggestions', err);
+          }
         }
 
         setItems(final);
@@ -190,7 +196,8 @@ export default function Suggestions() {
         next.add(id);
         return next;
       });
-    } catch {
+    } catch (err) {
+      console.error('Failed to follow user', err);
     } finally {
       setFollowBusy(null);
     }
