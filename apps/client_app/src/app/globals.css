@@ -20,6 +20,109 @@ a {
   text-decoration: none;
 }
 
+button,
+a,
+[role="button"] {
+  @apply cursor-pointer transition-opacity;
+}
+
+button:hover:not(:disabled),
+a:hover,
+[role="button"]:hover {
+  @apply opacity-80;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  @apply cursor-not-allowed opacity-60;
+}
+
+html.theme-dark body {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+html.theme-dark :where(.bg-white) {
+  background-color: #0b0b0f !important;
+}
+
+html.theme-dark :where(.bg-blue-50) {
+  background-color: rgba(59, 130, 246, 0.16) !important;
+}
+
+html.theme-dark :where(.bg-gray-50) {
+  background-color: #000000 !important;
+}
+
+html.theme-dark :where(input.bg-gray-50),
+html.theme-dark :where(textarea.bg-gray-50),
+html.theme-dark :where(select.bg-gray-50) {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.theme-dark :where(.border-gray-200) {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.theme-dark :where(.border-gray-300) {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+html.theme-dark :where(.text-black) {
+  color: #ffffff !important;
+}
+
+html.theme-dark :where(.text-gray-900) {
+  color: #ffffff !important;
+}
+
+html.theme-dark :where(.text-gray-400) {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+html.theme-dark :where(.text-gray-500) {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+html.theme-dark :where(.text-gray-600) {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+html.theme-dark :where(.text-gray-700) {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+html.theme-dark :where(.text-gray-800) {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html.theme-dark :where(.hover\:bg-gray-50:hover) {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.theme-dark :where(.hover\:bg-gray-100:hover) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.theme-dark :where(.bg-gray-100) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.theme-dark :where(.bg-gray-200) {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.theme-dark :where(input),
+html.theme-dark :where(textarea),
+html.theme-dark :where(select) {
+  color: #ffffff;
+}
+
+html.theme-dark :where(input)::placeholder,
+html.theme-dark :where(textarea)::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 @keyframes progress {
   from {
     width: 0%;

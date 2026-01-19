@@ -14,7 +14,7 @@ interface User {
 interface CreateGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreated?: (chatId: number) => void;
+  onCreated?: (chatId: number, name: string) => void;
 }
 
 export default function CreateGroupModal({ isOpen, onClose, onCreated }: CreateGroupModalProps) {
@@ -88,12 +88,12 @@ export default function CreateGroupModal({ isOpen, onClose, onCreated }: CreateG
       // Ensure participants
       await Promise.all(
         participantIds.map((pid) =>
-          coreApi.post('/chat-participants', { chatId, userId: pid }).catch(() => {})
-        )
+          coreApi.post('/chat-participants', { chatId, userId: pid }).catch(() => undefined),
+        ),
       );
 
       if (onCreated && chatId) {
-        onCreated(chatId);
+        onCreated(chatId, groupName.trim());
       }
       onClose();
     } catch (err) {

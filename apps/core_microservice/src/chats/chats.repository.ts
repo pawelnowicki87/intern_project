@@ -31,6 +31,7 @@ export class ChatsRepository {
     try {
       const chat = this.repo.create({
         createdAt: new Date(),
+        name: data.name ?? null,
         participants: data.participantIds?.map((userId) => ({
           user: { id: userId },
         })) || [],
@@ -40,6 +41,19 @@ export class ChatsRepository {
       return savedChat;
     } catch (err) {
       this.logger.error(`Failed to create chat: ${err.message}`);
+      return null;
+    }
+  }
+
+  async update(id: number, data: Partial<Pick<Chat, 'name'>>): Promise<Chat | null> {
+    try {
+      const chat = await this.repo.findOne({ where: { id } });
+      if (!chat) return null;
+      if (data.name !== undefined) chat.name = data.name ?? null;
+      const saved = await this.repo.save(chat);
+      return saved;
+    } catch (err) {
+      this.logger.error(`Failed to update chat: ${err.message}`);
       return null;
     }
   }

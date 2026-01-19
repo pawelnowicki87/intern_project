@@ -35,7 +35,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       await registerUser(data);
-      router.push('/profile');
+      router.push('/feed');
     } catch (err) {
       console.error('Registration failed', err);
       setError('root', {

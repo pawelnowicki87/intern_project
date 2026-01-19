@@ -102,8 +102,11 @@ export default function Suggestions() {
                 friendOfFriendsCounts[id] = (friendOfFriendsCounts[id] ?? 0) + 1;
                 seedIds.push(id);
               });
-            } catch (err) {
-              console.error('Failed to load following for suggestions', err);
+            } catch (err: any) {
+              // Ignore 403 errors (private profiles)
+              if (err?.response?.status !== 403) {
+                console.error('Failed to load following for suggestions', err);
+              }
             }
           }),
         );
@@ -119,8 +122,11 @@ export default function Suggestions() {
                 friendOfFriendsCounts[id] = (friendOfFriendsCounts[id] ?? 0) + 1;
                 seedIds.push(id);
               });
-            } catch (err) {
-              console.error('Failed to load followers for suggestions', err);
+            } catch (err: any) {
+              // Ignore 403 errors (private profiles)
+              if (err?.response?.status !== 403) {
+                console.error('Failed to load followers for suggestions', err);
+              }
             }
           }),
         );
@@ -155,13 +161,19 @@ export default function Suggestions() {
           });
 
         let final: SuggestionItem[] = [...mutualSuggestions, ...fofSuggestions];
-        final = final.filter((s) => s.user.id !== user.id && !followingIds.has(s.user.id));
+        // Ensure unique user IDs
+        const seenIds = new Set<number>();
+        final = final.filter((s) => {
+          if (seenIds.has(s.user.id)) return false;
+          seenIds.add(s.user.id);
+          return s.user.id !== user.id && !followingIds.has(s.user.id);
+        });
 
         if (final.length < 7) {
           try {
             const allRes = await coreApi.get<UserLite[]>('/users');
             const pool = (allRes.data ?? []).filter(
-              (u) => u.id !== user.id && !followingIds.has(u.id),
+              (u) => u.id !== user.id && !followingIds.has(u.id) && !seenIds.has(u.id),
             );
             const shuffled = [...pool].sort(() => Math.random() - 0.5);
             const needed = 7 - final.length;

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
+import { NotFoundError, InternalError, ForbiddenError } from '@shared/errors/domain-errors';
 import { CommentsRepository } from './comments.repository';
 import { Inject } from '@nestjs/common';
 import { COMMENT_MENTIONS_READER } from './ports/tokens';
@@ -49,11 +49,14 @@ export class CommentsService {
   }
 
   async create(data: CreateCommentDto): Promise<CommentResponseDto> {
-
-    if (data.parentId) {
+    if (data.parentId !== undefined && data.parentId !== null) {
       const parent = await this.commentsRepo.findById(data.parentId);
       if (!parent) {
         throw new NotFoundError('Parent comment not found');
+      }
+
+      if (parent.parentId) {
+        throw new InternalError('Parent comment already has a parent');
       }
 
       if (parent.postId !== data.postId) {
@@ -78,6 +81,34 @@ export class CommentsService {
   }
 
   async update(id: number, data: UpdateCommentDto): Promise<CommentResponseDto> {
+    let currentComment: Comment | null = null;
+    const needsCurrentComment = (data.userId !== undefined && data.userId !== null)
+      || (data.parentId !== undefined && data.parentId !== null && (data.postId === undefined || data.postId === null));
+    if (needsCurrentComment) {
+      currentComment = await this.commentsRepo.findById(id);
+      if (!currentComment) {
+        throw new NotFoundError(`Comment ${id} not found`);
+      }
+    }
+    if (data.userId !== undefined && data.userId !== null && currentComment && currentComment.userId !== data.userId) {
+      throw new ForbiddenError('Cannot edit comment owned by another user');
+    }
+    if (data.parentId !== undefined && data.parentId !== null) {
+      const parent = await this.commentsRepo.findById(data.parentId);
+      if (!parent) {
+        throw new NotFoundError('Parent comment not found');
+      }
+
+      if (parent.parentId) {
+        throw new InternalError('Parent comment already has a parent');
+      }
+
+      const targetPostId = data.postId ?? currentComment?.postId;
+      if (targetPostId !== parent.postId) {
+        throw new InternalError('Parent comment belongs to a different post');
+      }
+    }
+
     const updated = await this.commentsRepo.update(id, data);
 
     if (!updated) {
@@ -96,7 +127,33 @@ export class CommentsService {
     return this.toResponseDto(freshComment);
   }
 
-  async remove(id: number): Promise<{ deleted: boolean }> {
+  async remove(id: number, userId?: number): Promise<{ deleted: boolean }> {
+    const existing = await this.commentsRepo.findById(id);
+    if (!existing) throw new NotFoundError(`Comment ${id} not found`);
+    if (userId !== undefined && userId !== null && existing.userId !== userId) {
+      throw new ForbiddenError('Cannot delete comment owned by another user');
+    }
+    const related = await this.commentsRepo.findByPostId(existing.postId);
+    const byParent = new Map<number, number[]>();
+    related.forEach((comment) => {
+      if (!comment.parentId) return;
+      const list = byParent.get(comment.parentId) ?? [];
+      list.push(comment.id);
+      byParent.set(comment.parentId, list);
+    });
+    const idsToDelete = new Set<number>();
+    const queue: number[] = [id];
+    while (queue.length) {
+      const currentId = queue.shift()!;
+      if (idsToDelete.has(currentId)) continue;
+      idsToDelete.add(currentId);
+      const children = byParent.get(currentId) ?? [];
+      children.forEach((childId) => queue.push(childId));
+    }
+    const likesDeleted = await this.commentsRepo.deleteLikesByCommentIds(Array.from(idsToDelete));
+    if (!likesDeleted) {
+      throw new InternalError('Failed to remove comment likes');
+    }
     const success = await this.commentsRepo.delete(id);
 
     if (!success) throw new NotFoundError(`Comment ${id} not found`);

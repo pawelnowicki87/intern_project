@@ -37,7 +37,10 @@ export class CommentsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number): Promise<{ deleted: boolean }> {
-    return this.commentsService.remove(id);
+  remove(
+    @Param('id') id: number,
+    @Body() data: { userId?: number },
+  ): Promise<{ deleted: boolean }> {
+    return this.commentsService.remove(id, data?.userId);
   }
 }

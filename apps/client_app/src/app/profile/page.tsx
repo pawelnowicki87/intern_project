@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ProfileHeader from './components/ProfileHeader';
+import Header from '@/components/Header';
 import ProfileHighlights from './components/ProfileHighlights';
 import ProfileInfo from './components/ProfileInfo';
 import ProfileTabs from './components/ProfileTabs';
@@ -43,7 +43,7 @@ export default function Page() {
         </div>
       ) : (
         <div className="min-h-screen bg-white">
-          <ProfileHeader onCreatePost={() => setIsCreatePostOpen(true)} />
+          <Header onCreatePost={() => setIsCreatePostOpen(true)} />
           <main className="lg:max-w-5xl lg:mx-auto pb-16 md:pb-0">
             <ProfileInfo profile={profile} />
             <ProfileHighlights />

@@ -30,12 +30,6 @@ export default function ChatSidebar({
     <aside className="w-full md:w-80 border-r border-gray-200 bg-white">
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="text-sm font-semibold">Messages</div>
-        <div className="mt-2">
-          <input
-            placeholder="Search"
-            className="w-full text-sm px-3 py-2 bg-gray-100 border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-        </div>
       </div>
 
       <div className="overflow-y-auto h-[calc(70vh-96px)] md:h-[calc(80vh-96px)]">

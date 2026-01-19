@@ -61,12 +61,6 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
       return { error: 'You are not a participant of this chat.' };
     }
 
-    for (const room of client.rooms) {
-      if (room.startsWith('chat_')) {
-        client.leave(room);
-      }
-    }
-
     const roomName = `chat_${body.chatId}`;
     client.join(roomName);
 

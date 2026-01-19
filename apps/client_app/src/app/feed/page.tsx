@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import BottomNav from '../../components/BottomNav';
-import FeedHeader from './components/FeedHeader';
+import Header from '@/components/Header';
 import Post from './components/Post';
 import Stories from './components/Stories';
 import Suggestions from './components/Suggestions';
@@ -75,46 +75,41 @@ export default function FeedPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <FeedHeader
-          onCreatePost={() => setIsCreatePostOpen(true)}
-        />
-        
-        {/* Main scrollable content */}
-        <main className="w-full pt-4 pb-20 md:pb-6">
-          {/* Centered container */}
-          <div className="max-w-[935px] mx-auto px-4 lg:px-0">
-            <div className="flex gap-8 justify-center lg:justify-between">
-              {/* Feed - centered on tablet, left on desktop */}
-              <div className="w-full max-w-[615px]">
-                <Stories />
-                
-                <FeedFilterBar
-                  sortBy={sortBy}
-                  sortOrder={sortOrder}
-                  filterType={filterType}
-                  onChangeSortBy={(v) => setSortBy(v)}
-                  onChangeSortOrder={(v) => setSortOrder(v)}
-                  onChangeFilterType={(v) => setFilterType(v)}
-                />
-                
-                {/* Posts list */}
-                {loading && (
-                  <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
-                    Loading posts...
-                  </div>
-                )}
-                {error && (
-                  <div className="w-full bg-red-50 border border-red-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-red-700">
-                    {error}
-                  </div>
-                )}
-                {!loading && !error && processedPosts.length === 0 && (
-                  <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
-                    No posts to display
-                  </div>
-                )}
-                {!loading && !error && processedPosts.map((post) => (
+      <Header onCreatePost={() => setIsCreatePostOpen(true)} />
+
+      <main className="w-full pt-4 pb-20 md:pb-6">
+        <div className="max-w-[935px] mx-auto px-4 lg:px-0">
+          <div className="flex gap-8 justify-center lg:justify-between">
+            <div className="w-full max-w-[615px]">
+              <Stories />
+
+              <FeedFilterBar
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                filterType={filterType}
+                onChangeSortBy={(v) => setSortBy(v)}
+                onChangeSortOrder={(v) => setSortOrder(v)}
+                onChangeFilterType={(v) => setFilterType(v)}
+              />
+
+              {loading && (
+                <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
+                  Loading posts...
+                </div>
+              )}
+              {error && (
+                <div className="w-full bg-red-50 border border-red-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+              {!loading && !error && processedPosts.length === 0 && (
+                <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 p-6 text-center text-sm text-gray-500">
+                  No posts to display
+                </div>
+              )}
+              {!loading &&
+                !error &&
+                processedPosts.map((post) => (
                   <Post
                     key={post.id}
                     post={post}
@@ -122,30 +117,27 @@ export default function FeedPage() {
                     onEdit={(p) => setEditPost(p)}
                   />
                 ))}
-              </div>
+            </div>
 
-              {/* Sidebar - Desktop only */}
-              <div className="hidden lg:block">
-                <Suggestions />
-              </div>
+            <div className="hidden lg:block">
+              <Suggestions />
             </div>
           </div>
-        </main>
+        </div>
+      </main>
 
-        <BottomNav onCreatePost={() => setIsCreatePostOpen(true)} />
+      <BottomNav onCreatePost={() => setIsCreatePostOpen(true)} />
 
-        {/* Create Post Modal */}
-        <CreatePostModal 
-          isOpen={isCreatePostOpen || !!editPost} 
-          onClose={() => {
-            setIsCreatePostOpen(false);
-            setEditPost(null);
-          }} 
-          onCreated={fetchFeed}
-          mode={editPost ? 'edit' : 'create'}
-          initialPost={editPost}
-        />
-      </div>
+      <CreatePostModal
+        isOpen={isCreatePostOpen || !!editPost}
+        onClose={() => {
+          setIsCreatePostOpen(false);
+          setEditPost(null);
+        }}
+        onCreated={fetchFeed}
+        mode={editPost ? 'edit' : 'create'}
+        initialPost={editPost}
+      />
     </ProtectedRoute>
   );
 }

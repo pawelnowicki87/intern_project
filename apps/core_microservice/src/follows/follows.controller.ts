@@ -21,16 +21,6 @@ export class FollowsController {
     return this.followsService.findAll();
   }
 
-  @Get(':followerId/:followedId')
-  findOne(
-    @Param('followerId') followerId: string,
-    @Param('followedId') followedId: string,
-  ): Promise<FollowResponseDto> {
-    const fId = Number.parseInt(followerId, 10);
-    const tId = Number.parseInt(followedId, 10);
-    return this.followsService.findOne(Number.isFinite(fId) ? fId : 0, Number.isFinite(tId) ? tId : 0);
-  }
-
   @Post()
   create(@Body() data: CreateFollowDto): Promise<FollowResponseDto> {
     return this.followsService.create(data);
@@ -94,5 +84,15 @@ export class FollowsController {
     const fId = Number.parseInt(followerId, 10);
     const tId = Number.parseInt(followedId, 10);
     return this.followsService.cancelFollowRequest(Number.isFinite(fId) ? fId : 0, Number.isFinite(tId) ? tId : 0);
+  }
+
+  @Get(':followerId/:followedId')
+  findOne(
+    @Param('followerId') followerId: string,
+    @Param('followedId') followedId: string,
+  ): Promise<FollowResponseDto> {
+    const fId = Number.parseInt(followerId, 10);
+    const tId = Number.parseInt(followedId, 10);
+    return this.followsService.findOne(Number.isFinite(fId) ? fId : 0, Number.isFinite(tId) ? tId : 0);
   }
 }

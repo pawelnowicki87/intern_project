@@ -199,9 +199,9 @@ export default function CommentsList({
 
   const submitEdit = async (id: number) => {
     const text = (editText[id] ?? '').trim();
-    if (!text) return;
+    if (!text || !user?.id) return;
     try {
-      await coreApi.patch(`/comments/${id}`, { body: text });
+      await coreApi.patch(`/comments/${id}`, { body: text, userId: user.id });
       const res = await coreApi.get<CommentResponse[]>(`/comments/post/${postId}`);
       setComments(res.data ?? []);
       setEditingId(null);
@@ -211,8 +211,9 @@ export default function CommentsList({
   };
 
   const deleteComment = async (id: number) => {
+    if (!user?.id) return;
     try {
-      await coreApi.delete(`/comments/${id}`);
+      await coreApi.delete(`/comments/${id}`, { data: { userId: user.id } });
       const res = await coreApi.get<CommentResponse[]>(`/comments/post/${postId}`);
       setComments(res.data ?? []);
       if (editingId === id) setEditingId(null);
@@ -258,19 +259,19 @@ export default function CommentsList({
     return '';
   };
 
-  const renderReplyInput = (id: number) => {
-    if (!replyOpen.has(id)) return null;
+  const renderReplyInput = (comment: CommentResponse) => {
+    if (!replyOpen.has(comment.id)) return null;
     return (
       <div className="mt-3 flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
         <input
           className="flex-1 text-sm px-3 py-2 bg-white border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
           placeholder="Add a reply…"
-          value={replyText[id] ?? ''}
-          onChange={(e) => onReplyChange(id, e.target.value)}
+          value={replyText[comment.id] ?? ''}
+          onChange={(e) => onReplyChange(comment.id, e.target.value)}
         />
         <button
           className="text-sm px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
-          onClick={() => submitReply(id)}
+          onClick={() => submitReply(comment)}
         >
           Publish
         </button>
@@ -278,20 +279,27 @@ export default function CommentsList({
     );
   };
 
-  const submitReply = async (parentId: number) => {
-    const text = (replyText[parentId] ?? '').trim();
+  const submitReply = async (comment: CommentResponse) => {
+    const text = (replyText[comment.id] ?? '').trim();
     if (!text || !user?.id) return;
+    const parentId = comment.parentId ?? comment.id;
+    const mentionPrefix = `@${comment.user.username}`;
+    const hasMentionPrefix = text.startsWith(mentionPrefix)
+      && (text.length === mentionPrefix.length || /\s/.test(text[mentionPrefix.length]));
+    const body = hasMentionPrefix ? text : `${mentionPrefix} ${text}`;
     try {
       await coreApi.post('/comments', {
         userId: user.id,
         postId,
         parentId,
-        body: text,
+        body,
       });
-      setReplyText((prev) => ({ ...prev, [parentId]: '' }));
+      const res = await coreApi.get<CommentResponse[]>(`/comments/post/${postId}`);
+      setComments(res.data ?? []);
+      setReplyText((prev) => ({ ...prev, [comment.id]: '' }));
       setReplyOpen((prev) => {
         const next = new Set(prev);
-        next.delete(parentId);
+        next.delete(comment.id);
         return next;
       });
       setExpanded((prev) => {
@@ -307,6 +315,9 @@ export default function CommentsList({
   const renderComment = (c: CommentResponse) => {
     const isExpanded = expanded.has(c.id);
     const likeText = likeTextFor(c.id);
+    const isOwner = user?.id === c.user.id;
+    const replyCount = flattenToOneLevel(c.children ?? []).length;
+    const isRoot = !c.parentId;
     return (
       <div key={c.id} className="py-2">
         <div className="flex items-start gap-3">
@@ -340,13 +351,19 @@ export default function CommentsList({
               </button>
               <button className="hover:underline" onClick={() => toggleReply(c.id)}>Reply</button>
               {likeText && <span className="text-gray-700">{likeText}</span>}
-              <button className="hover:underline" onClick={() => toggleExpand(c.id)}>
-                {isExpanded ? 'Hide replies' : `${c.children.length} replies`}
-              </button>
-              <button className="text-red-600 hover:underline" onClick={() => deleteComment(c.id)}>Delete</button>
-              <button className="hover:underline" onClick={() => startEdit(c.id, c.body)}>Edit</button>
+              {isRoot && (
+                <button className="hover:underline" onClick={() => toggleExpand(c.id)}>
+                  {isExpanded ? 'Hide replies' : `${replyCount} replies`}
+                </button>
+              )}
+              {isOwner && (
+                <button className="text-red-600 hover:underline" onClick={() => deleteComment(c.id)}>Delete</button>
+              )}
+              {isOwner && (
+                <button className="hover:underline" onClick={() => startEdit(c.id, c.body)}>Edit</button>
+              )}
             </div>
-            {renderReplyInput(c.id)}
+            {renderReplyInput(c)}
             {editingId === c.id && (
               <div className="mt-2 flex items-center gap-2">
                 <input
@@ -365,15 +382,7 @@ export default function CommentsList({
             )}
             {isExpanded && c.children.length > 0 && (
               <div className="mt-2 pl-10 space-y-2">
-                {flattenToOneLevel(c.children).map((child) => (
-                  <div key={child.id} className="text-sm">
-                    <Link href={`/profile/${child.user.id}`} className="font-semibold hover:underline">
-                      {child.user.username}
-                    </Link>{' '}
-                    {child.body}
-                    <div className="text-xs text-gray-500 mt-1">{formatTimeAgo(child.createdAt)}</div>
-                  </div>
-                ))}
+                {flattenToOneLevel(c.children).map((child) => renderComment(child))}
               </div>
             )}
           </div>

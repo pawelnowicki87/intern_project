@@ -1,9 +1,8 @@
 'use client';
 import React, { Suspense } from 'react';
-import FeedHeader from '../feed/components/FeedHeader';
+import Header from '@/components/Header';
 import ChatSidebar from './components/ChatSidebar';
 import ChatWindow from './components/ChatWindow';
-import ChatHeader from './components/ChatHeader';
 import CreateGroupModal from './components/CreateGroupModal';
 import ChatInfoModal from './components/ChatInfoModal';
 import { useState, useEffect, useRef } from 'react';
@@ -11,6 +10,9 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import CreatePostModal from '@/components/CreatePostModal';
 import { coreApi } from '@/lib/api';
+import { io, Socket } from 'socket.io-client';
+import { getAccessToken } from '@/lib/auth';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function ChatPage() {
   return (
@@ -52,6 +54,8 @@ function ChatPageImpl() {
 
   const { user } = useAuth();
   const ensuredRef = useRef<Set<number>>(new Set());
+  const socketRef = useRef<Socket | null>(null);
+  const groupNamesRef = useRef<Map<number, string>>(new Map());
 
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -60,6 +64,29 @@ function ChatPageImpl() {
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isChatInfoOpen, setIsChatInfoOpen] = useState(false);
+
+  const senderName = (parts: any[] | undefined, senderId?: number): string => {
+    if (!senderId) return '';
+    if (user && senderId === user.id) return 'Ty';
+    const p = (parts ?? []).find((x: any) => x.userId === senderId);
+    if (!p) return '';
+    return p.username ?? [p.firstName, p.lastName].filter(Boolean).join(' ');
+  };
+
+  const makePreview = (
+    type: 'direct' | 'group',
+    body?: string,
+    senderId?: number,
+    parts?: any[],
+    fallbackSender?: { firstName?: string; lastName?: string },
+  ): string => {
+    const text = body ?? '';
+    if (type !== 'group') return text;
+    const name =
+      senderName(parts, senderId) ||
+      [fallbackSender?.firstName, fallbackSender?.lastName].filter(Boolean).join(' ');
+    return name ? `${name}: ${text}` : text;
+  };
 
   const dedupe = (arr: ChatItem[], currentUserId: number): ChatItem[] => {
     const groups = new Map<string, ChatItem[]>();
@@ -97,15 +124,30 @@ function ChatPageImpl() {
         .map((c: any) => {
           const others = (c.participants ?? []).filter((p: any) => p.userId !== user.id);
           const name =
+            groupNamesRef.current.get(c.id) ||
             c.name ||
             (others.length > 0
-              ? (others[0].username ?? ([others[0].firstName, others[0].lastName].filter(Boolean).join(' ').trim() || 'Direct chat'))
+              ? others[0].username ??
+                [others[0].firstName, others[0].lastName].filter(Boolean).join(' ')
               : 'Group chat');
-          const last = (c.messages ?? []).slice(-1)[0];
+          const last = (c.messages ?? [])
+            .slice()
+            .sort((a: any, b: any) => {
+              const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return ta - tb;
+            })
+            .slice(-1)[0];
           return {
             id: c.id,
             name,
-            lastMessage: last?.body ?? '',
+            lastMessage: makePreview(
+              (c.participants ?? []).length > 2 ? 'group' : 'direct',
+              last?.body,
+              last?.senderId,
+              c.participants,
+              undefined,
+            ),
             time: formatTime(last?.createdAt),
             unread: 0,
             type: (c.participants ?? []).length > 2 ? 'group' : 'direct',
@@ -139,6 +181,57 @@ function ChatPageImpl() {
   }, [user]);
 
   useEffect(() => {
+    if (!user || chats.length === 0) return;
+    const token = getAccessToken() ?? '';
+    const endpoint = process.env.NEXT_PUBLIC_CORE_SERVICE_URL ?? 'http://localhost:3001';
+    if (!socketRef.current) {
+      const s = io(endpoint, {
+        auth: { token },
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 500,
+      });
+      socketRef.current = s;
+      s.on('connect', () => {
+        chats.forEach((c) => s.emit('join_room', { chatId: c.id }));
+      });
+      s.on('reconnect', () => {
+        chats.forEach((c) => s.emit('join_room', { chatId: c.id }));
+      });
+      s.on('new_message', (msg: any) => {
+        setChats((prev) =>
+          prev.map((c) => {
+            if (c.id !== Number(msg.chatId)) return c;
+            const inc =
+              msg.senderId !== user.id && selectedId !== c.id ? (c.unread ?? 0) + 1 : c.unread ?? 0;
+            return {
+              ...c,
+              lastMessage: makePreview(
+                c.type,
+                msg.body ?? c.lastMessage,
+                msg.senderId,
+                c.rawParticipants,
+                msg.sender,
+              ),
+              time: msg.createdAt ? formatTime(msg.createdAt) : c.time,
+              unread: inc,
+              msgCount: (c.msgCount ?? 0) + 1,
+            };
+          }),
+        );
+      });
+    } else {
+      chats.forEach((c) => socketRef.current!.emit('join_room', { chatId: c.id }));
+    }
+    return () => {};
+  }, [user, chats, selectedId]);
+
+  useEffect(() => {
+    if (selectedId == null) return;
+    setChats((prev) => prev.map((c) => (c.id === selectedId ? { ...c, unread: 0 } : c)));
+  }, [selectedId]);
+  useEffect(() => {
     const username = searchParams.get('username');
     const userIdParam = searchParams.get('userId');
     if (!user || (!username && !userIdParam)) return;
@@ -165,12 +258,19 @@ function ChatPageImpl() {
         const found = (await coreApi.get('/chats')).data.find(
           (c: any) =>
             (c.participants ?? []).some((p: any) => p.userId === user.id) &&
-            (c.participants ?? []).some((p: any) => p.userId === targetId)
+            (c.participants ?? []).some((p: any) => p.userId === targetId),
         );
         if (found) {
           setSelectedId(found.id);
           setChats((prev) => {
-            const last = (found.messages ?? []).slice(-1)[0];
+            const last = (found.messages ?? [])
+              .slice()
+              .sort((a: any, b: any) => {
+                const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return ta - tb;
+              })
+              .slice(-1)[0];
             const others = (found.participants ?? []).filter((p: any) => p.userId !== user.id);
             const name =
               others.length > 0
@@ -179,7 +279,13 @@ function ChatPageImpl() {
             const mapped: any = {
               id: found.id,
               name,
-              lastMessage: last?.body ?? '',
+              lastMessage: makePreview(
+                (found.participants ?? []).length > 2 ? 'group' : 'direct',
+                last?.body,
+                last?.senderId,
+                found.participants,
+                undefined,
+              ),
               time: formatTime(last?.createdAt),
               unread: 0,
               type: (found.participants ?? []).length > 2 ? 'group' : 'direct',
@@ -214,7 +320,14 @@ function ChatPageImpl() {
           } catch (err) {
             console.error('Failed to refetch chat details', err);
           }
-          const last = (c.messages ?? []).slice(-1)[0];
+          const last = (c.messages ?? [])
+            .slice()
+            .sort((a: any, b: any) => {
+              const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return ta - tb;
+            })
+            .slice(-1)[0];
           const others = (withParts.participants ?? []).filter((p: any) => p.userId !== user.id);
           const name =
             others.length > 0
@@ -223,7 +336,13 @@ function ChatPageImpl() {
           const mapped: any = {
             id: c.id,
             name,
-            lastMessage: last?.body ?? '',
+            lastMessage: makePreview(
+              (withParts.participants ?? []).length > 2 ? 'group' : 'direct',
+              last?.body,
+              last?.senderId,
+              withParts.participants,
+              undefined,
+            ),
             time: formatTime(last?.createdAt),
             unread: 0,
             type: (withParts.participants ?? []).length > 2 ? 'group' : 'direct',
@@ -245,9 +364,12 @@ function ChatPageImpl() {
     ensureChat();
   }, [searchParams, user, chats]);
 
-  const handleGroupCreated = (chatId: number) => {
+  const handleGroupCreated = (chatId: number, name?: string) => {
+    if (name) {
+      groupNamesRef.current.set(chatId, name);
+    }
     setSelectedId(chatId);
-    loadChats(); // Refresh chat list
+    loadChats();
   };
 
   const handleLeaveGroup = () => {
@@ -256,53 +378,65 @@ function ChatPageImpl() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <FeedHeader onCreatePost={() => setIsCreatePostOpen(true)} />
+    <ProtectedRoute>
+
       
-      <div className="max-w-[935px] mx-auto">
-        <ChatHeader
-          chatName={activeChat?.name}
-          chatAvatar={activeChat?.avatar}
-          onCreateGroup={() => setIsGroupModalOpen(true)}
-          onChatInfo={() => setIsChatInfoOpen(true)}
-        />
+      <div className="min-h-screen bg-white">
+        <Header onCreatePost={() => setIsCreatePostOpen(true)} />
         
-        <div className="px-4 pb-4">
-          <div className="border border-gray-300 rounded-lg overflow-hidden flex h-[calc(100vh-200px)]">
-            <ChatSidebar
-              chats={chats}
-              selectedId={selectedId}
-              onSelect={(id) => setSelectedId(id)}
-            />
-            <div className="flex-1">
-              <ChatWindow chat={activeChat as any} />
+        <div className="max-w-[935px] mx-auto">
+          
+          <div className="px-4 pb-4">
+            <div className="border border-gray-300 rounded-lg overflow-hidden flex h-[calc(100vh-200px)]">
+              <ChatSidebar
+                chats={chats}
+                selectedId={selectedId}
+                onSelect={(id) => {
+                  setSelectedId(id);
+                  setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
+                }}
+              />
+              <div className="flex-1">
+                <ChatWindow
+                  chat={activeChat as any}
+                  onInteract={() =>
+                    setChats((prev) => prev.map((c) => (c.id === selectedId ? { ...c, unread: 0 } : c)))
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <CreatePostModal
-        isOpen={isCreatePostOpen}
-        onClose={() => setIsCreatePostOpen(false)}
-        onCreated={() => setIsCreatePostOpen(false)}
-      />
-
-      <CreateGroupModal
-        isOpen={isGroupModalOpen}
-        onClose={() => setIsGroupModalOpen(false)}
-        onCreated={handleGroupCreated}
-      />
-
-      {activeChat && (
-        <ChatInfoModal
-          isOpen={isChatInfoOpen}
-          onClose={() => setIsChatInfoOpen(false)}
-          chatId={activeChat.id}
-          chatType={activeChat.type}
-          chatName={activeChat.name}
-          onLeave={handleLeaveGroup}
+        <CreatePostModal
+          isOpen={isCreatePostOpen}
+          onClose={() => setIsCreatePostOpen(false)}
+          onCreated={() => setIsCreatePostOpen(false)}
         />
-      )}
-    </div>
+
+        <CreateGroupModal
+          isOpen={isGroupModalOpen}
+          onClose={() => setIsGroupModalOpen(false)}
+          onCreated={handleGroupCreated}
+        />
+
+        {activeChat && (
+          <ChatInfoModal
+            isOpen={isChatInfoOpen}
+            onClose={() => setIsChatInfoOpen(false)}
+            chatId={activeChat.id}
+            chatType={activeChat.type}
+            chatName={activeChat.name}
+            onNameUpdated={(name) => {
+              groupNamesRef.current.set(activeChat.id, name);
+              setChats((prev) =>
+                prev.map((c) => (c.id === activeChat.id ? { ...c, name } : c)),
+              );
+            }}
+            onLeave={handleLeaveGroup}
+          />
+        )}
+      </div>
+    </ProtectedRoute>
   );
 }

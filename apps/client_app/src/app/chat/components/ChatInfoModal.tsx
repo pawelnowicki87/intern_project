@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, UserPlus, Trash2, Edit2, Plus } from 'lucide-react';
+import { X, Trash2, Edit2, Plus } from 'lucide-react';
 import { coreApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -19,6 +19,7 @@ interface ChatInfoModalProps {
   chatType: 'direct' | 'group';
   chatName: string;
   onLeave?: () => void;
+  onNameUpdated?: (name: string) => void;
 }
 
 export default function ChatInfoModal({
@@ -28,6 +29,7 @@ export default function ChatInfoModal({
   chatType,
   chatName,
   onLeave,
+  onNameUpdated,
 }: ChatInfoModalProps) {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -62,7 +64,7 @@ export default function ChatInfoModal({
         const allUsers = res.data ?? [];
         const participantIds = participants.map((p) => p.userId);
         const available = allUsers.filter(
-          (u: any) => !participantIds.includes(u.id) && u.id !== user?.id
+          (u: any) => !participantIds.includes(u.id) && u.id !== user?.id,
         );
         setAvailableUsers(available);
       } catch (err) {
@@ -88,6 +90,7 @@ export default function ChatInfoModal({
     try {
       await coreApi.patch(`/chats/${chatId}`, { name: newName.trim() });
       setIsEditing(false);
+      if (onNameUpdated) onNameUpdated(newName.trim());
     } catch (err) {
       console.error('Failed to update chat name', err);
     }
@@ -317,7 +320,7 @@ export default function ChatInfoModal({
 
                   return (
                     <div
-                      key={targetUser.userId}
+                      key={targetUser.id}
                       className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center gap-3 flex-1">
@@ -346,7 +349,7 @@ export default function ChatInfoModal({
                         </div>
                       </div>
                       <button
-                        onClick={() => handleAddMember(targetUser.userId)}
+                        onClick={() => handleAddMember(targetUser.id)}
                         className="px-4 py-1.5 bg-blue-500 text-white text-xs font-semibold rounded-lg hover:bg-blue-600 transition-colors"
                       >
                         Add

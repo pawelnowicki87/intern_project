@@ -16,13 +16,14 @@ type Message = {
   body: string;
   createdAt?: string;
   isEdited?: boolean;
+  isRead?: boolean;
 };
 
 function makeClientId() {
   return `c_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
+export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | null; onInteract?: () => void }) {
   const { user } = useAuth();
 
   const [participantIds, setParticipantIds] = useState<number[]>([]);
@@ -105,6 +106,7 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
           body: m.body,
           createdAt: m.createdAt,
           isEdited: m.isEdited || false,
+          isRead: m.isRead || false,
         }));
 
         setMessages(mapped);
@@ -152,6 +154,7 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
     s.on('connect_error', (err) => {
       console.error('socket connect_error', err);
     });
+
     s.on('error', (err) => {
       console.error('socket error', err);
     });
@@ -169,13 +172,14 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
           body: msg.body,
           createdAt: msg.createdAt,
           isEdited: msg.isEdited || false,
+          isRead: msg.isRead || false,
         };
 
         const optimisticIdx = prev.findIndex(
           (m) =>
             m.clientId &&
             m.senderId === incoming.senderId &&
-            m.body === incoming.body
+            m.body === incoming.body,
         );
 
         if (optimisticIdx !== -1) {
@@ -188,6 +192,12 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
       });
     });
 
+    s.on('message_read_broadcast', (data: any) => {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === data.messageId ? { ...m, isRead: true } : m)),
+      );
+    });
+
     s.on('message_deleted', (data: any) => {
       setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
     });
@@ -197,8 +207,8 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
         prev.map((m) =>
           m.id === data.messageId
             ? { ...m, body: data.newBody, isEdited: true }
-            : m
-        )
+            : m,
+        ),
       );
     });
 
@@ -227,6 +237,7 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
         receiverId: receiverId ?? 0,
         body,
         createdAt: new Date().toISOString(),
+        isRead: true,
       },
     ]);
 
@@ -242,6 +253,24 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
     socketRef.current.emit('send_message', payload);
   };
 
+  // Mark messages as read
+  useEffect(() => {
+    if (!socketRef.current || !chat?.id || !user) return;
+    const ids = new Set<number>();
+    messages.forEach((m) => {
+      if (m.id && m.senderId !== user.id && !m.isRead) {
+        ids.add(m.id);
+        socketRef.current!.emit('message_read', { messageId: m.id, chatId: Number(chat.id) });
+      }
+    });
+    if (ids.size > 0) {
+      setMessages((prev) =>
+        prev.map((m) => (m.id && ids.has(m.id) ? { ...m, isRead: true } : m)),
+      );
+    }
+  }, [messages, chat?.id, user?.id]);
+
+  // Polling fallback
   useEffect(() => {
     if (!chat?.id || !user) return;
     if (pollRef.current) {
@@ -258,8 +287,9 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
           body: m.body,
           createdAt: m.createdAt,
           isEdited: m.isEdited || false,
+          isRead: m.isRead || false,
         }));
-        setMessages(prev => {
+        setMessages((prev) => {
           const byId = new Map<number | string, Message>();
           for (const m of prev) {
             byId.set(m.id ?? m.clientId ?? `${m.senderId}-${m.createdAt}`, m);
@@ -273,7 +303,9 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
             return ta - tb;
           });
         });
-      } catch {}
+      } catch {
+        return;
+      }
     }, 4000);
     pollRef.current = id;
     return () => {
@@ -295,7 +327,7 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
 
     try {
       await coreApi.patch(`/messages/${editingId}`, { body: editText.trim() });
-      
+
       socketRef.current.emit('edit_message', {
         messageId: editingId,
         newBody: editText.trim(),
@@ -304,8 +336,8 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
 
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === editingId ? { ...m, body: editText.trim(), isEdited: true } : m
-        )
+          m.id === editingId ? { ...m, body: editText.trim(), isEdited: true } : m,
+        ),
       );
 
       setEditingId(null);
@@ -325,7 +357,7 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
 
     try {
       await coreApi.delete(`/messages/${messageId}`);
-      
+
       socketRef.current.emit('delete_message', {
         messageId,
         chatId: Number(chat?.id),
@@ -339,7 +371,7 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white" onClick={() => onInteract?.()}>
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {messages.map((m, idx) => {
@@ -425,14 +457,19 @@ export default function ChatWindow({ chat }: { chat?: ChatItem | null }) {
                       )}
                     </div>
 
-                    <div
-                      className={
-                        mine
-                          ? 'text-[10px] text-gray-400 mt-1 text-right'
-                          : 'text-[10px] text-gray-400 mt-1'
-                      }
-                    >
-                      {formatTime(m.createdAt)}
+                    <div className={`flex items-center gap-1 mt-1 ${mine ? 'justify-end' : 'justify-start'}`}>
+                      <span className="text-[10px] text-gray-400">
+                        {formatTime(m.createdAt)}
+                      </span>
+                      {mine && (
+                        <span className="text-[10px]">
+                          {m.isRead ? (
+                            <span className="text-blue-500">✓✓</span>
+                          ) : (
+                            <span className="text-gray-400">✓</span>
+                          )}
+                        </span>
+                      )}
                     </div>
                   </>
                 )}
