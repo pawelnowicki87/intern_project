@@ -24,7 +24,6 @@ export default function StoryNavigation({
 }: StoryNavigationProps) {
   return (
     <>
-      {/* Previous user navigation - Desktop */}
       {hasPrevious && previousUser && (
         <div className="hidden md:block absolute left-4 top-1/2 transform -translate-y-1/2 -translate-x-24">
           <button
@@ -42,7 +41,6 @@ export default function StoryNavigation({
         </div>
       )}
 
-      {/* Next user navigation - Desktop */}
       {hasNext && nextUser && (
         <div className="hidden md:block absolute right-4 top-1/2 transform -translate-y-1/2 translate-x-24">
           <button

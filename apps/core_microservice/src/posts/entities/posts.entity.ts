@@ -24,7 +24,7 @@ export class Post {
     body: string;
 
   @Column({ name: 'user_id', type: 'int', nullable: false })
-    userId: number; // FK
+    userId: number;
 
   @Column({ type: 'enum', enum: PostStatus, default: PostStatus.PUBLISHED })
     status: PostStatus;

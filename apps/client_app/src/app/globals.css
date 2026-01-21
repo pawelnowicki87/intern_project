@@ -50,6 +50,11 @@ html.theme-dark :where(.bg-blue-50) {
   background-color: rgba(59, 130, 246, 0.16) !important;
 }
 
+html.theme-dark :where(.bg-gradient-to-r.from-gray-50.to-white) {
+  background-image: none !important;
+  background-color: #0b0b0f !important;
+}
+
 html.theme-dark :where(.bg-gray-50) {
   background-color: #000000 !important;
 }

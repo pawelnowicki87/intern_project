@@ -44,10 +44,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     console.log('Client disconnected:', client.id);
   }
 
-  @SubscribeMessage('ping_test')
-  handlePing(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    client.emit('pong_test', { message: 'pong!', received: data });
-  }
+  
 
   @SubscribeMessage('join_room')
   async handleJoinRoom(

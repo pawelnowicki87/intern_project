@@ -44,7 +44,6 @@ export default function StoryContent({ story, onTapLeft, onTapRight, onHold, onR
         className="w-full h-full object-cover"
       />
 
-      {/* Tap zones */}
       <div className="absolute inset-0 flex">
         <div
           className="w-1/3 h-full cursor-pointer"

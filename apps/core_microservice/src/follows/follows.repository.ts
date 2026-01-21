@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Follow, FollowStatus } from './entities/follow.entity';
 import { CreateFollowDto } from './dto/create-follow.dto';
-import { FollowResponseDto } from './dto/follow-response.dto';
 
 @Injectable()
 export class FollowsRepository {

@@ -136,7 +136,7 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
 
             <div className="hidden md:block">
               <div className="flex items-center gap-4 mb-5">
-                <h1 className="text-xl font-light">{displayName || 'Użytkownik'}</h1>
+                <h1 className="text-xl font-light">{displayName || 'User'}</h1>
 
                 {!isOwner && (
                   <>
@@ -151,7 +151,7 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
                       </button>
                     ) : followStatus === 'pending' ? (
                       <span className="px-4 py-1.5 bg-gray-200 text-black rounded-lg text-sm font-semibold">
-                        Wysłano prośbę
+                        Request sent
                       </span>
                     ) : (
                       <button
@@ -212,7 +212,7 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
                 </button>
               ) : followStatus === 'pending' ? (
                 <span className="flex-1 bg-gray-200 text-black py-1.5 rounded-lg text-sm font-semibold text-center">
-                  Wysłano prośbę
+                  Request sent
                 </span>
               ) : (
                 <button
@@ -245,7 +245,7 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
         {isHidden && !isOwner && (
           <div className="mt-3 md:mt-4">
             <div className="text-sm text-gray-600">
-              Ten profil jest prywatny. Wyślij prośbę o obserwowanie, aby zobaczyć informacje i posty.
+              This profile is private. Send a follow request to view info and posts.
             </div>
           </div>
         )}

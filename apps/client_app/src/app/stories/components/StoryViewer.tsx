@@ -21,7 +21,6 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
 
   const router = useRouter();
 
-  // Mock data - replace with real data
   const allStories = [
     {
       username: 'leon_tu',
@@ -69,7 +68,6 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
     return null;
   }
 
-  // Auto-advance timer
   useEffect(() => {
     if (isPaused || !currentStory) return;
 
@@ -84,7 +82,6 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
     if (currentStoryIndex < currentUser.stories.length - 1) {
       setCurrentStoryIndex(currentStoryIndex + 1);
     } else {
-      // Move to next user
       if (currentUserIndex < allStories.length - 1) {
         const nextUser = allStories[currentUserIndex + 1];
         router.push(`/stories/${nextUser.username}`);
@@ -98,7 +95,6 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
     if (currentStoryIndex > 0) {
       setCurrentStoryIndex(currentStoryIndex - 1);
     } else {
-      // Move to previous user
       if (currentUserIndex > 0) {
         const prevUser = allStories[currentUserIndex - 1];
         router.push(`/stories/${prevUser.username}`);
@@ -126,7 +122,6 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-      {/* Close button - Desktop */}
       <button
         onClick={onClose}
         className="hidden md:block absolute top-4 right-4 text-white hover:opacity-80 z-50"
@@ -134,12 +129,10 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
         <X className="w-8 h-8" />
       </button>
 
-      {/* Instagram logo - Desktop */}
       <div className="hidden md:block absolute top-4 left-4 text-white text-2xl font-serif italic z-50">
         Instagram
       </div>
 
-      {/* Story Navigation - Desktop */}
       <StoryNavigation
         onPrevious={handlePreviousUser}
         onNext={handleNextUser}
@@ -149,7 +142,6 @@ export default function StoryViewer({ username, onClose }: StoryViewerProps) {
         nextUser={currentUserIndex < allStories.length - 1 ? allStories[currentUserIndex + 1] : null}
       />
 
-      {/* Main story container */}
       <div className="relative w-full h-full md:w-auto md:h-auto md:max-w-[500px] md:max-h-[90vh] md:aspect-[9/16] bg-gray-900">
         <StoryHeader
           story={currentStory}

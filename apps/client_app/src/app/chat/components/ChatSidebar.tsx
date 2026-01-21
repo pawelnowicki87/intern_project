@@ -16,10 +16,12 @@ export default function ChatSidebar({
   chats,
   selectedId,
   onSelect,
+  onCreateGroup,
 }: {
   chats: ChatItem[];
   selectedId?: number | null;
   onSelect?: (id: number) => void;
+  onCreateGroup?: () => void;
 }) {
   const activeId = selectedId ?? (chats[0]?.id ?? null);
 
@@ -28,8 +30,15 @@ export default function ChatSidebar({
 
   return (
     <aside className="w-full md:w-80 border-r border-gray-200 bg-white">
-      <div className="px-4 py-3 border-b border-gray-200">
+      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
         <div className="text-sm font-semibold">Messages</div>
+        <button
+          type="button"
+          onClick={() => onCreateGroup?.()}
+          className="text-xs px-2 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+        >
+          New Group
+        </button>
       </div>
 
       <div className="overflow-y-auto h-[calc(70vh-96px)] md:h-[calc(80vh-96px)]">

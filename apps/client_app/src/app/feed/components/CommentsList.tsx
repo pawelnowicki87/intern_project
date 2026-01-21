@@ -268,6 +268,11 @@ export default function CommentsList({
           placeholder="Add a reply…"
           value={replyText[comment.id] ?? ''}
           onChange={(e) => onReplyChange(comment.id, e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            submitReply(comment);
+          }}
         />
         <button
           className="text-sm px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"

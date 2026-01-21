@@ -395,6 +395,7 @@ function ChatPageImpl() {
                   setSelectedId(id);
                   setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
                 }}
+                onCreateGroup={() => setIsGroupModalOpen(true)}
               />
               <div className="flex-1">
                 <ChatWindow
@@ -402,6 +403,7 @@ function ChatPageImpl() {
                   onInteract={() =>
                     setChats((prev) => prev.map((c) => (c.id === selectedId ? { ...c, unread: 0 } : c)))
                   }
+                  onOpenInfo={() => setIsChatInfoOpen(true)}
                 />
               </div>
             </div>

@@ -38,6 +38,7 @@ export class MentionsService {
       const user = await this.userReader.findUserByUserName(username);
 
       if (!user) continue;
+      if (user.id === createdByUserId) continue;
 
       const mention = this.repo.create({
         sourceId,

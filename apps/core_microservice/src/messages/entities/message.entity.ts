@@ -34,8 +34,6 @@ export class Message {
   @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 
-  // 🔗 RELATIONS
-
   @ManyToOne(() => User, (user) => user.sentMessages)
   @JoinColumn({ name: 'sender_id' })
     sender: User;

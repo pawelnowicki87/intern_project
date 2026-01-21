@@ -3,7 +3,6 @@ import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
 import { LikesCommentsRepository } from './likes-comments.repository';
 import { CreateLikeCommentDto } from './dto/create-like-comment.dto';
 import { LikeCommentResponseDto } from './dto/like-comment-response.dto';
-import { CommentResponseDto } from 'src/comments/dto/comment-response.dto';
 import { LikeComment } from './entities/like-comment.entity';
 
 @Injectable()

@@ -56,9 +56,9 @@ export default function ProfilePostsGrid({ userId, tab }: { userId: number; tab:
       } catch (e) {
         const status = (e as any)?.response?.status;
         if (status === 403) {
-          if (mounted) setError('Ten profil jest prywatny');
+          if (mounted) setError('This profile is private');
         } else {
-          if (mounted) setError('Nie udało się wczytać postów');
+          if (mounted) setError('Failed to load posts');
         }
       } finally {
         if (mounted) setLoading(false);
@@ -80,7 +80,7 @@ export default function ProfilePostsGrid({ userId, tab }: { userId: number; tab:
   return (
     <div className="grid grid-cols-3 gap-0.5 bg-gray-200">
       {items.map((post) => (
-        tab === 'posts' ? (
+        tab === 'posts' || tab === 'saved' ? (
           <Link key={post.id} href={`/posts/${post.id}`}>
             <div className="aspect-square bg-gray-100 cursor-pointer">
               <img

@@ -17,7 +17,6 @@ interface StoryHeaderProps {
 export default function StoryHeader({ story, totalStories, currentIndex, isPaused, onClose }: StoryHeaderProps) {
   return (
     <div className="absolute top-0 left-0 right-0 z-10 p-3 md:p-4">
-      {/* Progress bars */}
       <div className="flex gap-1 mb-3">
         {Array.from({ length: totalStories }).map((_, idx) => (
           <div key={idx} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
@@ -36,7 +35,6 @@ export default function StoryHeader({ story, totalStories, currentIndex, isPause
         ))}
       </div>
 
-      {/* User info */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
@@ -49,7 +47,7 @@ export default function StoryHeader({ story, totalStories, currentIndex, isPause
         <div className="flex items-center gap-2">
           <button className="md:hidden text-white">
             <MoreHorizontal className="w-6 h-6" />
-          </button>
+          </button> 
           <button onClick={onClose} className="md:hidden text-white">
             <X className="w-6 h-6" />
           </button>

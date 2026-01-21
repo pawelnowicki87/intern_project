@@ -23,7 +23,7 @@ function makeClientId() {
   return `c_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | null; onInteract?: () => void }) {
+export default function ChatWindow({ chat, onInteract, onOpenInfo }: { chat?: ChatItem | null; onInteract?: () => void; onOpenInfo?: () => void }) {
   const { user } = useAuth();
 
   const [participantIds, setParticipantIds] = useState<number[]>([]);
@@ -32,17 +32,20 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
+  const [typingIds, setTypingIds] = useState<Set<number>>(new Set());
 
   const socketRef = useRef<Socket | null>(null);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const pollRef = useRef<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const typingStopTimerRef = useRef<number | null>(null);
+  const typingTimeoutsRef = useRef<Map<number, number>>(new Map());
 
   const formatTime = (iso?: string) => {
     if (!iso) return '';
     try {
       const d = new Date(iso);
-      return new Intl.DateTimeFormat('pl-PL', {
+      return new Intl.DateTimeFormat('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
@@ -65,10 +68,13 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
   const canSend = Boolean(user && chat?.id && text.trim());
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
+  }, [chat?.id, messages.length]);
 
-  // Close menu on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -198,6 +204,40 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
       );
     });
 
+    s.on('user_typing', (data: any) => {
+      const otherId = Number(data?.userId);
+      if (!user || otherId === user.id) return;
+      setTypingIds((prev) => {
+        const next = new Set(prev);
+        next.add(otherId);
+        return next;
+      });
+      const old = typingTimeoutsRef.current.get(otherId);
+      if (old) window.clearTimeout(old);
+      const to = window.setTimeout(() => {
+        setTypingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(otherId);
+          return next;
+        });
+        typingTimeoutsRef.current.delete(otherId);
+      }, 3000);
+      typingTimeoutsRef.current.set(otherId, to);
+    });
+
+    s.on('user_stop_typing', (data: any) => {
+      const otherId = Number(data?.userId);
+      if (!user || otherId === user.id) return;
+      const t = typingTimeoutsRef.current.get(otherId);
+      if (t) window.clearTimeout(t);
+      typingTimeoutsRef.current.delete(otherId);
+      setTypingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(otherId);
+        return next;
+      });
+    });
+
     s.on('message_deleted', (data: any) => {
       setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
     });
@@ -251,9 +291,13 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
     };
 
     socketRef.current.emit('send_message', payload);
+    if (typingStopTimerRef.current) {
+      window.clearTimeout(typingStopTimerRef.current);
+      typingStopTimerRef.current = null;
+    }
+    socketRef.current.emit('stop_typing', { chatId: Number(chat.id) });
   };
 
-  // Mark messages as read
   useEffect(() => {
     if (!socketRef.current || !chat?.id || !user) return;
     const ids = new Set<number>();
@@ -270,7 +314,6 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
     }
   }, [messages, chat?.id, user?.id]);
 
-  // Polling fallback
   useEffect(() => {
     if (!chat?.id || !user) return;
     if (pollRef.current) {
@@ -372,8 +415,27 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
 
   return (
     <div className="flex flex-col h-full bg-white" onClick={() => onInteract?.()}>
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+        <div className="font-semibold text-sm truncate">{chat?.name ?? 'Chat'}</div>
+        <div className="flex items-center gap-2">
+          {typingIds.size > 0 && (
+            <span className="text-xs text-gray-500">{typingIds.size === 1 ? 'Typing…' : 'Multiple typing…'}</span>
+          )}
+          {chat?.type === 'group' && (
+            <button
+              type="button"
+              onClick={() => onOpenInfo?.()}
+              className="text-xs px-2 py-1 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+            >
+              Info
+            </button>
+          )}
+        </div>
+      </div>
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"
+      >
         {messages.map((m, idx) => {
           const mine = user ? m.senderId === user.id : false;
           const isEditing = editingId === m.id;
@@ -423,7 +485,6 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
                         </span>
                       )}
 
-                      {/* Message menu button */}
                       {mine && m.id && (
                         <button
                           onClick={() => setMenuOpen(menuOpen === m.id ? null : m.id!)}
@@ -433,7 +494,6 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
                         </button>
                       )}
 
-                      {/* Message menu */}
                       {menuOpen === m.id && m.id && (
                         <div
                           ref={menuRef}
@@ -477,16 +537,27 @@ export default function ChatWindow({ chat, onInteract }: { chat?: ChatItem | nul
             </div>
           );
         })}
-        <div ref={bottomRef} />
       </div>
 
-      {/* Input area */}
       <div className="flex gap-2 p-4 border-t border-gray-200 bg-white">
         <input
           className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Message..."
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            setText(v);
+            if (socketRef.current && chat?.id) {
+              socketRef.current.emit('typing', { chatId: Number(chat.id) });
+              if (typingStopTimerRef.current) window.clearTimeout(typingStopTimerRef.current);
+              typingStopTimerRef.current = window.setTimeout(() => {
+                if (socketRef.current && chat?.id) {
+                  socketRef.current.emit('stop_typing', { chatId: Number(chat.id) });
+                }
+                typingStopTimerRef.current = null;
+              }, 1200);
+            }
+          }}
           onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
         />
         <button

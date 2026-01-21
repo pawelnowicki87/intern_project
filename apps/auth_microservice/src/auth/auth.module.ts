@@ -14,7 +14,7 @@ import { CoreUsersAdapter } from 'src/adapters/core-users.adapter';
 @Module({
   imports: [
     HttpModule,
-    ConfigModule, // enable to read .env
+    ConfigModule,
     PassportModule.register({ session: false }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,

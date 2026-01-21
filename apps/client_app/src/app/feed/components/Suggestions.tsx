@@ -146,13 +146,13 @@ export default function Suggestions() {
 
         const mutualSuggestions: SuggestionItem[] = mutualUsers.map((u) => ({
           user: u,
-          reason: 'Obserwujecie się nawzajem',
+          reason: 'You follow each other',
         }));
 
         const fofSuggestions: SuggestionItem[] = candidateUsers
           .map((u) => ({
             user: u,
-            reason: `Wspólni znajomi: ${friendOfFriendsCounts[u.id] ?? 1}`,
+            reason: `Mutual friends: ${friendOfFriendsCounts[u.id] ?? 1}`,
           }))
           .sort((a, b) => {
             const ca = Number(String(a.reason).split(':')[1] ?? '0');
@@ -180,7 +180,7 @@ export default function Suggestions() {
             final.push(
               ...shuffled.slice(0, needed).map((u) => ({
                 user: u,
-                reason: 'Polecane',
+                reason: 'Recommended',
               })),
             );
           } catch (err) {
@@ -190,7 +190,7 @@ export default function Suggestions() {
 
         setItems(final);
       } catch {
-        setError('Nie udało się wczytać sugestii');
+        setError('Failed to load suggestions');
       }
     };
     loadSuggestions();
@@ -266,7 +266,7 @@ export default function Suggestions() {
       </div>
 
       <div className="space-y-3 mb-6">
-        {loading && <div className="text-xs text-gray-500">Ładowanie…</div>}
+        {loading && <div className="text-xs text-gray-500">Loading…</div>}
         {error && <div className="text-xs text-red-600">{error}</div>}
         {!loading && !error && items.slice(0, showAll ? 15 : 7).map((s) => (
           <div key={s.user.id} className="flex items-center justify-between">
@@ -298,9 +298,9 @@ export default function Suggestions() {
               </div>
             </div>
             {followStatus[s.user.id] === 'accepted' ? (
-              <span className="text-gray-500 text-xs">Obserwujesz</span>
+              <span className="text-gray-500 text-xs">Following</span>
             ) : followStatus[s.user.id] === 'pending' ? (
-              <span className="text-gray-500 text-xs">Wysłano prośbę</span>
+              <span className="text-gray-500 text-xs">Request sent</span>
             ) : (
               <button
                 onClick={() => handleFollow(s.user.id)}

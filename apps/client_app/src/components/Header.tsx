@@ -54,12 +54,10 @@ export default function Header({ onCreatePost }: HeaderProps) {
   return (
     <header className="bg-white border-b border-gray-300 sticky top-0 z-10">
       <div className="max-w-[935px] mx-auto px-4 py-2 md:py-3 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/feed">
           <h1 className="text-2xl md:text-3xl font-serif italic cursor-pointer">Instagram</h1>
         </Link>
 
-        {/* Search bar - Desktop only */}
         <div className="hidden md:block flex-1 max-w-xs mx-8">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -71,7 +69,6 @@ export default function Header({ onCreatePost }: HeaderProps) {
           </div>
         </div>
 
-        {/* Desktop navigation */}
         <div className="hidden md:flex items-center gap-5">
           <Link href="/feed">
             <Home className="w-6 h-6 hover:text-gray-600 transition-colors" />
@@ -87,7 +84,6 @@ export default function Header({ onCreatePost }: HeaderProps) {
           </button>
           <NotificationsDropdown />
           
-          {/* Profile Dropdown */}
           <div className="relative">
             <button 
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}
@@ -154,7 +150,6 @@ export default function Header({ onCreatePost }: HeaderProps) {
           </div>
         </div>
 
-        {/* Mobile navigation */}
         <div className="flex md:hidden items-center gap-4">
           <button onClick={onCreatePost} type="button">
             <PlusSquare className="w-6 h-6" />
@@ -164,7 +159,6 @@ export default function Header({ onCreatePost }: HeaderProps) {
             <Send className="w-6 h-6" />
           </Link>
           
-          {/* Mobile Profile Dropdown */}
           <div className="relative">
             <button 
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}

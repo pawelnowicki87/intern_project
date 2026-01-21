@@ -27,7 +27,6 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Załaduj dane użytkownika
   useEffect(() => {
     if (user) {
       setFormData({
@@ -171,7 +170,7 @@ export default function EditProfilePage() {
             onChange={handleChange}
             rows={4}
             className="w-full border rounded p-2 text-sm outline-none"
-            placeholder="Krótki opis profilu"
+            placeholder="Short profile description"
           />
         </div>
 

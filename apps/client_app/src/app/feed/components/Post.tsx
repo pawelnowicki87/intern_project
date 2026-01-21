@@ -1,11 +1,37 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { coreApi } from '@/lib/api';
 import CommentsList from './CommentsList';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+const savedCacheByUser = new Map<number, Set<number>>();
+const savedInFlightByUser = new Map<number, Promise<Set<number>>>();
+
+const getSavedPostIds = async (userId: number): Promise<Set<number>> => {
+  const cached = savedCacheByUser.get(userId);
+  if (cached) return cached;
+
+  const inflight = savedInFlightByUser.get(userId);
+  if (inflight) return inflight;
+
+  const p = coreApi
+    .get(`/saved-posts/${userId}`)
+    .then((res) => {
+      const ids = new Set<number>((res.data ?? []).map((x: any) => Number(x.postId)));
+      savedCacheByUser.set(userId, ids);
+      return ids;
+    })
+    .finally(() => {
+      savedInFlightByUser.delete(userId);
+    });
+
+  savedInFlightByUser.set(userId, p);
+  return p;
+};
 
 interface PostAsset {
   id: number;
@@ -41,6 +67,8 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
   const [commentCount, setCommentCount] = useState<number | null>(null);
   const [likesCount, setLikesCount] = useState<number>(post.likes ?? 0);
   const { user } = useAuth();
+  const router = useRouter();
+  const commentInputRef = useRef<HTMLInputElement | null>(null);
 
   const canManage = user?.id === post.user.id;
 
@@ -61,9 +89,28 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
     };
   }, [user?.id, post?.id]);
 
+  useEffect(() => {
+    let mounted = true;
+    const loadSaved = async () => {
+      if (!user?.id || !post?.id) return;
+      if (user.id === post.user.id) return;
+      try {
+        const ids = await getSavedPostIds(user.id);
+        if (mounted) setIsSaved(ids.has(post.id));
+      } catch {
+        if (mounted) setIsSaved(false);
+      }
+    };
+    loadSaved();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id, post?.id, post.user.id]);
+
   const toggleLike = async () => {
     if (!user?.id) return;
     const prev = isLiked;
+    setIsLiked(!prev);
     try {
       const res = await coreApi.post('/likes-posts/toggle', {
         userId: user.id,
@@ -77,7 +124,32 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         setLikesCount((c) => Math.max(0, c - 1));
       }
     } catch (e) {
+      setIsLiked(prev); // Revert on error
       console.error('Toggle like failed', e);
+    }
+  };
+
+  const toggleSave = async () => {
+    if (!user?.id) return;
+    const prev = isSaved;
+    setIsSaved(!prev); // Immediate visual feedback
+    try {
+      const res = await coreApi.post('/saved-posts/toggle', {
+        userId: user.id,
+        postId: post.id,
+      });
+      const saved = !!res.data?.saved;
+      setIsSaved(saved);
+      const curr = savedCacheByUser.get(user.id) ?? new Set<number>();
+      if (saved) {
+        curr.add(post.id);
+      } else {
+        curr.delete(post.id);
+      }
+      savedCacheByUser.set(user.id, curr);
+    } catch (e) {
+      setIsSaved(prev); // Revert on error
+      console.error('Toggle save failed', e);
     }
   };
 
@@ -90,6 +162,29 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
     } finally {
       setShowMenu(false);
     }
+  };
+
+  const submitComment = async () => {
+    const text = commentText.trim();
+    if (!text || !user?.id) return;
+    try {
+      await coreApi.post('/comments', {
+        userId: user.id,
+        postId: post.id,
+        body: text,
+      });
+      setCommentText('');
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      console.error('Publish comment failed', e);
+    }
+  };
+
+  const focusCommentInput = () => {
+    const el = commentInputRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    requestAnimationFrame(() => el.focus());
   };
 
   return (
@@ -160,18 +255,35 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         <div className="flex items-center justify-between mb-2 md:mb-3">
           <div className="flex items-center gap-4 md:gap-5">
             <button type="button" onClick={toggleLike}>
-              <Heart className={`w-6 h-6 md:w-7 md:h-7 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+              <Heart 
+                className={`w-6 h-6 md:w-7 md:h-7 transition-all ${
+                  isLiked ? 'fill-red-500 text-red-500 scale-110' : 'hover:text-gray-500'
+                }`} 
+              />
             </button>
-            <button type="button">
-              <MessageCircle className="w-6 h-6 md:w-7 md:h-7" />
+            <button type="button" onClick={focusCommentInput}>
+              <MessageCircle className="w-6 h-6 md:w-7 md:h-7 hover:text-gray-500 transition-colors" />
             </button>
-            <button type="button">
-              <Send className="w-6 h-6 md:w-7 md:h-7" />
+            <button
+              type="button"
+              onClick={() => {
+                router.push(`/chat?userId=${post.user.id}`);
+              }}
+            >
+              <Send className="w-6 h-6 md:w-7 md:h-7 hover:text-gray-500 transition-colors" />
             </button>
           </div>
-          <button type="button" onClick={() => setIsSaved(!isSaved)}>
-            <Bookmark className={`w-6 h-6 md:w-7 md:h-7 ${isSaved ? 'fill-black' : ''}`} />
-          </button>
+          {user?.id !== post.user.id && (
+            <button type="button" onClick={toggleSave}>
+              <Bookmark
+                className={`w-6 h-6 md:w-7 md:h-7 transition-transform ${
+                  isSaved ? 'text-black scale-110' : 'text-gray-700 hover:text-gray-900 hover:scale-105'
+                }`}
+                fill={isSaved ? 'currentColor' : 'none'}
+                stroke={isSaved ? 'none' : 'currentColor'}
+              />
+            </button>
+          )}
         </div>
 
         <div className="mb-2">
@@ -205,32 +317,24 @@ export default function Post({ post, onChanged, onEdit }: PostProps) {
         </div>
       </div>
 
-      <div className="hidden md:flex border-t border-gray-300 p-3 md:p-4 items-center gap-3">
+      <div className="flex border-t border-gray-300 p-3 md:p-4 items-center gap-3">
         <button className="text-xl md:text-2xl">😊</button>
         <input
+          ref={commentInputRef}
           type="text"
           placeholder="Add a comment..."
           className="flex-1 text-sm md:text-base outline-none"
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            submitComment();
+          }}
         />
         <button
           className="text-blue-500 font-semibold text-sm md:text-base"
-          onClick={async () => {
-            const text = commentText.trim();
-            if (!text || !user?.id) return;
-            try {
-              await coreApi.post('/comments', {
-                userId: user.id,
-                postId: post.id,
-                body: text,
-              });
-              setCommentText('');
-              setRefreshKey((k) => k + 1);
-            } catch (e) {
-              console.error('Publish comment failed', e);
-            }
-          }}
+          onClick={submitComment}
         >
           Publish
         </button>

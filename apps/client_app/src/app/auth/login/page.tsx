@@ -43,14 +43,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm md:max-w-md lg:max-w-lg">
-        {/* Main Card */}
         <div className="bg-white border border-gray-300 rounded-none md:rounded-sm p-8 md:p-10 mb-3">
-          {/* Logo */}
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-serif italic mb-2">Instagram</h1>
           </div>
 
-          {/* Error Message */}
           {errors.root && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm">
               <p className="text-sm text-red-600 text-center">
@@ -59,7 +56,6 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Login Form */}
           <div className="space-y-2">
             <div>
               <input

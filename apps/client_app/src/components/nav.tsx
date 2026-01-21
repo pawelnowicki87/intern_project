@@ -31,6 +31,8 @@ type NotificationFromApi = {
     | 'FOLLOW_REJECTED'
     | 'MENTION_COMMENT'
     | 'MENTION_POST'
+    | 'COMMENT_POST'
+    | 'COMMENT_REPLY'
     | 'MESSAGE_RECEIVED'
     | 'FOLLOW_STARTED'
     | string;
@@ -64,6 +66,14 @@ export const navigateForNotification = async (
     return;
   }
   if (notif.action === 'MENTION_COMMENT' && notif.targetId) {
+    await navigateToPostFromComment(router, notif.targetId);
+    return;
+  }
+  if (notif.action === 'COMMENT_POST' && notif.targetId) {
+    router.push(`/posts/${notif.targetId}`);
+    return;
+  }
+  if (notif.action === 'COMMENT_REPLY' && notif.targetId) {
     await navigateToPostFromComment(router, notif.targetId);
     return;
   }

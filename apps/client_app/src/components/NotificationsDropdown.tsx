@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { coreApi, notificationsApi } from '@/lib/api';
 import { navigateForNotification } from './nav';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type NotificationItem = {
   id: number;
@@ -25,44 +26,48 @@ type UserLite = {
 const formatAction = (action?: string) => {
   switch (action) {
     case 'FOLLOW_REQUEST':
-      return 'wysłał prośbę o obserwowanie';
+      return 'sent a follow request';
     case 'FOLLOW_ACCEPTED':
-      return 'zaakceptował Twoją prośbę';
+      return 'accepted your request';
     case 'FOLLOW_REJECTED':
-      return 'odrzucił Twoją prośbę';
+      return 'rejected your request';
     case 'MENTION_POST':
-      return 'wspomniał o Tobie w poście';
+      return 'mentioned you in a post';
     case 'MENTION_COMMENT':
-      return 'wspomniał o Tobie w komentarzu';
+      return 'mentioned you in a comment';
+    case 'COMMENT_POST':
+      return 'commented on your post';
+    case 'COMMENT_REPLY':
+      return 'replied to your comment';
     case 'MESSAGE_RECEIVED':
-      return 'wysłał Ci wiadomość';
+      return 'sent you a message';
     default:
-      return action ?? 'powiadomienie';
+      return action ?? 'notification';
   }
 };
 
 const formatTimeAgo = (dateValue: string | Date) => {
   const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
   const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (diff < 90) return 'teraz';
+  if (diff < 90) return 'now';
 
   const mins = Math.floor(diff / 60);
-  if (mins < 60) return `${mins} min temu`;
+  if (mins < 60) return `${mins} min ago`;
 
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} h temu`;
+  if (hours < 24) return `${hours} h ago`;
 
   const days = Math.floor(hours / 24);
-  if (days < 7) return days === 1 ? '1 dzień temu' : `${days} dni temu`;
+  if (days < 7) return days === 1 ? '1 day ago' : `${days} days ago`;
 
   const weeks = Math.floor(days / 7);
-  if (weeks < 4) return weeks === 1 ? '1 tydzień temu' : `${weeks} tygodnie temu`;
+  if (weeks < 4) return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
 
   const months = Math.floor(days / 30);
-  if (months < 12) return months === 1 ? '1 miesiąc temu' : `${months} miesiące temu`;
+  if (months < 12) return months === 1 ? '1 month ago' : `${months} months ago`;
 
   const years = Math.floor(days / 365);
-  return years === 1 ? '1 rok temu' : `${years} lat temu`;
+  return years === 1 ? '1 year ago' : `${years} years ago`;
 };
 
 export default function NotificationsDropdown() {
@@ -70,6 +75,7 @@ export default function NotificationsDropdown() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [usersById, setUsersById] = useState<Record<number, UserLite>>({});
   const [processingRequest, setProcessingRequest] = useState<number | null>(null);
   const usersByIdRef = useRef<Record<number, UserLite>>({});
@@ -116,21 +122,23 @@ export default function NotificationsDropdown() {
 
   const fetchNotifications = useCallback(async () => {
     if (!user?.id) return;
-    const res = await notificationsApi.get(`/notifications/user/${user.id}`);
-    const data = Array.isArray(res.data) ? res.data : [];
-    setItems(data);
-    await ensureUsersLoaded(data);
+    try {
+      const res = await notificationsApi.get(`/notifications/user/${user.id}`);
+      const data = Array.isArray(res.data) ? res.data : [];
+      setItems(data);
+      setLoadError(null);
+      await ensureUsersLoaded(data);
+    } catch {
+      setLoadError('Failed to fetch notifications. Make sure the notifications service is running.');
+      setItems([]);
+    }
   }, [ensureUsersLoaded, user?.id]);
 
   const toggle = async () => {
     const next = !open;
     setOpen(next);
     if (next) {
-      try {
-        await fetchNotifications();
-      } catch {
-        return;
-      }
+      await fetchNotifications();
     }
   };
 
@@ -138,11 +146,7 @@ export default function NotificationsDropdown() {
     if (!user?.id) return;
     let alive = true;
     const run = async () => {
-      try {
-        await fetchNotifications();
-      } catch {
-        return;
-      }
+      await fetchNotifications();
     };
     run();
     const id = window.setInterval(() => {
@@ -165,11 +169,7 @@ export default function NotificationsDropdown() {
     setProcessingRequest(notificationId);
     
     try {
-      // Handle the follow request
-      await coreApi.post(`/follow/${accept ? 'accept' : 'reject'}`, {
-        followerId: senderId,
-        followingId: user?.id,
-      });
+      await coreApi.patch(`/follows/${senderId}/${user?.id}/${accept ? 'accept' : 'reject'}`);
 
       // Mark notification as read
       await notificationsApi.put(`/notifications/${notificationId}`, { isRead: true });
@@ -225,25 +225,38 @@ export default function NotificationsDropdown() {
           />
           <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-between">
-              <h3 className="text-white font-bold text-lg">Powiadomienia</h3>
-              {unreadCount > 0 && (
+              <h3 className="text-white font-bold text-lg">Notifications</h3>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/notifications"
+                  onClick={() => setOpen(false)}
+                  className="text-white text-xs hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors duration-200"
+                >
+                  See all
+                </Link>
                 <button
                   onClick={markAllAsRead}
-                  className="text-white text-xs hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors duration-200 flex items-center gap-1.5"
+                  disabled={unreadCount === 0}
+                  className="text-white text-xs hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors duration-200 flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+                  type="button"
                 >
                   <CheckCheck className="w-4 h-4" />
-                  Oznacz jako przeczytane
+                  Mark all as read
                 </button>
-              )}
+              </div>
             </div>
             
             <div className="max-h-[32rem] overflow-y-auto">
-              {items.length === 0 ? (
+              {loadError ? (
+                <div className="p-6 text-sm text-gray-600">
+                  {loadError}
+                </div>
+              ) : items.length === 0 ? (
                 <div className="p-8 text-center">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                     <Bell className="w-8 h-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-500 text-sm">Brak powiadomień</p>
+                  <p className="text-gray-500 text-sm">No notifications</p>
                 </div>
               ) : (
                 items.map((n) => (
@@ -315,7 +328,7 @@ export default function NotificationsDropdown() {
                           className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                           <Check className="w-4 h-4" />
-                          Akceptuj
+                          Accept
                         </button>
                         <button
                           onClick={(e) => handleFollowRequest(e, n.id, n.senderId, false)}
@@ -323,7 +336,7 @@ export default function NotificationsDropdown() {
                           className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                           <X className="w-4 h-4" />
-                          Odrzuć
+                          Reject
                         </button>
                       </div>
                     )}

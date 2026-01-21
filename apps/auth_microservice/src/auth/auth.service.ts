@@ -111,7 +111,6 @@ export class AuthService {
         throw new UnauthorizedError('Invalid refresh token');
       }
 
-      // 🔁 ROTACJA
       const { accessToken, refreshToken: newRefreshToken } =
         await this.generateTokens({
           id: userId,

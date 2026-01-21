@@ -13,8 +13,6 @@ export class LikePost {
   @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 
-  // relations
-
   @ManyToOne(() => User, (user) => user.likedPosts)
   @JoinColumn({ name: 'user_id' })
     user: User;

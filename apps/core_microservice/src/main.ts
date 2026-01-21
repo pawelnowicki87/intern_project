@@ -17,14 +17,12 @@ async function bootstrap() {
       bufferLogs: true,
     });
 
-    // CORS
     app.enableCors({
       origin: process.env.CLIENT_URL || 'http://localhost:3000',
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     });
 
-    // Security middleware
     app.use(helmet());
     app.use(compression());
     const isProd = process.env.NODE_ENV === 'production';
@@ -43,20 +41,17 @@ async function bootstrap() {
       );
     }
 
-    // Global validation pipe for DTO validation
     app.useGlobalPipes(
       new ValidationPipe({
-        whitelist: true, // strips properties not in the DTO
-        forbidNonWhitelisted: true, // throws error if extra fields are sent
-        transform: true, // automatically transforms payloads to DTO instances
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
         transformOptions: { enableImplicitConversion: true },
       }),
     );
 
-    // Global error handling filter
     app.useGlobalFilters(new AllExceptionsFilter());
 
-    // Swagger API documentation setup
     const config = new DocumentBuilder()
       .setTitle('Innogram Core Microservice')
       .setDescription('API documentation for Core Microservice')
@@ -67,7 +62,6 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);
 
-    // Start the application
     const port = process.env.CORE_PORT ?? 3001;
     await app.listen(port, '0.0.0.0');
 

@@ -21,7 +21,6 @@ export default function FeedPage() {
   const [editPost, setEditPost] = useState<any | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'likes'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [filterType, setFilterType] = useState<'ALL' | 'IMAGE' | 'CAROUSEL' | 'REEL'>('ALL');
 
   const fetchFeed = useCallback(async () => {
     if (!user) return;
@@ -53,10 +52,7 @@ export default function FeedPage() {
   }, [fetchFeed]);
 
   const processedPosts = (() => {
-    let list = posts.slice();
-    if (filterType !== 'ALL') {
-      list = list.filter((p) => p.contentType === filterType);
-    }
+    const list = posts.slice();
     if (sortBy === 'likes') {
       list.sort((a, b) => {
         const diff = (a.likes ?? 0) - (b.likes ?? 0);
@@ -86,10 +82,8 @@ export default function FeedPage() {
               <FeedFilterBar
                 sortBy={sortBy}
                 sortOrder={sortOrder}
-                filterType={filterType}
                 onChangeSortBy={(v) => setSortBy(v)}
                 onChangeSortOrder={(v) => setSortOrder(v)}
-                onChangeFilterType={(v) => setFilterType(v)}
               />
 
               {loading && (

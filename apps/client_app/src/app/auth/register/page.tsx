@@ -53,9 +53,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm md:max-w-md lg:max-w-lg">
-        {/* Main Card */}
         <div className="bg-white border border-gray-300 rounded-none md:rounded-sm p-8 md:p-10 mb-3">
-          {/* Logo */}
           <div className="text-center mb-6">
             <h1 className="text-4xl md:text-5xl font-serif italic mb-4">Instagram</h1>
             <p className="text-gray-500 text-sm font-semibold px-8">
@@ -77,14 +75,12 @@ export default function RegisterPage() {
             }}
           />
 
-          {/* Divider */}
           <div className="flex items-center my-5">
             <div className="flex-1 border-t border-gray-300"></div>
             <div className="px-4 text-xs font-semibold text-gray-500">OR</div>
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
 
-          {/* Error Message */}
           {errors.root && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm">
               <p className="text-sm text-red-600 text-center">
@@ -93,7 +89,6 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Register Form */}
           <div className="space-y-2" onKeyPress={handleKeyPress}>
             <div>
               <input

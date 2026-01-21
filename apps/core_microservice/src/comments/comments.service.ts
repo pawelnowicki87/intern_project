@@ -4,6 +4,9 @@ import { CommentsRepository } from './comments.repository';
 import { Inject } from '@nestjs/common';
 import { COMMENT_MENTIONS_READER } from './ports/tokens';
 import type { ICommentMentionsProcessorReader } from './ports/mentions-processor.port';
+import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
+import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
+import { NotificationAction } from '@shared/notifications/notification-action';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
@@ -15,6 +18,8 @@ export class CommentsService {
     private readonly commentsRepo: CommentsRepository,
     @Inject(COMMENT_MENTIONS_READER)
     private readonly commentMentionsReader: ICommentMentionsProcessorReader,
+    @Inject(NOTIFICATIONS_SENDER)
+    private readonly notificationSender: INotificationSender,
   ) {}
 
   private toResponseDto(comment: Comment): CommentResponseDto {
@@ -49,6 +54,7 @@ export class CommentsService {
   }
 
   async create(data: CreateCommentDto): Promise<CommentResponseDto> {
+    let parentUserId: number | null = null;
     if (data.parentId !== undefined && data.parentId !== null) {
       const parent = await this.commentsRepo.findById(data.parentId);
       if (!parent) {
@@ -62,6 +68,8 @@ export class CommentsService {
       if (parent.postId !== data.postId) {
         throw new InternalError('Parent comment belongs to a different post');
       }
+
+      parentUserId = parent.userId;
     }
     const created = await this.commentsRepo.create(data);
 
@@ -77,6 +85,28 @@ export class CommentsService {
     if (typeof data.body === 'string' && data.body.length > 0) {
       await this.commentMentionsReader.processMentions(data.body, createdComment.id, data.userId);
     }
+
+    const postOwnerId = createdComment.post?.userId ?? null;
+    const commenterId = data.userId;
+
+    if (postOwnerId && postOwnerId !== commenterId && postOwnerId !== parentUserId) {
+      await this.notificationSender.sendNotification(
+        postOwnerId,
+        commenterId,
+        NotificationAction.COMMENT_POST,
+        createdComment.postId,
+      );
+    }
+
+    if (parentUserId && parentUserId !== commenterId) {
+      await this.notificationSender.sendNotification(
+        parentUserId,
+        commenterId,
+        NotificationAction.COMMENT_REPLY,
+        createdComment.id,
+      );
+    }
+
     return this.toResponseDto(createdComment);
   }
 

@@ -18,7 +18,7 @@ export class PostAssetsService {
       order: { createdAt: 'DESC' },
     });
 
-    return assets.map(({ postId, fileId, createdAt, post, file }) => ({
+    return assets.map(({ postId, fileId, createdAt, file }) => ({
       postId,
       fileId,
       createdAt,
@@ -38,7 +38,7 @@ export class PostAssetsService {
       );
     }
 
-    const { createdAt, post, file } = asset;
+    const { createdAt, file } = asset;
     return {
       postId,
       fileId,
@@ -62,7 +62,7 @@ export class PostAssetsService {
       );
     }
 
-    const { postId, fileId, createdAt, post, file } = reloaded;
+    const { postId, fileId, createdAt, file } = reloaded;
     return {
       postId,
       fileId,
