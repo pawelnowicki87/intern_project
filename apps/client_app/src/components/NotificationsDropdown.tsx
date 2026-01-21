@@ -47,7 +47,15 @@ const formatAction = (action?: string) => {
 };
 
 const formatTimeAgo = (dateValue: string | Date) => {
-  const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+  const date = typeof dateValue === 'string'
+    ? (() => {
+      const raw = dateValue.trim();
+      const hasTZ = /Z|[+-]\d{2}:\d{2}$/.test(raw);
+      const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
+      const normalized = hasTZ ? iso : `${iso}Z`;
+      return new Date(normalized);
+    })()
+    : dateValue;
   const diff = Math.floor((Date.now() - date.getTime()) / 1000);
   if (diff < 90) return 'now';
 

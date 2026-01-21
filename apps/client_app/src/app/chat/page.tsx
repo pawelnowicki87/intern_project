@@ -5,7 +5,7 @@ import ChatSidebar from './components/ChatSidebar';
 import ChatWindow from './components/ChatWindow';
 import CreateGroupModal from './components/CreateGroupModal';
 import ChatInfoModal from './components/ChatInfoModal';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import CreatePostModal from '@/components/CreatePostModal';
@@ -35,6 +35,8 @@ function ChatPageImpl() {
     createdAt?: string;
     msgCount?: number;
     rawParticipants?: any[];
+    isTyping?: boolean;
+    typingUsers?: string[];
   };
 
   const formatTime = (iso?: string) => {
@@ -157,6 +159,8 @@ function ChatPageImpl() {
             rawParticipants: c.participants,
             createdAt: c.createdAt,
             msgCount: (c.messages ?? []).length,
+            isTyping: false,
+            typingUsers: [],
           } as ChatItem;
         });
       const list = dedupe(listRaw, user.id);
@@ -231,6 +235,7 @@ function ChatPageImpl() {
     if (selectedId == null) return;
     setChats((prev) => prev.map((c) => (c.id === selectedId ? { ...c, unread: 0 } : c)));
   }, [selectedId]);
+
   useEffect(() => {
     const username = searchParams.get('username');
     const userIdParam = searchParams.get('userId');
@@ -295,6 +300,8 @@ function ChatPageImpl() {
               rawParticipants: found.participants,
               createdAt: found.createdAt,
               msgCount: (found.messages ?? []).length,
+              isTyping: false,
+              typingUsers: [],
             };
             return dedupe([mapped, ...prev], user.id);
           });
@@ -352,6 +359,8 @@ function ChatPageImpl() {
             rawParticipants: withParts.participants,
             createdAt: withParts.createdAt ?? c.createdAt,
             msgCount: (withParts.messages ?? c.messages ?? []).length,
+            isTyping: false,
+            typingUsers: [],
           };
           setChats((prev) => dedupe([mapped, ...prev], user.id));
           setSelectedId(mapped.id);
@@ -374,18 +383,29 @@ function ChatPageImpl() {
 
   const handleLeaveGroup = () => {
     setSelectedId(null);
-    loadChats(); // Refresh chat list
+    loadChats();
   };
+
+  const handleTypingChange = useCallback((chatId: number, isTyping: boolean, typingUsers: string[]) => {
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId
+          ? {
+            ...chat,
+            isTyping,
+            typingUsers,
+          }
+          : chat,
+      ),
+    );
+  }, []);
 
   return (
     <ProtectedRoute>
-
-      
       <div className="min-h-screen bg-white">
         <Header onCreatePost={() => setIsCreatePostOpen(true)} />
         
         <div className="max-w-[935px] mx-auto">
-          
           <div className="px-4 pb-4">
             <div className="border border-gray-300 rounded-lg overflow-hidden flex h-[calc(100vh-200px)]">
               <ChatSidebar
@@ -404,6 +424,7 @@ function ChatPageImpl() {
                     setChats((prev) => prev.map((c) => (c.id === selectedId ? { ...c, unread: 0 } : c)))
                   }
                   onOpenInfo={() => setIsChatInfoOpen(true)}
+                  onTypingChange={handleTypingChange}
                 />
               </div>
             </div>
