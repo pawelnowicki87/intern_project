@@ -2,14 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../users.service';
 import { UsersRepository } from '../users.repository';
 import { UsersCredentialRepository } from '../users-credencial.repository';
-import { VISIBILITY_READER } from '../ports/tokens';
+import { VisibilityService } from 'src/visibility/visibility.service';
+import { FOLLOWS_READER, POST_READER } from 'src/posts/ports/tokens';
 import { ConflictError, NotFoundError, InternalError } from '@shared/errors/domain-errors';
 
 describe('UsersService', () => {
   let service: UsersService;
   let usersRepo: jest.Mocked<UsersRepository>;
   let credsRepo: jest.Mocked<UsersCredentialRepository>;
-  let visibilityReader: { canViewProfile: jest.Mock };
+  let visibilityService: { canViewProfile: jest.Mock };
+  let followsReader: { countFollowersByUserId: jest.Mock; countFollowingByUserId: jest.Mock };
+  let postReader: { countPublishedByUserId: jest.Mock };
 
   beforeEach(async () => {
     usersRepo = {
@@ -31,14 +34,21 @@ describe('UsersService', () => {
       getRefreshTokenByUserId: jest.fn(),
     } as any;
 
-    visibilityReader = { canViewProfile: jest.fn() };
+    visibilityService = { canViewProfile: jest.fn() };
+    followsReader = {
+      countFollowersByUserId: jest.fn(),
+      countFollowingByUserId: jest.fn(),
+    };
+    postReader = { countPublishedByUserId: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         { provide: UsersRepository, useValue: usersRepo },
         { provide: UsersCredentialRepository, useValue: credsRepo },
-        { provide: VISIBILITY_READER, useValue: visibilityReader },
+        { provide: VisibilityService, useValue: visibilityService },
+        { provide: FOLLOWS_READER, useValue: followsReader },
+        { provide: POST_READER, useValue: postReader },
       ],
     }).compile();
 
@@ -77,14 +87,14 @@ describe('UsersService', () => {
 
   it('findOneVisible returns hidden dto when cannot view', async () => {
     usersRepo.findById.mockResolvedValue({ id: 2, firstName: 'A', lastName: 'B', email: 'e', phone: 'p', isPrivate: true } as any);
-    visibilityReader.canViewProfile.mockResolvedValue(false);
+    visibilityService.canViewProfile.mockResolvedValue(false);
     const res = await service.findOneVisible(1, 2);
-    expect(res).toEqual({ id: 2, firstName: 'A', lastName: 'B' });
+    expect(res).toEqual({ id: 2, username: undefined, avatarUrl: null, isPrivate: true });
   });
 
   it('findOneVisible returns full dto when can view', async () => {
     usersRepo.findById.mockResolvedValue({ id: 2, firstName: 'A', lastName: 'B', email: 'e', phone: 'p', isPrivate: false } as any);
-    visibilityReader.canViewProfile.mockResolvedValue(true);
+    visibilityService.canViewProfile.mockResolvedValue(true);
     const res = await service.findOneVisible(1, 2);
     expect(res).toMatchObject({ id: 2, email: 'e', phone: 'p', isPrivate: false });
   });

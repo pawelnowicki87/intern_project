@@ -10,7 +10,7 @@ import { NotificationAction } from '@shared/notifications/notification-action';
 
 @Injectable()
 export class LikesCommentsService {
-    constructor(
+  constructor(
     private readonly likesRepo: LikesCommentsRepository,
     @Inject(NOTIFICATIONS_SENDER)
     private readonly notificationSender: INotificationSender,

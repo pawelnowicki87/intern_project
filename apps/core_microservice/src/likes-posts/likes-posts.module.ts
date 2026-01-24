@@ -8,7 +8,7 @@ import { NotificationsProducerModule } from 'src/notifications-producer/notifica
 
 @Module({
   imports: [TypeOrmModule.forFeature([LikePost]), NotificationsProducerModule],
-    controllers: [LikesPostsController],
+  controllers: [LikesPostsController],
   providers: [LikesPostsService, LikesPostsRepository],
   exports: [LikesPostsService, LikesPostsRepository],
 })

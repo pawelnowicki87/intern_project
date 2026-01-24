@@ -12,7 +12,7 @@ import { ChatParticipantsRepository } from 'src/chat-participants/chat-participa
 
 @Injectable()
 export class MessagesService {
-constructor(
+  constructor(
     private readonly messagesRepo: MessagesRepository,
     private readonly chatParticipantsRepo: ChatParticipantsRepository,
     @Inject(NOTIFICATIONS_SENDER)
