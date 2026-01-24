@@ -40,20 +40,22 @@ services:
     networks:
       - innogram-network
 
-  # core_microservice:
-  #   build: ./apps/core_microservice
-  #   container_name: innogram-core
-  #   ports:
-  #     - "3001:3001"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_started
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - innogram-network
+  core_microservice:
+    image: core-microservice
+    container_name: innogram-core
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    networks:
+      - innogram-network
 
   # auth_microservice:
   #   build: ./apps/auth_microservice

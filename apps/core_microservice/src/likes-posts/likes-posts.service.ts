@@ -1,12 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
 import { LikesPostsRepository } from './likes-posts.repository';
 import { CreateLikePostDto } from './dto/create-like-post.dto';
 import { LikePostResponseDto } from './dto/like-post-response.dto';
+import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
+import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
+import { NotificationAction } from '@shared/notifications/notification-action';
 
 @Injectable()
 export class LikesPostsService {
-  constructor(private readonly likesRepo: LikesPostsRepository) {}
+  constructor(
+    private readonly likesRepo: LikesPostsRepository,
+    @Inject(NOTIFICATIONS_SENDER)
+    private readonly notificationSender: INotificationSender,
+  ) {}
+
+  private async notifyPostLike(userId: number, postId: number): Promise<void> {
+    const like = await this.likesRepo.findOne(userId, postId);
+    const postOwnerId = like?.post?.userId;
+    if (!postOwnerId || postOwnerId === userId) return;
+
+    await this.notificationSender.sendNotification(
+      postOwnerId,
+      userId,
+      NotificationAction.LIKE_POST,
+      postId,
+    );
+  }
 
   private toResponseDto(like: any): LikePostResponseDto {
     return {
@@ -42,6 +62,8 @@ export class LikesPostsService {
       throw new NotFoundError('Like not found after creation');
     }
 
+    await this.notifyPostLike(created.userId, created.postId);
+
     return this.toResponseDto(like);
   }
 
@@ -69,6 +91,8 @@ export class LikesPostsService {
     if (!created) {
       throw new InternalError('Faild to create like');
     }
+
+    await this.notifyPostLike(created.userId, created.postId);
 
     return { liked: true };
   }

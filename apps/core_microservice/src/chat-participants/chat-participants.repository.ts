@@ -45,4 +45,11 @@ export class ChatParticipantsRepository {
       return false;
     }
   }
+
+  findByChatId(chatId: number): Promise<ChatParticipant[]> {
+    return this.repo.find({
+      where: { chatId },
+      relations: ['chat', 'user'],
+    });
+  }
 }

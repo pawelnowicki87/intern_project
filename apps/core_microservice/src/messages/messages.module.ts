@@ -8,9 +8,15 @@ import { MessageWebsocketAdapter } from './adapters/message-websocket.adapter';
 import { MESSAGE_READ_WEBSOCKET } from 'src/websecket/ports/message-read-websocket.port';
 import { MESSAGE_WEBSOCKET_READER } from 'src/websecket/ports/message-websocket.port';
 import { MessageReadWebsocketAdapter } from './adapters/message-read-websocket.adapter';
+import { NotificationsProducerModule } from 'src/notifications-producer/notifications-producer.module';
+import { ChatParticipantsModule } from 'src/chat-participants/chat-participants.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Message])],
+  imports: [
+    TypeOrmModule.forFeature([Message]),
+    NotificationsProducerModule,
+    ChatParticipantsModule,
+  ],
   controllers: [MessagesController],
   providers: [
     MessagesService,

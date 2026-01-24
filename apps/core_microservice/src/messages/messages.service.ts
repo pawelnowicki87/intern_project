@@ -1,15 +1,54 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { MessagesRepository } from './messages.repository';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { MessageResponseDto } from './dto/message-response.dto';
 import { Message } from './entities/message.entity';
+import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
+import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
+import { NotificationAction } from '@shared/notifications/notification-action';
+import { ChatParticipantsRepository } from 'src/chat-participants/chat-participants.repository';
 
 
 @Injectable()
 export class MessagesService {
-  constructor(private readonly messagesRepo: MessagesRepository) {}
+constructor(
+    private readonly messagesRepo: MessagesRepository,
+    private readonly chatParticipantsRepo: ChatParticipantsRepository,
+    @Inject(NOTIFICATIONS_SENDER)
+    private readonly notificationSender: INotificationSender,
+  ) {}
 
+  private async notifyMessageRecipients(message: Message): Promise<void> {
+    const { senderId, receiverId, chatId, id } = message;
+
+    if (receiverId && receiverId !== senderId) {
+      await this.notificationSender.sendNotification(
+        receiverId,
+        senderId,
+        NotificationAction.MESSAGE_RECEIVED,
+        chatId ?? id,
+      );
+      return;
+    }
+
+    if (!chatId) return;
+    const participants = await this.chatParticipantsRepo.findByChatId(chatId);
+    const recipients = participants
+      .map((p) => p.userId)
+      .filter((userId) => userId !== senderId);
+
+    await Promise.all(
+      recipients.map((recipientId) =>
+        this.notificationSender.sendNotification(
+          recipientId,
+          senderId,
+          NotificationAction.MESSAGE_GROUP_RECEIVED,
+          chatId,
+        ),
+      ),
+    );
+  }
   toResponseDto(message: Message): MessageResponseDto {
     return {
       id: message.id,
@@ -49,6 +88,7 @@ export class MessagesService {
   async create(data: CreateMessageDto) {
     const created = await this.messagesRepo.create(data);
     const msg = await this.messagesRepo.findById(created.id);
+    await this.notifyMessageRecipients(msg);
     return this.toResponseDto(msg);
   }
 

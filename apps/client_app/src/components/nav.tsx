@@ -34,6 +34,9 @@ type NotificationFromApi = {
     | 'COMMENT_POST'
     | 'COMMENT_REPLY'
     | 'MESSAGE_RECEIVED'
+    | 'MESSAGE_GROUP_RECEIVED'
+    | 'LIKE_POST'
+    | 'LIKE_COMMENT'
     | 'FOLLOW_STARTED'
     | string;
   targetId?: number;

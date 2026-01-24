@@ -4,10 +4,11 @@ import { LikePost } from './entities/like-post.entity';
 import { LikesPostsService } from './likes-posts.service';
 import { LikesPostsController } from './likes-posts.controller';
 import { LikesPostsRepository } from './likes-posts.repository';
+import { NotificationsProducerModule } from 'src/notifications-producer/notifications-producer.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LikePost])],
-  controllers: [LikesPostsController],
+  imports: [TypeOrmModule.forFeature([LikePost]), NotificationsProducerModule],
+    controllers: [LikesPostsController],
   providers: [LikesPostsService, LikesPostsRepository],
   exports: [LikesPostsService, LikesPostsRepository],
 })

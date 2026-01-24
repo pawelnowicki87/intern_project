@@ -43,6 +43,12 @@ const formatAction = (action?: string) => {
       return 'replied to your comment';
     case 'MESSAGE_RECEIVED':
       return 'sent you a message';
+    case 'MESSAGE_GROUP_RECEIVED':
+      return 'sent a message in a group';
+    case 'LIKE_POST':
+      return 'liked your post';
+    case 'LIKE_COMMENT':
+      return 'liked your comment';
     default:
       return action ?? 'notification';
   }
