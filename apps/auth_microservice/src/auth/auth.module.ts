@@ -7,7 +7,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { RedisModule } from '../redis/redis.module';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { GoogleStrategy } from './strategies/google.strategy';
 import { CoreUsersAdapter } from 'src/adapters/core-users.adapter';
 
 
@@ -15,7 +14,7 @@ import { CoreUsersAdapter } from 'src/adapters/core-users.adapter';
 @Module({
   imports: [
     HttpModule,
-    ConfigModule, // enable to read .env
+    ConfigModule,
     PassportModule.register({ session: false }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
@@ -24,6 +23,6 @@ import { CoreUsersAdapter } from 'src/adapters/core-users.adapter';
     RedisModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, CoreUsersAdapter],
+  providers: [AuthService, JwtStrategy, CoreUsersAdapter],
 })
 export class AuthModule {}

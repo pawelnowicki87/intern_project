@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
+import { LikeComment } from '../likes-comments/entities/like-comment.entity';
 
 @Injectable()
 export class CommentsRepository {
@@ -62,5 +63,16 @@ export class CommentsRepository {
       relations: ['user', 'post'], 
       order: { createdAt: 'ASC' },
     });
+  }
+
+  async deleteLikesByCommentIds(commentIds: number[]): Promise<boolean> {
+    if (!commentIds.length) return true;
+    try {
+      await this.repo.manager.getRepository(LikeComment).delete({ commentId: In(commentIds) });
+      return true;
+    } catch (err) {
+      this.logger.error(err.message);
+      return false;
+    }
   }
 }

@@ -47,4 +47,11 @@ export class LikesCommentsController {
   getCommentLikesCount(@Param('commentId') commentId: number): Promise<number> {
     return this.likesCommentsService.countByCommentId(commentId);
   }
+
+  @Post('check-liked')
+  checkLiked(
+    @Body() data: { userId: number; commentIds: number[] },
+  ): Promise<{ likedIds: number[] }> {
+    return this.likesCommentsService.checkLiked(data.userId, data.commentIds ?? []);
+  }
 }

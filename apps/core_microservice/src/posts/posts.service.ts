@@ -52,13 +52,23 @@ export class PostsService {
   }
 
   async create(data: CreatePostDto): Promise<PostResponseDto> {
-    const created = await this.postsRepository.create(data);
+    const { fileIds, ...postData } = data;
+
+    const created = await this.postsRepository.create(postData);
     if (!created) throw new InternalError('Post creation failed');
 
-    const post = await this.postsRepository.findById(created.id);
-    if (!post) throw new NotFoundError('Error fetching created post');
+    if (fileIds?.length) {
+      for (const fileId of fileIds) {
+        await this.postsRepository.attachAsset(created.id, fileId);
+      }
+    }
 
-    await this.postMentionsReader.processMentions(data.body, post.id, data.userId);
+    const post = await this.postsRepository.findById(created.id);
+    if (!post) throw new NotFoundError('Post not found after creation');
+
+    if (typeof post.body === 'string' && post.body.length > 0) {
+      await this.postMentionsReader.processMentions(post.body, post.id, post.userId);
+    }
 
     return PostMapper.toResponseDto(post);
   }
@@ -120,7 +130,56 @@ export class PostsService {
       }
     }
 
+    if (visible.length > 0) {
+      return PostMapper.toResponseList(visible);
+    }
+
+    const popularIds = await this.postsRepository.findMostLikedPublishedIds(limit, skip);
+    const popularPosts = await this.postsRepository.findByIdsOrdered(popularIds);
+
+    const popularVisible: Post[] = [];
+    for (const post of popularPosts) {
+      if (await this.canViewPost(userId, post)) {
+        popularVisible.push(post);
+      }
+    }
+
+    return PostMapper.toResponseList(popularVisible);
+  }
+
+  async findFeedMostLikedForUser(
+    userId: number,
+    page = 1,
+    limit = 10,
+  ): Promise<PostResponseDto[]> {
+    const skip = (page - 1) * limit;
+    const popularIds = await this.postsRepository.findMostLikedPublishedIds(limit, skip);
+    const popularPosts = await this.postsRepository.findByIdsOrdered(popularIds);
+
+    const visible: Post[] = [];
+    for (const post of popularPosts) {
+      if (await this.canViewPost(userId, post)) {
+        visible.push(post);
+      }
+    }
+
     return PostMapper.toResponseList(visible);
+  }
+
+  async findByUserVisible(
+    ownerId: number,
+    viewerId: number,
+    sort: 'asc' | 'desc' = 'desc',
+    page = 1,
+    limit = 10,
+  ): Promise<PostResponseDto[]> {
+    const canView = await this.visibilityPostReader.canViewPosts(viewerId, ownerId);
+    if (!canView) {
+      throw new ForbiddenError('Posts are private');
+    }
+    const skip = (page - 1) * limit;
+    const posts = await this.postsRepository.findByUserId(ownerId, sort, limit, skip);
+    return PostMapper.toResponseList(posts);
   }
 
   async searchPosts(query: string): Promise<PostResponseDto[]> {

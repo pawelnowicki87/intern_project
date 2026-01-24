@@ -1,25 +1,21 @@
+import { Injectable } from '@nestjs/common';
 import { IMessageWebsocketReader } from 'src/websecket/ports/message-websocket.port';
 import { MessageResponseDto } from '../dto/message-response.dto';
 import { MessagesService } from '../messages.service';
 
+@Injectable()
 export class MessageWebsocketAdapter implements IMessageWebsocketReader {
   constructor(
-        private readonly messagesService: MessagesService,
+    private readonly messagesService: MessagesService,
   ) {}
 
-  async saveMessageToDb(data: { 
-        chatId: number; 
-        senderId: number; 
-        receiverId: number; 
-        body: string; 
-    }): Promise<MessageResponseDto> {
-
-    return this.messagesService.create({
-      chatId: data.chatId,
-      senderId: data.senderId,
-      receiverId: data.receiverId,
-      body: data.body,
-    });
+  async saveMessageToDb(data: {
+    chatId: number;
+    senderId: number;
+    receiverId?: number;
+    body: string;
+  }): Promise<MessageResponseDto> {
+    return this.messagesService.create(data);
   }
 
   async editMessage(id: number, body: string): Promise<MessageResponseDto> {

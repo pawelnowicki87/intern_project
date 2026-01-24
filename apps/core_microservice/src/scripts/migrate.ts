@@ -1,16 +1,25 @@
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+
+dotenv.config({
+  path: path.resolve(__dirname, '../../../../.env'),
+});
+
 import 'tsconfig-paths/register';
-import { dataSource } from '../data-source';
-import { DropMessageTitle1765110000000 } from '../migrations/1765110000000-DropMessageTitle';
-import { AlterUserCredentialsRefreshNullable1765372200000 } from '../migrations/1765372200000-AlterUserCredentialsRefreshNullable';
-import { RenameUserCredencialsToUserCredentials1765372400000 } from '../migrations/1765372400000-RenameUserCredencialsToUserCredentials';
+import dataSource from '../data-source';
 
 async function run() {
+  console.log('Loaded DB config:', {
+    host: process.env.POSTGRES_HOST,
+    port: process.env.POSTGRES_PORT,
+    user: process.env.POSTGRES_USER,
+    db: process.env.POSTGRES_DB,
+  });
+
   await dataSource.initialize();
-  const queryRunner = dataSource.createQueryRunner();
-  await new DropMessageTitle1765110000000().up(queryRunner);
-  await new AlterUserCredentialsRefreshNullable1765372200000().up(queryRunner);
-  await new RenameUserCredencialsToUserCredentials1765372400000().up(queryRunner);
+  await dataSource.runMigrations();
   await dataSource.destroy();
+
   console.log('Schema updated');
 }
 

@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, MaxLength } from 'class-validator';
 
-export class CreateUserDto {
+export class CreateUserWithPasswordDto {
   @IsString()
   @IsNotEmpty({ message: 'First name is required.' })
   @MaxLength(50, { message: 'First name can have up to 50 characters.' })

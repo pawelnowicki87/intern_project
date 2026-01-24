@@ -9,10 +9,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { HiddenUserDto } from './dto/hidden-user.dto';
 import { User } from './entities/user.entity';
+import { CreateUserWithPasswordDto } from './dto/create-user.dto';
+import { CreateOAuthUserDto } from './dto/create-OAuth-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -54,7 +55,7 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() data: CreateUserDto & { passwordHash: string }) {
+  create(@Body() data: CreateUserWithPasswordDto & { passwordHash: string }) {
     return this.usersService.create(data);
   }
 
@@ -66,5 +67,15 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.usersService.remove(id);
+  }
+
+  @Get(':id/stats')
+  getStats(@Param('id') id: number) {
+    return this.usersService.getStats(Number(id));
+  }
+
+  @Post('oauth')
+  createOAuth(@Body() data: CreateOAuthUserDto) {
+    return this.usersService.createOAuthUser(data);
   }
 }

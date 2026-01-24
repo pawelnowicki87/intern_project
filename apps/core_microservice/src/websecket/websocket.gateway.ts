@@ -44,20 +44,16 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     console.log('Client disconnected:', client.id);
   }
 
-  @SubscribeMessage('ping_test')
-  handlePing(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    client.emit('pong_test', { message: 'pong!', received: data });
-  }
+  
 
   @SubscribeMessage('join_room')
   async handleJoinRoom(
-    @MessageBody() body: { chatId: number },
-    @ConnectedSocket() client: Socket,
+  @MessageBody() body: { chatId: number },
+  @ConnectedSocket() client: Socket,
   ) {
     const userId = client.data.userId;
 
     const canJoin = await this.chatParticioantsReader.isUserInChat(body.chatId, userId);
-
     if (!canJoin) {
       return { error: 'You are not a participant of this chat.' };
     }

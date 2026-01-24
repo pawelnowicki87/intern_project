@@ -21,6 +21,9 @@
     "db:migrate": {
       "cache": false
     },
+    "db:generate": {
+      "cache": false
+    },
     "db:seed": {
       "cache": false
     }

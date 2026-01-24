@@ -34,11 +34,20 @@ export class UsersCredentialRepository {
     }
   }
 
-  async updateRefreshToken(userId: number, refreshTokenHash: string): Promise<void> {
-    const result = await this.repo.update({ user: { id: userId } }, { refreshTokenHash });
+  async updateRefreshToken(
+    userId: number,
+    refreshTokenHash: string | null,
+  ): Promise<void> {
+    const result = await this.repo.update(
+      { user: { id: userId } },
+      { refreshTokenHash },
+    );
+
     if (!result.affected) {
-      this.logger.error('No rows affected when updating refresh token');
-      throw new InternalServerErrorException('Failed to update refresh token');
+      await this.repo.insert({
+        user: { id: userId },
+        refreshTokenHash,
+      });
     }
   }
 
@@ -51,5 +60,16 @@ export class UsersCredentialRepository {
     const pwd = raw?.passwordHash ?? null;
     return pwd;
   }
+
+  async getRefreshTokenByUserId(userId: number): Promise<string | null> {
+    const raw = await this.repo
+      .createQueryBuilder('cred')
+      .select('cred.refreshTokenHash', 'refreshTokenHash')
+      .where('cred.user_id = :id', { id: userId })
+      .getRawOne<{ refreshTokenHash?: string }>();
+
+    return raw?.refreshTokenHash ?? null;
+  }
+
 
 }

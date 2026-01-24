@@ -1,0 +1,2 @@
+export const SAVED_POSTS_POST_READER = Symbol('SAVED_POSTS_POST_READER');
+

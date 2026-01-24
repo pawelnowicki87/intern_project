@@ -12,8 +12,10 @@ export class ChatsService {
     return {
       id: chat.id,
       createdAt: chat.createdAt,
+      name: chat.name,
       participants: chat.participants?.map((participant) => ({
         userId: participant.user.id,
+        username: participant.user.username,
         firstName: participant.user.firstName,
         lastName: participant.user.lastName,
         email: participant.user.email,
@@ -40,6 +42,12 @@ export class ChatsService {
   }
 
   async create(data: CreateChatDto): Promise<ChatResponseDto> {
+    if (data.participantIds && data.participantIds.length === 2) {
+      const existing = await this.chatsRepo.findDirectChatByParticipants(data.participantIds);
+      if (existing) {
+        return this.toResponseDto(existing);
+      }
+    }
     const created = await this.chatsRepo.create(data);
 
     if (!created) {
@@ -51,6 +59,14 @@ export class ChatsService {
       throw new NotFoundError('Chat not found after creation');
     }
 
+    return this.toResponseDto(chat);
+  }
+
+  async update(id: number, data: { name?: string }): Promise<ChatResponseDto> {
+    const updated = await this.chatsRepo.update(id, { name: data.name });
+    if (!updated) throw new NotFoundError(`Chat ${id} not found`);
+    const chat = await this.chatsRepo.findById(id);
+    if (!chat) throw new NotFoundError(`Chat ${id} not found`);
     return this.toResponseDto(chat);
   }
 

@@ -1,4 +1,4 @@
 export class ValidatedUserDto {
-  id: string;
+  id: number;
   email: string;
 }

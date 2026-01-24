@@ -1,127 +1,208 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/client_app/context/AuthContext";
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import GoogleLoginButton from '../../../components/ui/GoogleLoginButton';
+
+const registerSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  email: z.string().email('Invalid email'),
+  phone: z.string().optional(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register: registerUser, loginWithGoogle } = useAuth();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [username, setUsername] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  });
 
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
+  const onSubmit = async (data: RegisterFormData) => {
     try {
-      await register({
-        firstName,
-        lastName,
-        username,
-        phone,
-        email,
-        password,
+      await registerUser(data);
+      router.push('/feed');
+    } catch (err) {
+      console.error('Registration failed', err);
+      setError('root', {
+        message: 'Registration failed. Please try again.',
       });
+    }
+  };
 
-      router.push("/");
-    } catch (err: any) {
-      setError("Registration failed");
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit(onSubmit)();
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-6 text-center">Create account</h1>
-
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          
-          <div>
-            <label className="block text-sm font-medium">First name</label>
-            <input
-              type="text"
-              className="w-full border p-2 rounded mt-1"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-sm md:max-w-md lg:max-w-lg">
+        <div className="bg-white border border-gray-300 rounded-none md:rounded-sm p-8 md:p-10 mb-3">
+          <div className="text-center mb-6">
+            <h1 className="text-4xl md:text-5xl font-serif italic mb-4">Instagram</h1>
+            <p className="text-gray-500 text-sm font-semibold px-8">
+              Sign up to see photos and videos from your friends.
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">Last name</label>
-            <input
-              type="text"
-              className="w-full border p-2 rounded mt-1"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
+          <GoogleLoginButton
+            onSuccess={async (credential) => {
+              try {
+                await loginWithGoogle(credential);
+                router.push('/');
+              } catch (err) {
+                console.error('Google login failed', err);
+                setError('root', {
+                  message: 'Google login failed. Please try again.',
+                });
+              }
+            }}
+          />
+
+          <div className="flex items-center my-5">
+            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="px-4 text-xs font-semibold text-gray-500">OR</div>
+            <div className="flex-1 border-t border-gray-300"></div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">Username</label>
-            <input
-              type="text"
-              className="w-full border p-2 rounded mt-1"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Phone (optional)</label>
-            <input
-              type="text"
-              className="w-full border p-2 rounded mt-1"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Email</label>
-            <input
-              type="email"
-              className="w-full border p-2 rounded mt-1"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Password</label>
-            <input
-              type="password"
-              className="w-full border p-2 rounded mt-1"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          {error && (
-            <p className="text-red-600 text-sm text-center">{error}</p>
+          {errors.root && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm">
+              <p className="text-sm text-red-600 text-center">
+                {errors.root.message}
+              </p>
+            </div>
           )}
 
-          <button
-            type="submit"
-            className="w-full bg-black text-white p-2 rounded"
-          >
-            Register
-          </button>
-        </form>
+          <div className="space-y-2" onKeyPress={handleKeyPress}>
+            <div>
+              <input
+                type="text"
+                placeholder="Email"
+                {...register('email')}
+                className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
+                  errors.email ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                }`}
+              />
+              {errors.email && (
+                <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+              )}
+            </div>
 
-        <p className="text-sm text-center mt-4">
-          Already have an account?{" "}
-          <a href="/auth/login" className="text-blue-600 underline">
-            Log in
-          </a>
-        </p>
+            <div>
+              <input
+                type="text"
+                placeholder="First Name"
+                {...register('firstName')}
+                className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
+                  errors.firstName ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                }`}
+              />
+              {errors.firstName && (
+                <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="Last Name"
+                {...register('lastName')}
+                className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
+                  errors.lastName ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                }`}
+              />
+              {errors.lastName && (
+                <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="Username"
+                {...register('username')}
+                className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
+                  errors.username ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                }`}
+              />
+              {errors.username && (
+                <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="tel"
+                placeholder="Phone (optional)"
+                {...register('phone')}
+                className="w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none border-gray-300 focus:border-gray-400"
+              />
+            </div>
+
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                {...register('password')}
+                className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
+                  errors.password ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                }`}
+              />
+              {errors.password && (
+                <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+              )}
+            </div>
+
+            <button
+              onClick={handleSubmit(onSubmit)}
+              disabled={isSubmitting}
+              className="w-full bg-blue-500 text-white py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed mt-4"
+            >
+              {isSubmitting ? 'Signing up...' : 'Sign up'}
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 text-center mt-4 leading-relaxed">
+            By signing up, you agree to our{' '}
+            <Link href="/terms" className="text-blue-900 hover:underline">
+              Terms
+            </Link>
+            ,{' '}
+            <Link href="/privacy" className="text-blue-900 hover:underline">
+              Privacy Policy
+            </Link>{' '}
+            and{' '}
+            <Link href="/cookies" className="text-blue-900 hover:underline">
+              Cookies Policy
+            </Link>
+            .
+          </p>
+        </div>
+
+        <div className="bg-white border border-gray-300 rounded-none md:rounded-sm p-6 text-center">
+          <p className="text-sm">
+            Have an account?{' '}
+            <Link href="/auth/login" className="text-blue-500 font-semibold hover:text-blue-600">
+              Log in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

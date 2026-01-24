@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
+import { NotFoundError, InternalError, ForbiddenError } from '@shared/errors/domain-errors';
 import { CommentsRepository } from './comments.repository';
 import { Inject } from '@nestjs/common';
 import { COMMENT_MENTIONS_READER } from './ports/tokens';
 import type { ICommentMentionsProcessorReader } from './ports/mentions-processor.port';
+import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
+import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
+import { NotificationAction } from '@shared/notifications/notification-action';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
@@ -15,24 +18,24 @@ export class CommentsService {
     private readonly commentsRepo: CommentsRepository,
     @Inject(COMMENT_MENTIONS_READER)
     private readonly commentMentionsReader: ICommentMentionsProcessorReader,
+    @Inject(NOTIFICATIONS_SENDER)
+    private readonly notificationSender: INotificationSender,
   ) {}
 
   private toResponseDto(comment: Comment): CommentResponseDto {
     return new CommentResponseDto({
       id: comment.id,
       body: comment.body,
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
+      createdAt: comment.createdAt.toISOString(),
+      updatedAt: comment.updatedAt.toISOString(),
       parentId: comment.parentId,
       user: {
         id: comment.user.id,
-        firstName: comment.user.firstName,
-        lastName: comment.user.lastName,
-        email: comment.user.email,
+        username: comment.user.username,
+        avatarUrl: comment.user.avatarUrl ?? null,
       },
       post: {
         id: comment.post.id,
-        title: comment.post.title,
       },
       children: [],
     });
@@ -51,16 +54,22 @@ export class CommentsService {
   }
 
   async create(data: CreateCommentDto): Promise<CommentResponseDto> {
-
-    if (data.parentId) {
+    let parentUserId: number | null = null;
+    if (data.parentId !== undefined && data.parentId !== null) {
       const parent = await this.commentsRepo.findById(data.parentId);
       if (!parent) {
         throw new NotFoundError('Parent comment not found');
       }
 
+      if (parent.parentId) {
+        throw new InternalError('Parent comment already has a parent');
+      }
+
       if (parent.postId !== data.postId) {
         throw new InternalError('Parent comment belongs to a different post');
       }
+
+      parentUserId = parent.userId;
     }
     const created = await this.commentsRepo.create(data);
 
@@ -76,10 +85,60 @@ export class CommentsService {
     if (typeof data.body === 'string' && data.body.length > 0) {
       await this.commentMentionsReader.processMentions(data.body, createdComment.id, data.userId);
     }
+
+    const postOwnerId = createdComment.post?.userId ?? null;
+    const commenterId = data.userId;
+
+    if (postOwnerId && postOwnerId !== commenterId && postOwnerId !== parentUserId) {
+      await this.notificationSender.sendNotification(
+        postOwnerId,
+        commenterId,
+        NotificationAction.COMMENT_POST,
+        createdComment.postId,
+      );
+    }
+
+    if (parentUserId && parentUserId !== commenterId) {
+      await this.notificationSender.sendNotification(
+        parentUserId,
+        commenterId,
+        NotificationAction.COMMENT_REPLY,
+        createdComment.id,
+      );
+    }
+
     return this.toResponseDto(createdComment);
   }
 
   async update(id: number, data: UpdateCommentDto): Promise<CommentResponseDto> {
+    let currentComment: Comment | null = null;
+    const needsCurrentComment = (data.userId !== undefined && data.userId !== null)
+      || (data.parentId !== undefined && data.parentId !== null && (data.postId === undefined || data.postId === null));
+    if (needsCurrentComment) {
+      currentComment = await this.commentsRepo.findById(id);
+      if (!currentComment) {
+        throw new NotFoundError(`Comment ${id} not found`);
+      }
+    }
+    if (data.userId !== undefined && data.userId !== null && currentComment && currentComment.userId !== data.userId) {
+      throw new ForbiddenError('Cannot edit comment owned by another user');
+    }
+    if (data.parentId !== undefined && data.parentId !== null) {
+      const parent = await this.commentsRepo.findById(data.parentId);
+      if (!parent) {
+        throw new NotFoundError('Parent comment not found');
+      }
+
+      if (parent.parentId) {
+        throw new InternalError('Parent comment already has a parent');
+      }
+
+      const targetPostId = data.postId ?? currentComment?.postId;
+      if (targetPostId !== parent.postId) {
+        throw new InternalError('Parent comment belongs to a different post');
+      }
+    }
+
     const updated = await this.commentsRepo.update(id, data);
 
     if (!updated) {
@@ -98,7 +157,33 @@ export class CommentsService {
     return this.toResponseDto(freshComment);
   }
 
-  async remove(id: number): Promise<{ deleted: boolean }> {
+  async remove(id: number, userId?: number): Promise<{ deleted: boolean }> {
+    const existing = await this.commentsRepo.findById(id);
+    if (!existing) throw new NotFoundError(`Comment ${id} not found`);
+    if (userId !== undefined && userId !== null && existing.userId !== userId) {
+      throw new ForbiddenError('Cannot delete comment owned by another user');
+    }
+    const related = await this.commentsRepo.findByPostId(existing.postId);
+    const byParent = new Map<number, number[]>();
+    related.forEach((comment) => {
+      if (!comment.parentId) return;
+      const list = byParent.get(comment.parentId) ?? [];
+      list.push(comment.id);
+      byParent.set(comment.parentId, list);
+    });
+    const idsToDelete = new Set<number>();
+    const queue: number[] = [id];
+    while (queue.length) {
+      const currentId = queue.shift()!;
+      if (idsToDelete.has(currentId)) continue;
+      idsToDelete.add(currentId);
+      const children = byParent.get(currentId) ?? [];
+      children.forEach((childId) => queue.push(childId));
+    }
+    const likesDeleted = await this.commentsRepo.deleteLikesByCommentIds(Array.from(idsToDelete));
+    if (!likesDeleted) {
+      throw new InternalError('Failed to remove comment likes');
+    }
     const success = await this.commentsRepo.delete(id);
 
     if (!success) throw new NotFoundError(`Comment ${id} not found`);

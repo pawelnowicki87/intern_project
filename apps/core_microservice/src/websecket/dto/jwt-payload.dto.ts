@@ -1,5 +1,5 @@
 export class JwtPayloadDto {
-  sub: number|string;        // userId
+  sub: number|string;
   email: string;
   iat?: number;
   exp?: number;

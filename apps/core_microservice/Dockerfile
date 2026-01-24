@@ -1,16 +1,11 @@
-FROM node:22-alpine AS builder
+FROM node:20-alpine
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+
 COPY . .
-RUN npm run build
 
+RUN npm install
 
-FROM node:22-alpine
-WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY package*.json ./
-RUN npm install --omit=dev
+RUN npx turbo run build --filter=core_microservice
 
-EXPOSE 3001
-CMD ["node", "dist/main.js"]
+CMD ["node", "apps/core_microservice/dist/apps/core_microservice/src/main.js"]

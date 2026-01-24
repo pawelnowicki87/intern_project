@@ -10,4 +10,10 @@ export default [
       },
     },
   },
+  {
+    files: ['next-env.d.ts'],
+    rules: {
+      quotes: 'off',
+    },
+  },
 ];

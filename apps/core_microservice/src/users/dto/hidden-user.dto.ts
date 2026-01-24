@@ -1,5 +1,6 @@
 export type HiddenUserDto = {
   id: number,
-  firstName: string,
-  lastName: string
+  username: string;
+  avatarUrl?: string;
+  isPrivate: boolean;
 }

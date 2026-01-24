@@ -22,10 +22,9 @@
         "name": "next"
       }
     ],
+    "baseUrl": "src",
     "paths": {
-      "@/client_app/*": [
-        "./src/*"
-      ]
+      "@/*": ["*"]
     }
   },
   "include": [

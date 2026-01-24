@@ -19,7 +19,7 @@ export class MessageAssetsService {
       order: { createdAt: 'DESC' },
     });
 
-    return assets.map(({ messageId, fileId, createdAt, message, file }) => ({
+    return assets.map(({ messageId, fileId, createdAt, file }) => ({
       messageId,
       fileId,
       createdAt,
@@ -35,7 +35,7 @@ export class MessageAssetsService {
 
     if (!asset) throw new NotFoundError('Message asset not found');
 
-    const { createdAt, message, file } = asset;
+    const { createdAt, file } = asset;
     return {
       messageId,
       fileId,
@@ -58,7 +58,7 @@ export class MessageAssetsService {
         `Message asset (messageId=${saved.messageId}, fileId=${saved.fileId}) not found after creation`,
       );
 
-    const { messageId, fileId, createdAt, message, file } = reloaded;
+    const { messageId, fileId, createdAt, file } = reloaded;
     return {
       messageId,
       fileId,

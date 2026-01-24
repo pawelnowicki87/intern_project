@@ -11,17 +11,21 @@ import { CHAT_PARTICIPANTS_WEBSOCKET } from 'src/websecket/ports/chat-participan
   imports: [TypeOrmModule.forFeature([ChatParticipant])],
   controllers: [ChatParticipantsController],
   providers: [
-    ChatParticipantsService, 
+    ChatParticipantsService,
     ChatParticipantsRepository,
+
+    ChatParticipantsWebsocketAdapter,
+
     {
       provide: CHAT_PARTICIPANTS_WEBSOCKET,
-      useClass: ChatParticipantsWebsocketAdapter,
+      useExisting: ChatParticipantsWebsocketAdapter,
     },
   ],
   exports: [
-    ChatParticipantsService, 
+    ChatParticipantsService,
     ChatParticipantsRepository,
     CHAT_PARTICIPANTS_WEBSOCKET,
   ],
 })
 export class ChatParticipantsModule {}
+

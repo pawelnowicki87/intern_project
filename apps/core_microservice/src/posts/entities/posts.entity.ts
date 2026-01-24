@@ -11,6 +11,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { LikePost } from '../../likes-posts/entities/like-post.entity';
+import { SavePost } from '../../saved-posts/entities/save-post.entity';
 import { PostAsset } from '../../post-assets/entities/post-asset.entity';
 import { PostStatus } from './post-status.enum';
 
@@ -19,14 +20,11 @@ export class Post {
   @PrimaryGeneratedColumn()
     id: number;
 
-  @Column({ type: 'varchar', nullable: true })
-    title: string;
-
   @Column({ type: 'text', nullable: true })
     body: string;
 
   @Column({ name: 'user_id', type: 'int', nullable: false })
-    userId: number; // FK
+    userId: number;
 
   @Column({ type: 'enum', enum: PostStatus, default: PostStatus.PUBLISHED })
     status: PostStatus;
@@ -37,8 +35,6 @@ export class Post {
   @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
 
-  // ✅ RELACJE
-
   @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
     user: User;
@@ -48,6 +44,9 @@ export class Post {
 
   @OneToMany(() => LikePost, (likePost) => likePost.post, { cascade: true })
     likes: LikePost[];
+
+  @OneToMany(() => SavePost, (savePost) => savePost.post, { cascade: true })
+    saves: SavePost[];
 
   @OneToMany(() => PostAsset, (pa) => pa.post, { cascade: true })
     assets: PostAsset[];

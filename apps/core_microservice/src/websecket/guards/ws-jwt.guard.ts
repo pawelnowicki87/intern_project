@@ -19,7 +19,7 @@ export class WsJwtGuard implements CanActivate {
       client.data.userId = payload.sub;
 
       return true;
-    } catch (e) {
+    } catch {
       throw new UnauthorizedException('Invalid token');
     }
   }

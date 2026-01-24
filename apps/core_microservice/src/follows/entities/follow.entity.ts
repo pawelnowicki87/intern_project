@@ -27,8 +27,6 @@ export class Follow {
   @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 
-  // relations
-
   @ManyToOne(() => User, (user) => user.following)
   @JoinColumn({ name: 'follower_id' })
     follower: User;

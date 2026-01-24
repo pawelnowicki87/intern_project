@@ -12,6 +12,7 @@ import { USERS_READER } from 'src/follows/ports/tokens';
 import { UserReaderAdapter } from './adapters/user-reader.adapter';
 
 import { FollowsModule } from 'src/follows/follows.module';
+import { PostsModule } from 'src/posts/posts.module';
 import { USER_VISIBILITY_READER } from 'src/visibility/port/tokens';
 import { UserVisibilityReaderAdapter } from './adapters/user-visibility.adapter';
 import { VisibilityModule } from 'src/visibility/visibility.module';
@@ -23,6 +24,8 @@ import { UserMentionAdapter } from './adapters/user-mention.adapter';
     TypeOrmModule.forFeature([User, UserCredentials]),
     forwardRef(() => FollowsModule),
     forwardRef(() => VisibilityModule),
+    forwardRef(() => PostsModule),
+    VisibilityModule,
   ],
   providers: [
     UsersService,

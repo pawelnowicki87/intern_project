@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Follow, FollowStatus } from './entities/follow.entity';
 import { CreateFollowDto } from './dto/create-follow.dto';
-import { FollowResponseDto } from './dto/follow-response.dto';
 
 @Injectable()
 export class FollowsRepository {
@@ -98,6 +97,24 @@ export class FollowsRepository {
       },
       relations: ['follower', 'followed'],
       order: { createdAt: 'DESC' },
+    });
+  }
+
+  async countFollowersByUserId(userId: number): Promise<number> {
+    return this.repo.count({
+      where: {
+        followedId: userId,
+        status: FollowStatus.ACCEPTED,
+      },
+    });
+  }
+
+  async countFollowingByUserId(userId: number): Promise<number> {
+    return this.repo.count({
+      where: {
+        followerId: userId,
+        status: FollowStatus.ACCEPTED,
+      },
     });
   }
 

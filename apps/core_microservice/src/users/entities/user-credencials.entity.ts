@@ -14,8 +14,8 @@ export class UserCredentials {
   @PrimaryGeneratedColumn()
     id: number;
 
-  @Column({ name: 'password_hash', type: 'varchar', nullable: false })
-    passwordHash: string;
+  @Column({ name: 'password_hash', type: 'varchar', nullable: true })
+    passwordHash?: string;
 
   @Column({ name: 'refreshtoken_hash', type: 'varchar', nullable: true })
     refreshTokenHash?: string;

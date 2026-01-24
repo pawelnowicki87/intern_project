@@ -11,6 +11,7 @@ import { Post } from '../../posts/entities/posts.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { LikePost } from '../../likes-posts/entities/like-post.entity';
 import { LikeComment } from '../../likes-comments/entities/like-comment.entity';
+import { SavePost } from '../../saved-posts/entities/save-post.entity';
 import { Follow } from '../../follows/entities/follow.entity';
 import { Message } from '../../messages/entities/message.entity';
 import { File } from '../../files/entities/file.entity';
@@ -39,13 +40,17 @@ export class User {
   @Column({ type: 'varchar', length: 20, nullable: true })
     phone?: string;
 
+  @Column({ type: 'text', nullable: true })
+    bio?: string;
+
+  @Column({ name: 'avatar_url', type: 'varchar', length: 255, nullable: true })
+    avatarUrl?: string;
+
   @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
-
-  // relations
 
   @OneToOne(() => UserCredentials, (credentials) => credentials.user, { cascade: true })
     credentials: UserCredentials;
@@ -58,6 +63,9 @@ export class User {
 
   @OneToMany(() => LikePost, (likePost) => likePost.user)
     likedPosts: LikePost[];
+  
+  @OneToMany(() => SavePost, (savePost) => savePost.user)
+    savedPosts: SavePost[];
 
   @OneToMany(() => LikeComment, (likeComment) => likeComment.user)
     likedComments: LikeComment[];

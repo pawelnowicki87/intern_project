@@ -44,10 +44,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getResponse()
         : (exception as any)?.message ?? 'Internal server error';
 
-    this.logger.error(
-      `[${request.method}] ${request.url} -> ${JSON.stringify(message)}`,
-      (exception as any)?.stack || '',
-    );
+    const logMsg = `[${request.method}] ${request.url} -> ${JSON.stringify(message)}`;
+    if (status === HttpStatus.NOT_FOUND) {
+      this.logger.warn(logMsg);
+    } else {
+      this.logger.error(logMsg, (exception as any)?.stack || '');
+    }
 
     response.status(status).json({
       statusCode: status,

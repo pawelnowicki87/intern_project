@@ -60,4 +60,12 @@ export class LikesCommentsRepository {
       where: { commentId },
     });
   }
+
+  async findByUserAndCommentIds(userId: number, commentIds: number[]): Promise<LikeComment[]> {
+    if (!commentIds.length) return [];
+    return this.repo.find({
+      where: commentIds.map((id) => ({ userId, commentId: id })),
+      select: ['userId', 'commentId'],
+    });
+  }
 }

@@ -18,6 +18,11 @@ export class CommentsController {
     return this.commentsService.findOne(id);
   }
 
+  @Get('post/:postId')
+  findByPost(@Param('postId') postId: number): Promise<CommentResponseDto[]> {
+    return this.commentsService.getCommentsTreeForPost(postId);
+  }
+
   @Post()
   create(@Body() data: CreateCommentDto): Promise<CommentResponseDto> {
     return this.commentsService.create(data);
@@ -32,7 +37,10 @@ export class CommentsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number): Promise<{ deleted: boolean }> {
-    return this.commentsService.remove(id);
+  remove(
+    @Param('id') id: number,
+    @Body() data: { userId?: number },
+  ): Promise<{ deleted: boolean }> {
+    return this.commentsService.remove(id, data?.userId);
   }
 }

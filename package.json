@@ -16,7 +16,8 @@
     "clean": "turbo run clean",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "db:migrate": "turbo run db:migrate",
+    "db:migrate": "turbo run db:migrate --filter=core_microservice --",
+    "db:generate": "turbo run db:generate --filter=core_microservice --",
     "db:seed": "turbo run db:seed"
   },
   "devDependencies": {
@@ -31,6 +32,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "google-auth-library": "^10.5.0",
     "lucide": "^0.559.0",
     "lucide-react": "^0.559.0"
   }

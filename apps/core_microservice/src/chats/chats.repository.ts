@@ -31,6 +31,7 @@ export class ChatsRepository {
     try {
       const chat = this.repo.create({
         createdAt: new Date(),
+        name: data.name ?? null,
         participants: data.participantIds?.map((userId) => ({
           user: { id: userId },
         })) || [],
@@ -44,6 +45,35 @@ export class ChatsRepository {
     }
   }
 
+  async update(id: number, data: Partial<Pick<Chat, 'name'>>): Promise<Chat | null> {
+    try {
+      const chat = await this.repo.findOne({ where: { id } });
+      if (!chat) return null;
+      if (data.name !== undefined) chat.name = data.name ?? null;
+      const saved = await this.repo.save(chat);
+      return saved;
+    } catch (err) {
+      this.logger.error(`Failed to update chat: ${err.message}`);
+      return null;
+    }
+  }
+
+  async findDirectChatByParticipants(userIds: number[]): Promise<Chat | null> {
+    try {
+      const all = await this.findAll();
+      const set = new Set(userIds);
+      const found = all.find((c) => {
+        const parts = c.participants ?? [];
+        if (parts.length !== 2) return false;
+        const ids = parts.map((p: any) => p.user?.id).filter(Boolean);
+        return ids.length === 2 && ids.every((id) => set.has(id)) && set.size === 2;
+      });
+      return found ?? null;
+    } catch (err) {
+      this.logger.error(err.message);
+      return null;
+    }
+  }
 
   async delete(id: number): Promise<boolean> {
     try {

@@ -1,14 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
 import { LikesCommentsRepository } from './likes-comments.repository';
 import { CreateLikeCommentDto } from './dto/create-like-comment.dto';
 import { LikeCommentResponseDto } from './dto/like-comment-response.dto';
-import { CommentResponseDto } from 'src/comments/dto/comment-response.dto';
 import { LikeComment } from './entities/like-comment.entity';
+import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
+import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
+import { NotificationAction } from '@shared/notifications/notification-action';
 
 @Injectable()
 export class LikesCommentsService {
-  constructor(private readonly likesRepo: LikesCommentsRepository) {}
+  constructor(
+    private readonly likesRepo: LikesCommentsRepository,
+    @Inject(NOTIFICATIONS_SENDER)
+    private readonly notificationSender: INotificationSender,
+  ) {}
+
+  private async notifyCommentLike(userId: number, commentId: number): Promise<void> {
+    const like = await this.likesRepo.findOne(userId, commentId);
+    const commentOwnerId = like?.comment?.userId;
+    if (!commentOwnerId || commentOwnerId === userId) return;
+
+    await this.notificationSender.sendNotification(
+      commentOwnerId,
+      userId,
+      NotificationAction.LIKE_COMMENT,
+      commentId,
+    );
+  }
 
   private toResponseDto(like: LikeComment): LikeCommentResponseDto {
     return {
@@ -44,6 +63,8 @@ export class LikesCommentsService {
       throw new NotFoundError('Like not found after creation');
     }
 
+    await this.notifyCommentLike(created.userId, created.commentId);
+
     return this.toResponseDto(like);
   }
 
@@ -74,6 +95,8 @@ export class LikesCommentsService {
       throw new InternalError('Failed to create like');
     }
 
+    await this.notifyCommentLike(created.userId, created.commentId);
+
     return { liked: true };
   }
 
@@ -87,5 +110,11 @@ export class LikesCommentsService {
     const count = await this.likesRepo.countByCommentId(commentId);
 
     return count;
+  }
+
+  async checkLiked(userId: number, commentIds: number[]): Promise<{ likedIds: number[] }> {
+    const likes = await this.likesRepo.findByUserAndCommentIds(userId, commentIds);
+    const likedIds = Array.from(new Set(likes.map((l) => l.commentId)));
+    return { likedIds };
   }
 }
