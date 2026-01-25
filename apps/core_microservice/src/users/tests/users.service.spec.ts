@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../users.service';
 import { UsersRepository } from '../users.repository';
 import { UsersCredentialRepository } from '../users-credencial.repository';
-import { VisibilityService } from 'src/visibility/visibility.service';
-import { FOLLOWS_READER, POST_READER } from 'src/posts/ports/tokens';
 import { ConflictError, NotFoundError, InternalError } from '@shared/errors/domain-errors';
+import { FOLLOWS_READER, POST_READER } from '../../posts/ports/tokens';
+import { VisibilityService } from '../../visibility/visibility.service';
 
 describe('UsersService', () => {
   let service: UsersService;
