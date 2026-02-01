@@ -2,6 +2,8 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { join } from 'path';
 
+const useSSL = process.env.DB_SSL === 'true';
+
 export default new DataSource({
   type: 'postgres',
   host: process.env.POSTGRES_HOST ?? '127.0.0.1',
@@ -13,9 +15,7 @@ export default new DataSource({
   entities: [join(__dirname, '**/*.entity.{ts,js}')],
   migrations: [join(__dirname, 'migrations/*.{ts,js}')],
 
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: useSSL ? { rejectUnauthorized: false } : false,
 
   synchronize: false,
 });
