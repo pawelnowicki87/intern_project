@@ -80,6 +80,18 @@ export const navigateForNotification = async (
     await navigateToPostFromComment(router, notif.targetId);
     return;
   }
+  if (notif.action === 'LIKE_POST' && notif.targetId) {
+    router.push(`/posts/${notif.targetId}`);
+    return;
+  }
+  if (notif.action === 'LIKE_COMMENT' && notif.targetId) {
+    await navigateToPostFromComment(router, notif.targetId);
+    return;
+  }
+  if (notif.action === 'MESSAGE_GROUP_RECEIVED') {
+    router.push('/chat');
+    return;
+  }
   if (notif.action && notif.action.startsWith('FOLLOW')) {
     const id = senderUserId ?? notif.targetId;
     if (id) router.push(`/profile/${id}`);

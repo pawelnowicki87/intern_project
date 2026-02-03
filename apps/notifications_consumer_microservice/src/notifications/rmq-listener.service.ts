@@ -20,13 +20,16 @@ export class NotificationsRmqListener implements OnModuleInit {
 
   private async init() {
     try {
+      this.logger.log(`Connecting to RabbitMQ at ${this.url.replace(/:[^:@]+@/, ':***@')}...`);
       this.connection = await connect(this.url);
       this.channel = await this.connection.createChannel();
       await this.channel.assertQueue(this.queueName, { durable: true });
+      
+      this.logger.log(`Successfully connected to RabbitMQ. Waiting for messages in '${this.queueName}'...`);
+      
       await this.channel.consume(this.queueName, (msg) => this.handle(msg), {
         noAck: false,
       });
-      this.logger.log(`Listening for notifications on queue: ${this.queueName}`);
     } catch (err: any) {
       this.logger.error(`Failed to start RabbitMQ listener: ${err?.message || err}`);
     }
@@ -35,13 +38,18 @@ export class NotificationsRmqListener implements OnModuleInit {
   private async handle(msg: ConsumeMessage | null) {
     if (!msg) return;
     try {
-      const payload = JSON.parse(msg.content.toString());
-      await this.notificationsService.create({
+      const content = msg.content.toString();
+      this.logger.debug(`Received message: ${content}`);
+      const payload = JSON.parse(content);
+      
+      const result = await this.notificationsService.create({
         recipientId: payload.recipientId,
         senderId: payload.senderId,
         action: payload.action,
         targetId: payload.targetId,
       });
+      
+      this.logger.log(`Notification created: ${result.id} for user ${payload.recipientId}`);
       this.channel?.ack(msg);
     } catch (err: any) {
       this.logger.error(`Failed to process notification message: ${err?.message || err}`);

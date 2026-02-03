@@ -86,7 +86,7 @@ export class MessagesService {
   }
 
   async create(data: CreateMessageDto) {
-    const created = await this.messagesRepo.create(data);
+    const created = await this.messagesRepo.create({ ...data, isRead: false });
     const msg = await this.messagesRepo.findById(created.id);
     await this.notifyMessageRecipients(msg);
     return this.toResponseDto(msg);
