@@ -18,16 +18,6 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    container_name: innogram-redis
-    ports:
-      - "6380:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - innogram-network
-
   rabbitmq:
     image: rabbitmq:3-management
     container_name: innogram-rabbitmq
@@ -40,22 +30,20 @@ services:
     networks:
       - innogram-network
 
-  core_microservice:
-    image: core-microservice
-    container_name: innogram-core
-    ports:
-      - "3001:3001"
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      rabbitmq:
-        condition: service_started
-    networks:
-      - innogram-network
+  # core_microservice:
+  #   image: core-microservice
+  #   container_name: innogram-core
+  #   ports:
+  #     - "3001:3001"
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     rabbitmq:
+  #       condition: service_started
+  #   networks:
+  #     - innogram-network
 
   # auth_microservice:
   #   build: ./apps/auth_microservice
@@ -64,7 +52,6 @@ services:
   #     - "3002:3002"
   #   depends_on:
   #     - auth_postgres
-  #     - redis
   #   env_file:
   #     - .env
   #   networks:
@@ -73,7 +60,6 @@ services:
 volumes:
   postgres_data:
   auth_postgres_data:
-  redis_data:
 
 networks:
   innogram-network:

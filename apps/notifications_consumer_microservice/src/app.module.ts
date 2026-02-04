@@ -10,7 +10,7 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '../../.env',
+      envFilePath: ['.env', '../../.env', '../../../.env'],
     }),
 
     TypeOrmModule.forRoot({
@@ -21,7 +21,7 @@ import { ConfigModule } from '@nestjs/config';
       password: process.env.POSTGRES_PASSWORD || 'innogram_password',
       database: process.env.POSTGRES_DB || 'innogram',
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-      synchronize: false,
+      synchronize: true,
     }),
 
     NotificationsModule,

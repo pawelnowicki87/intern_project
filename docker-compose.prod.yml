@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: innogram-postgres
+    environment:
+      POSTGRES_DB: innogram
+      POSTGRES_USER: innogram_user
+      POSTGRES_PASSWORD: innogram_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - innogram-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U innogram_user -d innogram"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: innogram-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: innogram
+      RABBITMQ_DEFAULT_PASS: innogram_password
+    networks:
+      - innogram-network
+
+  core_microservice:
+    build:
+      context: .
+      dockerfile: apps/core_microservice/Dockerfile
+    container_name: innogram-core
+    env_file:
+      - .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    ports:
+      - "3001:3001"
+    networks:
+      - innogram-network
+
+  auth_microservice:
+    build:
+      context: .
+      dockerfile: apps/auth_microservice/Dockerfile
+    container_name: innogram-auth
+    env_file:
+      - .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3002:3002"
+    networks:
+      - innogram-network
+
+  notifications_consumer_microservice:
+    build:
+      context: .
+      dockerfile: apps/notifications_consumer_microservice/Dockerfile
+    container_name: innogram-notifications
+    env_file:
+      - .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    ports:
+      - "3003:3003"
+    networks:
+      - innogram-network
+
+volumes:
+  postgres_data:
+
+networks:
+  innogram-network:
+    driver: bridge

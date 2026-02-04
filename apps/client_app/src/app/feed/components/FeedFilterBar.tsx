@@ -35,7 +35,7 @@ export default function FeedFilterBar({
   
 
   return (
-    <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6 overflow-hidden">
+    <div className="w-full bg-white border border-gray-300 rounded-none md:rounded-lg mb-4 md:mb-6">
       <div className="flex items-center gap-2 px-3 md:px-4 py-2.5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <SlidersHorizontal className="w-4 h-4 text-gray-600" />
         <span className="text-sm font-semibold text-gray-700">Filters</span>
@@ -89,7 +89,7 @@ export default function FeedFilterBar({
               {orderOpen && (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 min-w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-20"
+                  className="absolute right-0 mt-2 min-w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-[100]"
                 >
                   <button
                     type="button"
