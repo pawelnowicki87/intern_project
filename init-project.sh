@@ -293,7 +293,6 @@ services:
 
 volumes:
   postgres_data:
-  redis_data:
 
 networks:
   innogram-network:

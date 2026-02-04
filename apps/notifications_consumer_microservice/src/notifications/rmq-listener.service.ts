@@ -42,6 +42,8 @@ export class NotificationsRmqListener implements OnModuleInit {
       this.logger.debug(`Received message: ${content}`);
       const payload = JSON.parse(content);
       
+      this.logger.log(`Processing notification: ${payload.action} from ${payload.senderId} to ${payload.recipientId}`);
+
       const result = await this.notificationsService.create({
         recipientId: payload.recipientId,
         senderId: payload.senderId,

@@ -25,12 +25,6 @@ services:
     networks:
       - innogram-network
 
-  redis:
-    image: redis:alpine
-    container_name: innogram-redis
-    networks:
-      - innogram-network
-
   core_microservice:
     build:
       context: .
@@ -58,8 +52,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_started
     ports:
       - "3002:3002"
     networks:
@@ -77,6 +69,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_started
+    ports:
+      - "3003:3003"
     networks:
       - innogram-network
 

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { RedisModule } from './redis/redis.module';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -22,7 +21,6 @@ import { AuthModule } from './auth/auth.module';
       }),
       inject: [ConfigService],
     }),
-    RedisModule,
     AuthModule,
   ],
 })
