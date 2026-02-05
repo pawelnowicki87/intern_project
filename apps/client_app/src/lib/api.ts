@@ -2,24 +2,25 @@ import axios from 'axios';
 import { getAccessToken, setAccessToken, clearTokens } from './auth';
 
 export const authApiPublic = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_AUTH_API_URL!,
+  baseURL: '/api/auth',
   withCredentials: true,
 });
 
 export const authApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_AUTH_API_URL!,
+  baseURL: '/api/auth',
   withCredentials: true,
 });
 
 export const coreApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_CORE_API_URL!,
+  baseURL: '/api/core',
   withCredentials: true,
 });
 
 export const notificationsApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_NOTIFICATIONS_API_URL!,
+  baseURL: '/api/notifications',
   withCredentials: true,
 });
+
 
 const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/refresh'];
 

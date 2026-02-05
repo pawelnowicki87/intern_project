@@ -1,5 +1,6 @@
 import { coreApi } from '@/lib/api';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { NotificationAction } from '@/lib/notification-action';
 
 export const navigateToChat = (router: AppRouterInstance, userId?: number) => {
   if (userId) {
@@ -25,20 +26,7 @@ type NotificationFromApi = {
   id?: number;
   recipientId?: number;
   senderId?: number;
-  action?:
-    | 'FOLLOW_REQUEST'
-    | 'FOLLOW_ACCEPTED'
-    | 'FOLLOW_REJECTED'
-    | 'MENTION_COMMENT'
-    | 'MENTION_POST'
-    | 'COMMENT_POST'
-    | 'COMMENT_REPLY'
-    | 'MESSAGE_RECEIVED'
-    | 'MESSAGE_GROUP_RECEIVED'
-    | 'LIKE_POST'
-    | 'LIKE_COMMENT'
-    | 'FOLLOW_STARTED'
-    | string;
+  action?: NotificationAction | string;
   targetId?: number;
   isRead?: boolean;
   createdAt?: string | Date;
@@ -60,35 +48,35 @@ export const navigateForNotification = async (
   const senderUserId =
     'user' in notif ? notif.user?.id : ('senderId' in notif ? notif.senderId : undefined);
 
-  if (notif.action === 'MESSAGE_RECEIVED') {
+  if (notif.action === NotificationAction.MESSAGE_RECEIVED) {
     navigateToChat(router, senderUserId);
     return;
   }
-  if (notif.action === 'MENTION_POST' && notif.targetId) {
+  if (notif.action === NotificationAction.MENTION_POST && notif.targetId) {
     router.push(`/posts/${notif.targetId}`);
     return;
   }
-  if (notif.action === 'MENTION_COMMENT' && notif.targetId) {
+  if (notif.action === NotificationAction.MENTION_COMMENT && notif.targetId) {
     await navigateToPostFromComment(router, notif.targetId);
     return;
   }
-  if (notif.action === 'COMMENT_POST' && notif.targetId) {
+  if (notif.action === NotificationAction.COMMENT_POST && notif.targetId) {
     router.push(`/posts/${notif.targetId}`);
     return;
   }
-  if (notif.action === 'COMMENT_REPLY' && notif.targetId) {
+  if (notif.action === NotificationAction.COMMENT_REPLY && notif.targetId) {
     await navigateToPostFromComment(router, notif.targetId);
     return;
   }
-  if (notif.action === 'LIKE_POST' && notif.targetId) {
+  if (notif.action === NotificationAction.LIKE_POST && notif.targetId) {
     router.push(`/posts/${notif.targetId}`);
     return;
   }
-  if (notif.action === 'LIKE_COMMENT' && notif.targetId) {
+  if (notif.action === NotificationAction.LIKE_COMMENT && notif.targetId) {
     await navigateToPostFromComment(router, notif.targetId);
     return;
   }
-  if (notif.action === 'MESSAGE_GROUP_RECEIVED') {
+  if (notif.action === NotificationAction.MESSAGE_GROUP_RECEIVED) {
     router.push('/chat');
     return;
   }

@@ -6,12 +6,13 @@ import { coreApi, notificationsApi } from '@/lib/api';
 import { navigateForNotification } from './nav';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { NotificationAction } from '@/lib/notification-action';
 
 type NotificationItem = {
   id: number;
   recipientId: number;
   senderId: number;
-  action: string;
+  action: NotificationAction | string;
   targetId: number;
   isRead: boolean;
   createdAt: string | Date;
@@ -23,29 +24,29 @@ type UserLite = {
   avatarUrl?: string | null;
 };
 
-const formatAction = (action?: string) => {
+const formatAction = (action?: NotificationAction | string) => {
   switch (action) {
-    case 'FOLLOW_REQUEST':
+    case NotificationAction.FOLLOW_REQUEST:
       return 'sent a follow request';
-    case 'FOLLOW_ACCEPTED':
+    case NotificationAction.FOLLOW_ACCEPTED:
       return 'accepted your request';
-    case 'FOLLOW_REJECTED':
+    case NotificationAction.FOLLOW_REJECTED:
       return 'rejected your request';
-    case 'MENTION_POST':
+    case NotificationAction.MENTION_POST:
       return 'mentioned you in a post';
-    case 'MENTION_COMMENT':
+    case NotificationAction.MENTION_COMMENT:
       return 'mentioned you in a comment';
-    case 'COMMENT_POST':
+    case NotificationAction.COMMENT_POST:
       return 'commented on your post';
-    case 'COMMENT_REPLY':
+    case NotificationAction.COMMENT_REPLY:
       return 'replied to your comment';
-    case 'MESSAGE_RECEIVED':
+    case NotificationAction.MESSAGE_RECEIVED:
       return 'sent you a message';
-    case 'MESSAGE_GROUP_RECEIVED':
+    case NotificationAction.MESSAGE_GROUP_RECEIVED:
       return 'sent a message in a group';
-    case 'LIKE_POST':
+    case NotificationAction.LIKE_POST:
       return 'liked your post';
-    case 'LIKE_COMMENT':
+    case NotificationAction.LIKE_COMMENT:
       return 'liked your comment';
     default:
       return action ?? 'notification';
@@ -53,15 +54,16 @@ const formatAction = (action?: string) => {
 };
 
 const formatTimeAgo = (dateValue: string | Date) => {
-  const date = typeof dateValue === 'string'
-    ? (() => {
-      const raw = dateValue.trim();
-      const hasTZ = /Z|[+-]\d{2}:\d{2}$/.test(raw);
-      const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
-      const normalized = hasTZ ? iso : `${iso}Z`;
-      return new Date(normalized);
-    })()
-    : dateValue;
+  const date =
+    typeof dateValue === 'string'
+      ? (() => {
+        const raw = dateValue.trim();
+        const hasTZ = /Z|[+-]\d{2}:\d{2}$/.test(raw);
+        const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
+        const normalized = hasTZ ? iso : `${iso}Z`;
+        return new Date(normalized);
+      })()
+      : dateValue;
   const diff = Math.floor((Date.now() - date.getTime()) / 1000);
   if (diff < 90) return 'now';
 
@@ -91,7 +93,9 @@ export default function NotificationsDropdown() {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [usersById, setUsersById] = useState<Record<number, UserLite>>({});
-  const [processingRequest, setProcessingRequest] = useState<number | null>(null);
+  const [processingRequest, setProcessingRequest] = useState<number | null>(
+    null,
+  );
   const usersByIdRef = useRef<Record<number, UserLite>>({});
   const inFlightRef = useRef<Set<number>>(new Set());
 
@@ -102,7 +106,9 @@ export default function NotificationsDropdown() {
   const ensureUsersLoaded = useCallback(
     async (notifications: NotificationItem[]) => {
       if (!user?.id) return;
-      const ids = Array.from(new Set(notifications.map((n) => n.senderId).filter(Boolean)));
+      const ids = Array.from(
+        new Set(notifications.map((n) => n.senderId).filter(Boolean)),
+      );
       const missing = ids.filter(
         (id) => !usersByIdRef.current[id] && !inFlightRef.current.has(id),
       );
@@ -112,13 +118,18 @@ export default function NotificationsDropdown() {
       const entries = await Promise.all(
         missing.map(async (id) => {
           try {
-            const res = await coreApi.get<UserLite>(`/users/${id}?viewerId=${user.id}`);
+            const res = await coreApi.get<UserLite>(
+              `/users/${id}?viewerId=${user.id}`,
+            );
             const u = res.data;
             const username = u?.username ?? `user_${id}`;
             const avatarUrl = (u as any)?.avatarUrl ?? null;
             return [id, { id, username, avatarUrl }] as const;
           } catch {
-            return [id, { id, username: `user_${id}`, avatarUrl: null }] as const;
+            return [
+              id,
+              { id, username: `user_${id}`, avatarUrl: null },
+            ] as const;
           } finally {
             inFlightRef.current.delete(id);
           }
@@ -143,7 +154,9 @@ export default function NotificationsDropdown() {
       setLoadError(null);
       await ensureUsersLoaded(data);
     } catch {
-      setLoadError('Failed to fetch notifications. Make sure the notifications service is running.');
+      setLoadError(
+        'Failed to fetch notifications. Make sure the notifications service is running.',
+      );
       setItems([]);
     }
   }, [ensureUsersLoaded, user?.id]);
@@ -181,12 +194,16 @@ export default function NotificationsDropdown() {
   ) => {
     e.stopPropagation();
     setProcessingRequest(notificationId);
-    
+
     try {
-      await coreApi.patch(`/follows/${senderId}/${user?.id}/${accept ? 'accept' : 'reject'}`);
+      await coreApi.patch(
+        `/follows/${senderId}/${user?.id}/${accept ? 'accept' : 'reject'}`,
+      );
 
       // Mark notification as read
-      await notificationsApi.put(`/notifications/${notificationId}`, { isRead: true });
+      await notificationsApi.put(`/notifications/${notificationId}`, {
+        isRead: true,
+      });
 
       // Remove the notification from the list
       setItems((prev) => prev.filter((x) => x.id !== notificationId));
@@ -199,10 +216,10 @@ export default function NotificationsDropdown() {
 
   const markAllAsRead = async () => {
     if (!user?.id) return;
-    
+
     try {
       const unreadIds = items.filter((n) => !n.isRead).map((n) => n.id);
-      
+
       await Promise.all(
         unreadIds.map((id) =>
           notificationsApi.put(`/notifications/${id}`, { isRead: true }),
@@ -215,12 +232,15 @@ export default function NotificationsDropdown() {
     }
   };
 
-  const unreadCount = useMemo(() => items.filter((n) => !n.isRead).length, [items]);
+  const unreadCount = useMemo(
+    () => items.filter((n) => !n.isRead).length,
+    [items],
+  );
 
   return (
     <div className="relative">
-      <button 
-        onClick={toggle} 
+      <button
+        onClick={toggle}
         className="relative p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
       >
         <Bell className="w-6 h-6 text-gray-700" />
@@ -230,13 +250,10 @@ export default function NotificationsDropdown() {
           </span>
         )}
       </button>
-      
+
       {open && (
         <>
-          <div 
-            className="fixed inset-0 z-40" 
-            onClick={() => setOpen(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-between">
               <h3 className="text-white font-bold text-lg">Notifications</h3>
@@ -259,12 +276,10 @@ export default function NotificationsDropdown() {
                 </button>
               </div>
             </div>
-            
+
             <div className="max-h-[32rem] overflow-y-auto">
               {loadError ? (
-                <div className="p-6 text-sm text-gray-600">
-                  {loadError}
-                </div>
+                <div className="p-6 text-sm text-gray-600">{loadError}</div>
               ) : items.length === 0 ? (
                 <div className="p-8 text-center">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
@@ -278,20 +293,27 @@ export default function NotificationsDropdown() {
                     key={n.id}
                     className={[
                       'relative border-b border-gray-100 transition-all duration-200',
-                      n.isRead ? 'bg-white' : 'bg-gradient-to-r from-blue-50/50 to-purple-50/50',
+                      n.isRead
+                        ? 'bg-white'
+                        : 'bg-gradient-to-r from-blue-50/50 to-purple-50/50',
                     ].join(' ')}
                   >
                     {!n.isRead && (
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500" />
                     )}
-                    
+
                     <button
                       onClick={async () => {
                         if (!n.isRead) {
                           try {
-                            await notificationsApi.put(`/notifications/${n.id}`, { isRead: true });
+                            await notificationsApi.put(
+                              `/notifications/${n.id}`,
+                              { isRead: true },
+                            );
                             setItems((prev) =>
-                              prev.map((x) => (x.id === n.id ? { ...x, isRead: true } : x)),
+                              prev.map((x) =>
+                                x.id === n.id ? { ...x, isRead: true } : x,
+                              ),
                             );
                           } catch {
                             return;
@@ -313,15 +335,17 @@ export default function NotificationsDropdown() {
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md">
                             <span className="text-white font-bold text-lg">
-                              {(usersById[n.senderId]?.username ?? `user_${n.senderId}`)[0].toUpperCase()}
+                              {(usersById[n.senderId]?.username ??
+                                `user_${n.senderId}`)[0].toUpperCase()}
                             </span>
                           </div>
                         )}
-                        
+
                         <div className="flex-1 min-w-0">
                           <div className="text-sm mb-1">
                             <span className="font-bold text-gray-900">
-                              {usersById[n.senderId]?.username ?? `user_${n.senderId}`}
+                              {usersById[n.senderId]?.username ??
+                                `user_${n.senderId}`}
                             </span>{' '}
                             <span className="text-gray-600">
                               {formatAction(n.action)}
@@ -334,10 +358,12 @@ export default function NotificationsDropdown() {
                       </div>
                     </button>
 
-                    {n.action === 'FOLLOW_REQUEST' && (
+                    {n.action === NotificationAction.FOLLOW_REQUEST && (
                       <div className="px-4 pb-3 flex gap-2">
                         <button
-                          onClick={(e) => handleFollowRequest(e, n.id, n.senderId, true)}
+                          onClick={(e) =>
+                            handleFollowRequest(e, n.id, n.senderId, true)
+                          }
                           disabled={processingRequest === n.id}
                           className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
@@ -345,7 +371,9 @@ export default function NotificationsDropdown() {
                           Accept
                         </button>
                         <button
-                          onClick={(e) => handleFollowRequest(e, n.id, n.senderId, false)}
+                          onClick={(e) =>
+                            handleFollowRequest(e, n.id, n.senderId, false)
+                          }
                           disabled={processingRequest === n.id}
                           className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >

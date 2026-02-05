@@ -8,12 +8,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Bell, CheckCheck } from 'lucide-react';
 import { navigateForNotification } from '@/components/nav';
 import { useRouter } from 'next/navigation';
+import { NotificationAction } from '@/lib/notification-action';
 
 type NotificationItem = {
   id: number;
   recipientId: number;
   senderId: number;
-  action: string;
+  action: NotificationAction | string;
   targetId: number;
   isRead: boolean;
   createdAt: string | Date;
@@ -25,29 +26,29 @@ type UserLite = {
   avatarUrl?: string | null;
 };
 
-const formatAction = (action?: string) => {
+const formatAction = (action?: NotificationAction | string) => {
   switch (action) {
-    case 'FOLLOW_REQUEST':
+    case NotificationAction.FOLLOW_REQUEST:
       return 'sent a follow request';
-    case 'FOLLOW_ACCEPTED':
+    case NotificationAction.FOLLOW_ACCEPTED:
       return 'accepted your request';
-    case 'FOLLOW_REJECTED':
+    case NotificationAction.FOLLOW_REJECTED:
       return 'rejected your request';
-    case 'MENTION_POST':
+    case NotificationAction.MENTION_POST:
       return 'mentioned you in a post';
-    case 'MENTION_COMMENT':
+    case NotificationAction.MENTION_COMMENT:
       return 'mentioned you in a comment';
-    case 'COMMENT_POST':
+    case NotificationAction.COMMENT_POST:
       return 'commented on your post';
-    case 'COMMENT_REPLY':
+    case NotificationAction.COMMENT_REPLY:
       return 'replied to your comment';
-    case 'MESSAGE_RECEIVED':
+    case NotificationAction.MESSAGE_RECEIVED:
       return 'sent you a message';
-    case 'MESSAGE_GROUP_RECEIVED':
+    case NotificationAction.MESSAGE_GROUP_RECEIVED:
       return 'sent a message in a group';
-    case 'LIKE_POST':
+    case NotificationAction.LIKE_POST:
       return 'liked your post';
-    case 'LIKE_COMMENT':
+    case NotificationAction.LIKE_COMMENT:
       return 'liked your comment';
     default:
       return action ?? 'notification';
