@@ -21,6 +21,12 @@ export default function GoogleLoginButton({
 
       clearInterval(interval);
 
+      if (!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+        console.error('Missing Google Client ID');
+        clearInterval(interval);
+        return;
+      }
+
       window.google.accounts.id.initialize({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         callback: (response: any) => {
