@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
+import { NotFoundError, InternalError } from '../common/errors/domain-errors';
 import { ChatsRepository } from './chats.repository';
 import { ChatResponseDto } from './dto/chat-response.dto';
 import { CreateChatDto } from './dto/create-chat.dto';

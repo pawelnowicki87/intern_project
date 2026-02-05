@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundError, InternalError, ForbiddenError } from '@shared/errors/domain-errors';
+import { NotFoundError, InternalError, ForbiddenError } from '../common/errors/domain-errors';
 import { CommentsRepository } from './comments.repository';
 import { Inject } from '@nestjs/common';
 import { COMMENT_MENTIONS_READER } from './ports/tokens';
 import type { ICommentMentionsProcessorReader } from './ports/mentions-processor.port';
 import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
 import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
-import { NotificationAction } from '@shared/notifications/notification-action';
+import { NotificationAction } from '../common/notifications/notification-action';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';

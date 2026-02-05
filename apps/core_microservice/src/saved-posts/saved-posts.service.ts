@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { SavedPostsRepository } from './saved-posts.repository';
 import { CreateSavePostDto } from './dto/create-save-post.dto';
 import { SavePostResponseDto } from './dto/save-post-response.dto';
-import { InternalError, NotFoundError, ForbiddenError } from '@shared/errors/domain-errors';
+import { InternalError, NotFoundError, ForbiddenError } from '../common/errors/domain-errors';
 import { SAVED_POSTS_POST_READER } from './ports/tokens';
 import type { IPostReader } from './ports/post-reader.port';
 

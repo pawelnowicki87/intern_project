@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../users.service';
 import { UsersRepository } from '../users.repository';
 import { UsersCredentialRepository } from '../users-credencial.repository';
-import { ConflictError, NotFoundError, InternalError } from '@shared/errors/domain-errors';
+import { ConflictError, NotFoundError, InternalError } from '../../common/errors/domain-errors';
 import { FOLLOWS_READER, POST_READER } from '../../posts/ports/tokens';
 import { VisibilityService } from '../../visibility/visibility.service';
 

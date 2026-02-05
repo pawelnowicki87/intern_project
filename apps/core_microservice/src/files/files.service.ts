@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InternalError, NotFoundError } from '@shared/errors/domain-errors';
+import { InternalError, NotFoundError } from '../common/errors/domain-errors';
 import { CloudinaryConfig } from 'src/common/config/cloudinary.config';
 import { UploadApiResponse } from 'cloudinary';
 import * as streamifier from 'streamifier';

@@ -21,12 +21,12 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: innogram-rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: innogram
-      RABBITMQ_DEFAULT_PASS: innogram_password
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: innogram
+      RABBITMQ_DEFAULT_PASS: innogram_password
     networks:
       - innogram-network
 

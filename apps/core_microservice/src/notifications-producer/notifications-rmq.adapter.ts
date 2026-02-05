@@ -1,25 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 import { INotificationSender } from './ports/notification-sender.port';
-import { NotificationAction } from '@shared/notifications/notification-action';
-import * as amqp from 'amqp-connection-manager';
-import { ChannelWrapper } from 'amqp-connection-manager';
-import { Channel, Options } from 'amqplib';
+import { NotificationAction } from '../common/notifications/notification-action';
 
 @Injectable()
 export class NotificationsRmqAdapter implements INotificationSender {
   private readonly logger = new Logger(NotificationsRmqAdapter.name);
-  private connection = amqp.connect([process.env.RABBITMQ_URL || 'amqp://localhost:5672']);
-  private channelWrapper: ChannelWrapper;
-  private readonly queueName = process.env.NOTIFICATIONS_QUEUE || 'notifications';
 
-  constructor() {
-    this.channelWrapper = this.connection.createChannel({
-      json: true,
-      setup: (channel: Channel) => {
-        return channel.assertQueue(this.queueName, { durable: true });
-      },
-    });
-  }
+  constructor(
+    @Inject('NOTIFICATIONS_SERVICE') private readonly client: ClientProxy,
+  ) {}
 
   async sendNotification(
     recipientId: number,
@@ -36,11 +26,12 @@ export class NotificationsRmqAdapter implements INotificationSender {
     };
 
     try {
-      const options: Options.Publish = { persistent: true };
-      await this.channelWrapper.sendToQueue(this.queueName, payload, options);
+      this.client.emit('notification_created', payload);
     } catch (err: any) {
-      this.logger.error(`Failed to send notification: ${err?.message || err}`);
-      throw err;
+      this.logger.error(
+        `Failed to send notification: ${err?.message || err}`,
+        err?.stack,
+      );
     }
   }
 }

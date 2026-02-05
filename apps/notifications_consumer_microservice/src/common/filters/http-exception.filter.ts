@@ -13,7 +13,7 @@ import {
   ConflictError,
   ValidationError,
   InternalError,
-} from '@shared/errors/domain-errors';
+} from '../errors/domain-errors';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {

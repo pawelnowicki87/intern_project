@@ -6,7 +6,7 @@ import type { IUserMentionReader } from './ports/user-mention.reader';
 import { USER_MENTION_READER } from './ports/user-mention.reader';
 import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
 import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
-import { NotificationAction } from '@shared/notifications/notification-action';
+import { NotificationAction } from '../common/notifications/notification-action';
 
 @Injectable()
 export class MentionsService {

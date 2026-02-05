@@ -1,5 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { NotFoundError, InternalError, ForbiddenError } from '@shared/errors/domain-errors';
+import { NotFoundError, InternalError, ForbiddenError } from '../common/errors/domain-errors';
 import { PostsRepository } from './posts.repository';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';

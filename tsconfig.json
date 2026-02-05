@@ -20,10 +20,7 @@
       }
     ],
     "baseUrl": ".",
-    "paths": {
-      "@shared": ["libs/shared/src"],
-      "@shared/*": ["libs/shared/src/*"]
-    }
+    "paths": {}
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "test-cloudinary.cjs"],
   "exclude": ["node_modules", "dist", "build", ".next"]

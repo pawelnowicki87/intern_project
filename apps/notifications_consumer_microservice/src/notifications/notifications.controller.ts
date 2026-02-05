@@ -1,13 +1,23 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Param, UseFilters } from '@nestjs/common';
+import { EventPattern, Payload } from '@nestjs/microservices';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { NotificationResponseDto } from './dto/notification-response.dto';
+import { RpcExceptionsFilter } from '../common/filters/rpc-exception.filter';
 
-@Controller('notifications')
+@Controller()
+@UseFilters(new RpcExceptionsFilter())
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
+  @EventPattern('notification_created')
+  async handleNotificationCreated(@Payload() data: CreateNotificationDto) {
+    await this.notificationsService.create(data);
+  }
+
+  // HTTP endpoints are not accessible in pure microservice mode,
+  // but keeping them if we switch to hybrid application in future.
+  /*
   @Get()
   findAll(): Promise<NotificationResponseDto[]> {
     return this.notificationsService.findAll();
@@ -17,27 +27,5 @@ export class NotificationsController {
   findByUser(@Param('userId') userId: number): Promise<NotificationResponseDto[]> {
     return this.notificationsService.findByRecipient(Number(userId));
   }
-
-  @Get(':id')
-  findOne(@Param('id') id: number): Promise<NotificationResponseDto> {
-    return this.notificationsService.findOne(id);
-  }
-
-  @Post()
-  create(@Body() data: CreateNotificationDto): Promise<NotificationResponseDto> {
-    return this.notificationsService.create(data);
-  }
-
-  @Put(':id')
-  update(
-    @Param('id') id: number,
-    @Body() data: UpdateNotificationDto,
-  ): Promise<NotificationResponseDto> {
-    return this.notificationsService.update(id, data);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: number): Promise<{ deleted: boolean }> {
-    return this.notificationsService.remove(id);
-  }
+  */
 }
