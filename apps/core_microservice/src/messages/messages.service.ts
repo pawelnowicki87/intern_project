@@ -6,7 +6,8 @@ import { MessageResponseDto } from './dto/message-response.dto';
 import { Message } from './entities/message.entity';
 import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
 import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
-import { NotificationAction } from '@shared/notifications/notification-action';
+import { NotFoundError, ForbiddenError } from '../common/errors/domain-errors';
+import { NotificationAction } from '../common/notifications/notification-action';
 import { ChatParticipantsRepository } from 'src/chat-participants/chat-participants.repository';
 
 

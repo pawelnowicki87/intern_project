@@ -1,12 +1,14 @@
+# ===== BUILDER =====
 FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
 COPY . .
 
-RUN npm install
+RUN npm install --workspaces --include-workspace-root
 RUN npx turbo run build --filter=auth_microservice
 
+# ===== RUNTIME =====
 FROM node:22-alpine
 WORKDIR /app
 

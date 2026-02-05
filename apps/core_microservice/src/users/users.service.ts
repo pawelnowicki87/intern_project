@@ -3,7 +3,7 @@ import {
   NotFoundError,
   ConflictError,
   InternalError,
-} from '@shared/errors/domain-errors';
+} from '../common/errors/domain-errors';
 
 import { UsersRepository } from './users.repository';
 import { UsersCredentialRepository } from './users-credencial.repository';

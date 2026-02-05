@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { NotFoundError, InternalError, ForbiddenError } from '@shared/errors/domain-errors';
+import { NotFoundError, InternalError, ForbiddenError } from '../common/errors/domain-errors';
 import { FollowsRepository } from './follows.repository';
 import { CreateFollowDto } from './dto/create-follow.dto';
 import { FollowResponseDto } from './dto/follow-response.dto';
@@ -7,7 +7,7 @@ import { Follow, FollowStatus } from './entities/follow.entity';
 import { USERS_READER } from './ports/tokens';
 import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
 import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
-import { NotificationAction } from '@shared/notifications/notification-action';
+import { NotificationAction } from '../common/notifications/notification-action';
 import type { IUsersReader } from './ports/users-reader.port';
 
 @Injectable()

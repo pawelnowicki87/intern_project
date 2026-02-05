@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-import { NotificationAction } from '@shared/notifications/notification-action';
+import { NotificationAction } from '../../common/notifications/notification-action';
 
 @Entity('notifications')
 export class Notification {

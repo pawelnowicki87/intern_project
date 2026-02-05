@@ -2,21 +2,23 @@ import axios from 'axios';
 import { getAccessToken, setAccessToken, clearTokens } from './auth';
 
 export const authApiPublic = axios.create({
-  baseURL: process.env.AUTH_SERVICE_URL ?? 'http://localhost:3002',
+  baseURL: process.env.NEXT_PUBLIC_AUTH_API_URL!,
   withCredentials: true,
 });
 
 export const authApi = axios.create({
-  baseURL: process.env.AUTH_SERVICE_URL ?? 'http://localhost:3002',
+  baseURL: process.env.NEXT_PUBLIC_AUTH_API_URL!,
   withCredentials: true,
 });
 
 export const coreApi = axios.create({
-  baseURL: process.env.CORE_SERVICE_URL ?? 'http://localhost:3001',
+  baseURL: process.env.NEXT_PUBLIC_CORE_API_URL!,
+  withCredentials: true,
 });
 
 export const notificationsApi = axios.create({
-  baseURL: process.env.NOTIFICATIONS_SERVICE_URL ?? 'http://localhost:3003',
+  baseURL: process.env.NEXT_PUBLIC_NOTIFICATIONS_API_URL!,
+  withCredentials: true,
 });
 
 const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/refresh'];
@@ -44,7 +46,7 @@ const handle401 = async (error: any, api: any) => {
     error.response?.status === 401 &&
     !(originalRequest as any)._retry &&
     !AUTH_ROUTES.some((r) => originalRequest.url?.includes(r))
-  ) { 
+  ) {
     (originalRequest as any)._retry = true;
 
     try {
@@ -73,14 +75,6 @@ coreApi.interceptors.response.use(
   (response) => response,
   (error) => handle401(error, coreApi),
 );
-
-notificationsApi.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 notificationsApi.interceptors.response.use(
   (response) => response,

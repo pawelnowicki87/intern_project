@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { NotFoundError, InternalError } from '@shared/errors/domain-errors';
+import { NotFoundError, InternalError } from '../common/errors/domain-errors';
 import { LikesCommentsRepository } from './likes-comments.repository';
 import { CreateLikeCommentDto } from './dto/create-like-comment.dto';
 import { LikeCommentResponseDto } from './dto/like-comment-response.dto';
 import { LikeComment } from './entities/like-comment.entity';
 import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
 import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
-import { NotificationAction } from '@shared/notifications/notification-action';
+import { NotificationAction } from '../common/notifications/notification-action';
 
 @Injectable()
 export class LikesCommentsService {

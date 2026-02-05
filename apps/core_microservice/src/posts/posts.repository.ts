@@ -7,7 +7,7 @@ import { PostAsset } from 'src/post-assets/entities/post-asset.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
 import { LikePost } from 'src/likes-posts/entities/like-post.entity';
 import { SavePost } from 'src/saved-posts/entities/save-post.entity';
-import { InternalError } from '@shared/errors/domain-errors';
+import { InternalError } from '../common/errors/domain-errors';
 
 @Injectable()
 export class PostsRepository {

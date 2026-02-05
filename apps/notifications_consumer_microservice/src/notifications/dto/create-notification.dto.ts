@@ -1,5 +1,5 @@
 import { IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import { NotificationAction } from '@shared/notifications/notification-action';
+import { NotificationAction } from '../../common/notifications/notification-action';
 
 export class CreateNotificationDto {
   @IsInt()
