@@ -10,8 +10,10 @@ import {
   Settings,
   Moon,
   LogOut,
+  X,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import NotificationsDropdown from "@/components/NotificationsDropdown";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
@@ -24,8 +26,37 @@ interface HeaderProps {
 export default function Header({ onCreatePost }: HeaderProps) {
   const { user, logout } = useAuth();
   const { unreadCount } = useSocket();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (searchQuery === (searchParams.get("search") || "")) {
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.trim()) {
+        router.replace(`/feed?search=${encodeURIComponent(searchQuery)}`);
+      } else if (searchParams.get("search")) {
+        router.replace("/feed");
+      }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, router]);
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    router.push("/feed");
+  };
 
   const handleLogout = () => {
     logout();
@@ -72,16 +103,28 @@ export default function Header({ onCreatePost }: HeaderProps) {
           </h1>
         </Link>
 
-        <div className="hidden md:block flex-1 max-w-xs mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-full pl-10 pr-4 py-1.5 bg-gray-100 rounded-lg text-sm focus:outline-none focus:bg-gray-200"
-            />
+        {pathname === "/feed" && (
+          <div className="hidden md:block flex-1 max-w-xs mx-8">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-10 py-1.5 bg-gray-100 rounded-lg text-sm focus:outline-none focus:bg-gray-200"
+              />
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="hidden md:flex items-center gap-5">
           <Link href="/feed">
@@ -97,9 +140,6 @@ export default function Header({ onCreatePost }: HeaderProps) {
           </Link>
           <button onClick={onCreatePost} type="button">
             <PlusSquare className="w-6 h-6 hover:text-gray-600 transition-colors" />
-          </button>
-          <button type="button">
-            <Compass className="w-6 h-6 hover:text-gray-600 transition-colors" />
           </button>
           <NotificationsDropdown />
 

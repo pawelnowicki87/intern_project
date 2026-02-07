@@ -32,6 +32,10 @@ const formatAction = (action?: NotificationAction | string) => {
       return "accepted your request";
     case NotificationAction.FOLLOW_REJECTED:
       return "rejected your request";
+    case NotificationAction.FOLLOW_REQUEST_ACCEPTED:
+      return "Request accepted";
+    case NotificationAction.FOLLOW_REQUEST_REJECTED:
+      return "Request rejected";
     case NotificationAction.MENTION_POST:
       return "mentioned you in a post";
     case NotificationAction.MENTION_COMMENT:
@@ -201,13 +205,24 @@ export default function NotificationsDropdown() {
         `/follows/${senderId}/${user?.id}/${accept ? "accept" : "reject"}`,
       );
 
-      // Mark notification as read
+      const newAction = accept
+        ? NotificationAction.FOLLOW_REQUEST_ACCEPTED
+        : NotificationAction.FOLLOW_REQUEST_REJECTED;
+
+      // Mark notification as read and update action
       await notificationsApi.put(`/${notificationId}`, {
         isRead: true,
+        action: newAction,
       });
 
-      // Remove the notification from the list
-      setItems((prev) => prev.filter((x) => x.id !== notificationId));
+      // Update the notification in the list
+      setItems((prev) =>
+        prev.map((x) =>
+          x.id === notificationId
+            ? { ...x, isRead: true, action: newAction }
+            : x,
+        ),
+      );
     } catch (error) {
       console.error("Error handling follow request:", error);
     } finally {

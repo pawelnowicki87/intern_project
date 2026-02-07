@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { useAuth } from './AuthContext';
-import { getAccessToken } from '../lib/auth';
-import { coreApi } from '../lib/api';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
+import { io, Socket } from "socket.io-client";
+import { useAuth } from "./AuthContext";
+import { getAccessToken } from "../lib/auth";
+import { coreApi } from "../lib/api";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -26,7 +32,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       const res = await coreApi.get(`/messages/unread/count/${user.id}`);
       setUnreadCount(Number(res.data));
     } catch (e) {
-      console.error('Failed to fetch unread count', e);
+      console.error("Failed to fetch unread count", e);
     }
   };
 
@@ -42,12 +48,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     refreshUnreadCount();
 
-    const token = getAccessToken() ?? '';
-    const endpoint = process.env.NEXT_PUBLIC_CORE_SERVICE_URL ?? 'http://localhost:3001';
+    const token = getAccessToken() ?? "";
+    const endpoint =
+      process.env.NEXT_PUBLIC_CORE_SERVICE_URL ?? "http://localhost:3001";
 
     const s = io(endpoint, {
       auth: { token },
-      transports: ['websocket'],
+      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 500,
@@ -56,28 +63,31 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     socketRef.current = s;
     setSocket(s);
 
-    s.on('connect', () => {
-        // Fetch chats and join rooms to receive new_message events
-        coreApi.get(`/chats/user/${user.id}`).then((res) => {
-            const chats = res.data;
-            if (Array.isArray(chats)) {
-                chats.forEach((c: any) => {
-                    s.emit('join_room', { chatId: c.id });
-                });
-            }
-        }).catch(console.error);
+    s.on("connect", () => {
+      // Fetch chats and join rooms to receive new_message events
+      coreApi
+        .get(`/chats/user/${user.id}`)
+        .then((res) => {
+          const chats = res.data;
+          if (Array.isArray(chats)) {
+            chats.forEach((c: any) => {
+              s.emit("join_room", { chatId: c.id });
+            });
+          }
+        })
+        .catch(console.error);
     });
 
-    s.on('new_message', (msg: any) => {
-      if (msg.receiverId === user.id) {
+    s.on("new_message", (msg: any) => {
+      if (msg.senderId !== user.id) {
         setUnreadCount((prev) => prev + 1);
       }
     });
 
-    s.on('message_read_broadcast', (data: any) => {
-        if (data.userId === user.id) {
-            refreshUnreadCount();
-        }
+    s.on("message_read_broadcast", (data: any) => {
+      if (data.userId === user.id) {
+        refreshUnreadCount();
+      }
     });
 
     return () => {
@@ -95,6 +105,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
-  if (!context) throw new Error('useSocket must be used within SocketProvider');
+  if (!context) throw new Error("useSocket must be used within SocketProvider");
   return context;
 };

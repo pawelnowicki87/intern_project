@@ -11,8 +11,10 @@ import { NotificationsRmqAdapter } from './notifications-rmq.adapter';
         name: 'NOTIFICATIONS_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
-          queue: process.env.NOTIFICATIONS_QUEUE || 'notifications',
+          urls: [
+            process.env.RABBITMQ_URL ||
+              'amqp://innogram:innogram_password@localhost:5672',
+          ],          queue: process.env.NOTIFICATIONS_QUEUE || 'notifications',
           queueOptions: {
             durable: true,
           },

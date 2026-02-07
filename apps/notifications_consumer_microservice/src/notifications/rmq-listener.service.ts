@@ -10,8 +10,9 @@ export class NotificationsRmqListener implements OnModuleInit {
   private channel: any = null;
   private readonly queueName =
     process.env.NOTIFICATIONS_QUEUE || 'notifications';
-  private readonly url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
-
+  private readonly url =
+    process.env.RABBITMQ_URL ||
+    'amqp://innogram:innogram_password@localhost:5672';
   constructor(private readonly notificationsService: NotificationsService) {}
 
   async onModuleInit() {

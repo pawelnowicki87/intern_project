@@ -25,7 +25,7 @@ export class MentionsService {
 
   private extractUsernames(text: string): string[] {
     const regex = /@([a-zA-Z0-9_]+)/g;
-    return [...text.matchAll(regex)].map(match => match[1]);
+    return [...text.matchAll(regex)].map((match) => match[1]);
   }
 
   async processMentions(
@@ -39,7 +39,12 @@ export class MentionsService {
     for (const username of usernames) {
       const user = await this.userReader.findUserByUserName(username);
 
-      if (!user) continue;
+      if (!user) {
+        this.logger.debug(
+          `User with username ${username} not found for mention.`,
+        );
+        continue;
+      }
       if (user.id === createdByUserId) continue;
 
       const mention = this.repo.create({
@@ -51,17 +56,27 @@ export class MentionsService {
 
       await this.repo.save(mention);
 
-      const action = sourceType === MentionType.COMMENT
-        ? NotificationAction.MENTION_COMMENT
-        : NotificationAction.MENTION_POST;
+      const action =
+        sourceType === MentionType.COMMENT
+          ? NotificationAction.MENTION_COMMENT
+          : NotificationAction.MENTION_POST;
 
-      this.logger.log(`Sending ${action} notification to user ${user.id} from user ${createdByUserId} for source ${sourceId}`);
-      await this.notificationSender.sendNotification(
-        user.id,
-        createdByUserId,
-        action,
-        sourceId,
+      this.logger.log(
+        `Sending ${action} notification to user ${user.id} from user ${createdByUserId} for source ${sourceId}`,
       );
+      try {
+        await this.notificationSender.sendNotification(
+          user.id,
+          createdByUserId,
+          action,
+          sourceId,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to send ${action} notification: ${error.message}`,
+          error.stack,
+        );
+      }
     }
   }
 }

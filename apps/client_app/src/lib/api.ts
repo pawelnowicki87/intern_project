@@ -40,6 +40,14 @@ coreApi.interceptors.request.use((config) => {
   return config;
 });
 
+notificationsApi.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const handle401 = async (error: any, api: any) => {
   const originalRequest = error.config;
 

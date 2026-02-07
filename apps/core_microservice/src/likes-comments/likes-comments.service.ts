@@ -18,18 +18,55 @@ export class LikesCommentsService {
     private readonly notificationSender: INotificationSender,
   ) {}
 
-  private async notifyCommentLike(userId: number, commentId: number): Promise<void> {
+  private async notifyCommentLike(
+    userId: number,
+    commentId: number,
+  ): Promise<void> {
     const like = await this.likesRepo.findOne(userId, commentId);
-    const commentOwnerId = like?.comment?.userId;
-    if (!commentOwnerId || commentOwnerId === userId) return;
 
-    this.logger.log(`Sending LIKE_COMMENT notification to user ${commentOwnerId} from user ${userId} for comment ${commentId}`);
-    await this.notificationSender.sendNotification(
-      commentOwnerId,
-      userId,
-      NotificationAction.LIKE_COMMENT,
-      commentId,
+    if (!like) {
+      this.logger.warn(
+        `Like not found for userId: ${userId}, commentId: ${commentId} during notification`,
+      );
+      return;
+    }
+
+    if (!like.comment) {
+      this.logger.warn(
+        `Comment not found in relation for like userId: ${userId}, commentId: ${commentId}. Check relations.`,
+      );
+      return;
+    }
+
+    const commentOwnerId = like.comment.userId;
+    if (!commentOwnerId) {
+      this.logger.warn(`Comment owner ID missing for commentId: ${commentId}`);
+      return;
+    }
+
+    if (commentOwnerId === userId) {
+      this.logger.debug(
+        `User ${userId} liked their own comment ${commentId}. No notification sent.`,
+      );
+      return;
+    }
+
+    this.logger.log(
+      `Sending LIKE_COMMENT notification to user ${commentOwnerId} from user ${userId} for comment ${commentId}`,
     );
+    try {
+      await this.notificationSender.sendNotification(
+        commentOwnerId,
+        userId,
+        NotificationAction.LIKE_COMMENT,
+        commentId,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send LIKE_COMMENT notification: ${error.message}`,
+        error.stack,
+      );
+    }
   }
 
   private toResponseDto(like: LikeComment): LikeCommentResponseDto {
@@ -48,7 +85,10 @@ export class LikesCommentsService {
     return likes.map((like) => this.toResponseDto(like));
   }
 
-  async findOne(userId: number, commentId: number): Promise<LikeCommentResponseDto> {
+  async findOne(
+    userId: number,
+    commentId: number,
+  ): Promise<LikeCommentResponseDto> {
     const like = await this.likesRepo.findOne(userId, commentId);
     if (!like) throw new NotFoundError('Like not found');
     return this.toResponseDto(like);
@@ -61,7 +101,10 @@ export class LikesCommentsService {
       throw new InternalError('Failed to create like');
     }
 
-    const like = await this.likesRepo.findOne(created.userId, created.commentId);
+    const like = await this.likesRepo.findOne(
+      created.userId,
+      created.commentId,
+    );
     if (!like) {
       throw new NotFoundError('Like not found after creation');
     }
@@ -71,7 +114,10 @@ export class LikesCommentsService {
     return this.toResponseDto(like);
   }
 
-  async remove(userId: number, commentId: number): Promise<{ deleted: boolean }> {
+  async remove(
+    userId: number,
+    commentId: number,
+  ): Promise<{ deleted: boolean }> {
     const success = await this.likesRepo.delete(userId, commentId);
 
     if (!success) throw new NotFoundError('Like not found');
@@ -79,9 +125,12 @@ export class LikesCommentsService {
     return { deleted: true };
   }
 
-  async toggleLike(userId: number, commentId: number): Promise<{ liked: boolean}> {
+  async toggleLike(
+    userId: number,
+    commentId: number,
+  ): Promise<{ liked: boolean }> {
     const existingLike = await this.likesRepo.findOne(userId, commentId);
-    
+
     if (existingLike) {
       const success = await this.likesRepo.delete(userId, commentId);
 
@@ -89,10 +138,10 @@ export class LikesCommentsService {
         throw new InternalError('Failed to remove like');
       }
 
-      return { liked: false};
+      return { liked: false };
     }
 
-    const created = await this.likesRepo.create({ userId, commentId});
+    const created = await this.likesRepo.create({ userId, commentId });
 
     if (!created) {
       throw new InternalError('Failed to create like');
@@ -106,7 +155,7 @@ export class LikesCommentsService {
   async getCommentLikes(commentId: number): Promise<LikeCommentResponseDto[]> {
     const likes = await this.likesRepo.findByCommentId(commentId);
 
-    return likes.map(like => this.toResponseDto(like));
+    return likes.map((like) => this.toResponseDto(like));
   }
 
   async countByCommentId(commentId: number): Promise<number> {
@@ -115,8 +164,14 @@ export class LikesCommentsService {
     return count;
   }
 
-  async checkLiked(userId: number, commentIds: number[]): Promise<{ likedIds: number[] }> {
-    const likes = await this.likesRepo.findByUserAndCommentIds(userId, commentIds);
+  async checkLiked(
+    userId: number,
+    commentIds: number[],
+  ): Promise<{ likedIds: number[] }> {
+    const likes = await this.likesRepo.findByUserAndCommentIds(
+      userId,
+      commentIds,
+    );
     const likedIds = Array.from(new Set(likes.map((l) => l.commentId)));
     return { likedIds };
   }

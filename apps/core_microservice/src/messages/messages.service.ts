@@ -1,55 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MessagesRepository } from './messages.repository';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { MessageResponseDto } from './dto/message-response.dto';
 import { Message } from './entities/message.entity';
-import { NOTIFICATIONS_SENDER } from 'src/notifications-producer/ports/tokens';
-import type { INotificationSender } from 'src/notifications-producer/ports/notification-sender.port';
 import { NotFoundError, ForbiddenError } from '../common/errors/domain-errors';
-import { NotificationAction } from '../common/notifications/notification-action';
-import { ChatParticipantsRepository } from 'src/chat-participants/chat-participants.repository';
-
 
 @Injectable()
 export class MessagesService {
-  constructor(
-    private readonly messagesRepo: MessagesRepository,
-    private readonly chatParticipantsRepo: ChatParticipantsRepository,
-    @Inject(NOTIFICATIONS_SENDER)
-    private readonly notificationSender: INotificationSender,
-  ) {}
+  constructor(private readonly messagesRepo: MessagesRepository) {}
 
-  private async notifyMessageRecipients(message: Message): Promise<void> {
-    const { senderId, receiverId, chatId, id } = message;
-
-    if (receiverId && receiverId !== senderId) {
-      await this.notificationSender.sendNotification(
-        receiverId,
-        senderId,
-        NotificationAction.MESSAGE_RECEIVED,
-        chatId ?? id,
-      );
-      return;
-    }
-
-    if (!chatId) return;
-    const participants = await this.chatParticipantsRepo.findByChatId(chatId);
-    const recipients = participants
-      .map((p) => p.userId)
-      .filter((userId) => userId !== senderId);
-
-    await Promise.all(
-      recipients.map((recipientId) =>
-        this.notificationSender.sendNotification(
-          recipientId,
-          senderId,
-          NotificationAction.MESSAGE_GROUP_RECEIVED,
-          chatId,
-        ),
-      ),
-    );
-  }
   toResponseDto(message: Message): MessageResponseDto {
     return {
       id: message.id,
@@ -69,15 +29,18 @@ export class MessagesService {
         lastName: message.receiver.lastName,
         email: message.receiver.email,
       },
-      assets: message.assets?.map(a => ({
-        id: a.fileId,
-        url: a.file?.url ?? '',
-      })) ?? [],
+      assets:
+        message.assets?.map((a) => ({
+          id: a.fileId,
+          url: a.file?.url ?? '',
+        })) ?? [],
     };
   }
 
   async findAll() {
-    return (await this.messagesRepo.findAll()).map(m => this.toResponseDto(m));
+    return (await this.messagesRepo.findAll()).map((m) =>
+      this.toResponseDto(m),
+    );
   }
 
   async findOne(id: number) {
@@ -89,7 +52,10 @@ export class MessagesService {
   async create(data: CreateMessageDto) {
     const created = await this.messagesRepo.create({ ...data, isRead: false });
     const msg = await this.messagesRepo.findById(created.id);
-    await this.notifyMessageRecipients(msg);
+
+    if (msg) {
+      // Notification logic removed as per user request (messages only in chat icon, not bell)
+    }
     return this.toResponseDto(msg);
   }
 
@@ -106,4 +72,3 @@ export class MessagesService {
     return this.messagesRepo.countUnread(userId);
   }
 }
-
