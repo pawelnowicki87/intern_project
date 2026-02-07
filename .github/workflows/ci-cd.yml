@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build & Test Monorepo
+    name: Build & Test Monorepo.
     runs-on: ubuntu-latest
 
     env:
