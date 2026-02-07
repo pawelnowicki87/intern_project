@@ -69,7 +69,7 @@ jobs:
         run: npm run test --if-present
 
 
-  #   docker-core:
+  docker-core:
     name: Build & Push core_microservice image (GHCR)
     runs-on: ubuntu-latest
     needs: build
