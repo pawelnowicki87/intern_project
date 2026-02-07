@@ -40,7 +40,12 @@ export class NotificationsRmqListener implements OnModuleInit {
     try {
       const content = msg.content.toString();
       this.logger.debug(`Received message: ${content}`);
-      const payload = JSON.parse(content);
+      let payload = JSON.parse(content);
+
+      // Handle NestJS Microservice message format
+      if (payload && payload.data) {
+        payload = payload.data;
+      }
       
       this.logger.log(`Processing notification: ${payload.action} from ${payload.senderId} to ${payload.recipientId}`);
 

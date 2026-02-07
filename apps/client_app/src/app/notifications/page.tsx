@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import Header from '@/components/Header';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { useAuth } from '@/context/AuthContext';
-import { coreApi, notificationsApi } from '@/lib/api';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, CheckCheck } from 'lucide-react';
-import { navigateForNotification } from '@/components/nav';
-import { useRouter } from 'next/navigation';
-import { NotificationAction } from '@/lib/notification-action';
+import Header from "@/components/Header";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
+import { coreApi, notificationsApi } from "@/lib/api";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Bell, CheckCheck } from "lucide-react";
+import { navigateForNotification } from "@/components/nav";
+import { useRouter } from "next/navigation";
+import { NotificationAction } from "@/lib/notification-action";
 
 type NotificationItem = {
   id: number;
@@ -29,44 +29,45 @@ type UserLite = {
 const formatAction = (action?: NotificationAction | string) => {
   switch (action) {
     case NotificationAction.FOLLOW_REQUEST:
-      return 'sent a follow request';
+      return "sent a follow request";
     case NotificationAction.FOLLOW_ACCEPTED:
-      return 'accepted your request';
+      return "accepted your request";
     case NotificationAction.FOLLOW_REJECTED:
-      return 'rejected your request';
+      return "rejected your request";
     case NotificationAction.MENTION_POST:
-      return 'mentioned you in a post';
+      return "mentioned you in a post";
     case NotificationAction.MENTION_COMMENT:
-      return 'mentioned you in a comment';
+      return "mentioned you in a comment";
     case NotificationAction.COMMENT_POST:
-      return 'commented on your post';
+      return "commented on your post";
     case NotificationAction.COMMENT_REPLY:
-      return 'replied to your comment';
+      return "replied to your comment";
     case NotificationAction.MESSAGE_RECEIVED:
-      return 'sent you a message';
+      return "sent you a message";
     case NotificationAction.MESSAGE_GROUP_RECEIVED:
-      return 'sent a message in a group';
+      return "sent a message in a group";
     case NotificationAction.LIKE_POST:
-      return 'liked your post';
+      return "liked your post";
     case NotificationAction.LIKE_COMMENT:
-      return 'liked your comment';
+      return "liked your comment";
     default:
-      return action ?? 'notification';
+      return action ?? "notification";
   }
 };
 
 const formatTimeAgo = (dateValue: string | Date) => {
-  const date = typeof dateValue === 'string'
-    ? (() => {
-      const raw = dateValue.trim();
-      const hasTZ = /Z|[+-]\d{2}:\d{2}$/.test(raw);
-      const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
-      const normalized = hasTZ ? iso : `${iso}Z`;
-      return new Date(normalized);
-    })()
-    : dateValue;
+  const date =
+    typeof dateValue === "string"
+      ? (() => {
+          const raw = dateValue.trim();
+          const hasTZ = /Z|[+-]\d{2}:\d{2}$/.test(raw);
+          const iso = raw.includes("T") ? raw : raw.replace(" ", "T");
+          const normalized = hasTZ ? iso : `${iso}Z`;
+          return new Date(normalized);
+        })()
+      : dateValue;
   const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (diff < 90) return 'now';
+  if (diff < 90) return "now";
 
   const mins = Math.floor(diff / 60);
   if (mins < 60) return `${mins} min ago`;
@@ -75,16 +76,16 @@ const formatTimeAgo = (dateValue: string | Date) => {
   if (hours < 24) return `${hours} h ago`;
 
   const days = Math.floor(hours / 24);
-  if (days < 7) return days === 1 ? '1 day ago' : `${days} days ago`;
+  if (days < 7) return days === 1 ? "1 day ago" : `${days} days ago`;
 
   const weeks = Math.floor(days / 7);
-  if (weeks < 4) return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+  if (weeks < 4) return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
 
   const months = Math.floor(days / 30);
-  if (months < 12) return months === 1 ? '1 month ago' : `${months} months ago`;
+  if (months < 12) return months === 1 ? "1 month ago" : `${months} months ago`;
 
   const years = Math.floor(days / 365);
-  return years === 1 ? '1 year ago' : `${years} years ago`;
+  return years === 1 ? "1 year ago" : `${years} years ago`;
 };
 
 export default function Page() {
@@ -101,8 +102,12 @@ export default function Page() {
   }, [usersById]);
 
   const ensureUsersLoaded = useCallback(async (notifs: NotificationItem[]) => {
-    const ids = Array.from(new Set(notifs.map((n) => n.senderId))).filter(Boolean);
-    const missing = ids.filter((id) => !usersByIdRef.current[id] && !inFlightRef.current.has(id));
+    const ids = Array.from(new Set(notifs.map((n) => n.senderId))).filter(
+      Boolean,
+    );
+    const missing = ids.filter(
+      (id) => !usersByIdRef.current[id] && !inFlightRef.current.has(id),
+    );
     if (!missing.length) return;
 
     missing.forEach((id) => inFlightRef.current.add(id));
@@ -131,15 +136,20 @@ export default function Page() {
   }, []);
 
   const fetchNotifications = useCallback(async () => {
+    console.log("Fetching notifications page for user:", user?.id);
     if (!user?.id) return;
     try {
-      const res = await notificationsApi.get(`/notifications/user/${user.id}`);
+      const res = await notificationsApi.get(`/user/${user.id}`);
+      console.log("Notifications page fetch result:", res.data);
       const data = Array.isArray(res.data) ? res.data : [];
       setItems(data);
       setLoadError(null);
       await ensureUsersLoaded(data);
-    } catch {
-      setLoadError('Failed to fetch notifications. Make sure the notifications service is running.');
+    } catch (error) {
+      console.error("Error fetching notifications page:", error);
+      setLoadError(
+        "Failed to fetch notifications. Make sure the notifications service is running.",
+      );
       setItems([]);
     }
   }, [ensureUsersLoaded, user?.id]);
@@ -148,7 +158,10 @@ export default function Page() {
     void fetchNotifications();
   }, [fetchNotifications]);
 
-  const unreadCount = useMemo(() => items.filter((n) => !n.isRead).length, [items]);
+  const unreadCount = useMemo(
+    () => items.filter((n) => !n.isRead).length,
+    [items],
+  );
 
   const markAllAsRead = async () => {
     if (!user?.id) return;
@@ -156,7 +169,9 @@ export default function Page() {
     if (!unreadIds.length) return;
 
     try {
-      await Promise.all(unreadIds.map((id) => notificationsApi.put(`/notifications/${id}`, { isRead: true })));
+      await Promise.all(
+        unreadIds.map((id) => notificationsApi.put(`/${id}`, { isRead: true })),
+      );
       setItems((prev) => prev.map((x) => ({ ...x, isRead: true })));
     } catch {
       await fetchNotifications();
@@ -201,9 +216,11 @@ export default function Page() {
                     <div
                       key={n.id}
                       className={[
-                        'relative border-b border-gray-100 transition-all duration-200',
-                        n.isRead ? 'bg-white' : 'bg-gradient-to-r from-blue-50/50 to-purple-50/50',
-                      ].join(' ')}
+                        "relative border-b border-gray-100 transition-all duration-200",
+                        n.isRead
+                          ? "bg-white"
+                          : "bg-gradient-to-r from-blue-50/50 to-purple-50/50",
+                      ].join(" ")}
                     >
                       {!n.isRead && (
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500" />
@@ -213,8 +230,14 @@ export default function Page() {
                         onClick={async () => {
                           if (!n.isRead) {
                             try {
-                              await notificationsApi.put(`/notifications/${n.id}`, { isRead: true });
-                              setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, isRead: true } : x)));
+                              await notificationsApi.put(`/${n.id}`, {
+                                isRead: true,
+                              });
+                              setItems((prev) =>
+                                prev.map((x) =>
+                                  x.id === n.id ? { ...x, isRead: true } : x,
+                                ),
+                              );
                             } catch {
                               await fetchNotifications();
                             }
@@ -227,20 +250,30 @@ export default function Page() {
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 flex-shrink-0 bg-gradient-to-br from-blue-500 to-pink-500">
                             {senderAvatar ? (
-                              <img src={senderAvatar} alt={senderName} className="w-full h-full object-cover" />
+                              <img
+                                src={senderAvatar}
+                                alt={senderName}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                                {senderName?.[0]?.toUpperCase() ?? 'U'}
+                                {senderName?.[0]?.toUpperCase() ?? "U"}
                               </div>
                             )}
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="text-sm">
-                              <span className="font-semibold">{senderName}</span>{' '}
-                              <span className="text-gray-700">{formatAction(n.action)}</span>
+                              <span className="font-semibold">
+                                {senderName}
+                              </span>{" "}
+                              <span className="text-gray-700">
+                                {formatAction(n.action)}
+                              </span>
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">{formatTimeAgo(n.createdAt)}</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {formatTimeAgo(n.createdAt)}
+                            </div>
                           </div>
                         </div>
                       </button>
