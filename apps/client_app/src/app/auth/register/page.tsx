@@ -1,21 +1,27 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
-import GoogleLoginButton from '../../../components/ui/GoogleLoginButton';
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import GoogleLoginButton from "../../../components/ui/GoogleLoginButton";
 
-const registerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  email: z.string().email('Invalid email'),
-  phone: z.string().optional(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-});
+const registerSchema = z
+  .object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    email: z.string().email("Invalid email"),
+    phone: z.string().optional(),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -34,18 +40,19 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await registerUser(data);
-      router.push('/feed');
+      const { confirmPassword, ...registerData } = data;
+      await registerUser(registerData);
+      router.push("/feed");
     } catch (err) {
-      console.error('Registration failed', err);
-      setError('root', {
-        message: 'Registration failed. Please try again.',
+      console.error("Registration failed", err);
+      setError("root", {
+        message: "Registration failed. Please try again.",
       });
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSubmit(onSubmit)();
     }
   };
@@ -55,7 +62,9 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm md:max-w-md lg:max-w-lg">
         <div className="bg-white border border-gray-300 rounded-none md:rounded-sm p-8 md:p-10 mb-3">
           <div className="text-center mb-6">
-            <h1 className="text-4xl md:text-5xl font-serif italic mb-4">Instagram</h1>
+            <h1 className="text-4xl md:text-5xl font-serif italic mb-4">
+              Innogram
+            </h1>
             <p className="text-gray-500 text-sm font-semibold px-8">
               Sign up to see photos and videos from your friends.
             </p>
@@ -65,11 +74,11 @@ export default function RegisterPage() {
             onSuccess={async (credential) => {
               try {
                 await loginWithGoogle(credential);
-                router.push('/');
+                router.push("/");
               } catch (err) {
-                console.error('Google login failed', err);
-                setError('root', {
-                  message: 'Google login failed. Please try again.',
+                console.error("Google login failed", err);
+                setError("root", {
+                  message: "Google login failed. Please try again.",
                 });
               }
             }}
@@ -94,13 +103,17 @@ export default function RegisterPage() {
               <input
                 type="text"
                 placeholder="Email"
-                {...register('email')}
+                {...register("email")}
                 className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
-                  errors.email ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                  errors.email
+                    ? "border-red-500"
+                    : "border-gray-300 focus:border-gray-400"
                 }`}
               />
               {errors.email && (
-                <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -108,13 +121,17 @@ export default function RegisterPage() {
               <input
                 type="text"
                 placeholder="First Name"
-                {...register('firstName')}
+                {...register("firstName")}
                 className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
-                  errors.firstName ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                  errors.firstName
+                    ? "border-red-500"
+                    : "border-gray-300 focus:border-gray-400"
                 }`}
               />
               {errors.firstName && (
-                <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.firstName.message}
+                </p>
               )}
             </div>
 
@@ -122,13 +139,17 @@ export default function RegisterPage() {
               <input
                 type="text"
                 placeholder="Last Name"
-                {...register('lastName')}
+                {...register("lastName")}
                 className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
-                  errors.lastName ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                  errors.lastName
+                    ? "border-red-500"
+                    : "border-gray-300 focus:border-gray-400"
                 }`}
               />
               {errors.lastName && (
-                <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.lastName.message}
+                </p>
               )}
             </div>
 
@@ -136,13 +157,17 @@ export default function RegisterPage() {
               <input
                 type="text"
                 placeholder="Username"
-                {...register('username')}
+                {...register("username")}
                 className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
-                  errors.username ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                  errors.username
+                    ? "border-red-500"
+                    : "border-gray-300 focus:border-gray-400"
                 }`}
               />
               {errors.username && (
-                <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.username.message}
+                </p>
               )}
             </div>
 
@@ -150,7 +175,7 @@ export default function RegisterPage() {
               <input
                 type="tel"
                 placeholder="Phone (optional)"
-                {...register('phone')}
+                {...register("phone")}
                 className="w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none border-gray-300 focus:border-gray-400"
               />
             </div>
@@ -159,13 +184,35 @@ export default function RegisterPage() {
               <input
                 type="password"
                 placeholder="Password"
-                {...register('password')}
+                {...register("password")}
                 className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
-                  errors.password ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                  errors.password
+                    ? "border-red-500"
+                    : "border-gray-300 focus:border-gray-400"
                 }`}
               />
               {errors.password && (
-                <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="password"
+                placeholder="Repeat Password"
+                {...register("confirmPassword")}
+                className={`w-full px-2 py-2 text-xs border rounded-sm bg-gray-50 focus:bg-white focus:outline-none ${
+                  errors.confirmPassword
+                    ? "border-red-500"
+                    : "border-gray-300 focus:border-gray-400"
+                }`}
+              />
+              {errors.confirmPassword && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 
@@ -174,20 +221,20 @@ export default function RegisterPage() {
               disabled={isSubmitting}
               className="w-full bg-blue-500 text-white py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed mt-4"
             >
-              {isSubmitting ? 'Signing up...' : 'Sign up'}
+              {isSubmitting ? "Signing up..." : "Sign up"}
             </button>
           </div>
 
           <p className="text-xs text-gray-500 text-center mt-4 leading-relaxed">
-            By signing up, you agree to our{' '}
+            By signing up, you agree to our{" "}
             <Link href="/terms" className="text-blue-900 hover:underline">
               Terms
             </Link>
-            ,{' '}
+            ,{" "}
             <Link href="/privacy" className="text-blue-900 hover:underline">
               Privacy Policy
-            </Link>{' '}
-            and{' '}
+            </Link>{" "}
+            and{" "}
             <Link href="/cookies" className="text-blue-900 hover:underline">
               Cookies Policy
             </Link>
@@ -197,8 +244,11 @@ export default function RegisterPage() {
 
         <div className="bg-white border border-gray-300 rounded-none md:rounded-sm p-6 text-center">
           <p className="text-sm">
-            Have an account?{' '}
-            <Link href="/auth/login" className="text-blue-500 font-semibold hover:text-blue-600">
+            Have an account?{" "}
+            <Link
+              href="/auth/login"
+              className="text-blue-500 font-semibold hover:text-blue-600"
+            >
               Log in
             </Link>
           </p>

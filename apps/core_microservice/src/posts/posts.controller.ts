@@ -27,6 +27,61 @@ export class PostsController {
     return this.postsService.findAll(sort, page, limit);
   }
 
+  @Get('search')
+  search(@Query('query') query: string): Promise<PostResponseDto[]> {
+    return this.postsService.searchPosts(query);
+  }
+
+  @Get('archive')
+  findArchived(): Promise<PostResponseDto[]> {
+    return this.postsService.findArchived();
+  }
+
+  @Get('feed/:userId')
+  findFeed(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('sort') sort: 'asc' | 'desc' = 'desc',
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+  ): Promise<PostResponseDto[]> {
+    return this.postsService.findFeedForUser(
+      Number(userId),
+      sort,
+      Number(page),
+      Number(limit),
+    );
+  }
+
+  @Get('feed/:userId/most-liked')
+  findMostLikedFeed(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+  ): Promise<PostResponseDto[]> {
+    return this.postsService.findFeedMostLikedForUser(
+      Number(userId),
+      Number(page),
+      Number(limit),
+    );
+  }
+
+  @Get('user/:userId')
+  findByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('viewerId') viewerId?: number,
+    @Query('sort') sort: 'asc' | 'desc' = 'desc',
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+  ): Promise<PostResponseDto[]> {
+    return this.postsService.findByUserVisible(
+      Number(userId),
+      viewerId ? Number(viewerId) : 0,
+      sort,
+      Number(page),
+      Number(limit),
+    );
+  }
+
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,
@@ -53,12 +108,7 @@ export class PostsController {
     return this.postsService.remove(id);
   }
 
-  @Get('archive')
-  findArchived(): Promise<PostResponseDto[]> {
-    return this.postsService.findArchived();
-  }
-
-  @Patch(':id/archive') 
+  @Patch(':id/archive')
   archive(@Param('id', ParseIntPipe) id: number): Promise<PostResponseDto> {
     return this.postsService.archive(id);
   }
@@ -66,49 +116,5 @@ export class PostsController {
   @Patch(':id/unarchive')
   unArchive(@Param('id', ParseIntPipe) id: number): Promise<PostResponseDto> {
     return this.postsService.unArchive(id);
-  }
-
-  @Get('feed/:userId')
-  findFeed(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Query('sort') sort: 'asc' | 'desc' = 'desc',
-    @Query('page', ParseIntPipe) page = 1,
-    @Query('limit', ParseIntPipe) limit = 10,
-  ): Promise<PostResponseDto[]> {
-    return this.postsService.findFeedForUser(Number(userId), sort, Number(page), Number(limit));
-  }
-
-  @Get('feed/:userId/most-liked')
-  findMostLikedFeed(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Query('page', ParseIntPipe) page = 1,
-    @Query('limit', ParseIntPipe) limit = 10,
-  ): Promise<PostResponseDto[]> {
-    return this.postsService.findFeedMostLikedForUser(Number(userId), Number(page), Number(limit));
-  }
-
-  @Get('user/:userId')
-  findByUser(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Query('viewerId') viewerId?: number,
-    @Query('sort') sort: 'asc' | 'desc' = 'desc',
-    @Query('page', ParseIntPipe) page = 1,
-    @Query('limit', ParseIntPipe) limit = 10,
-  ): Promise<PostResponseDto[]> {
-    return this.postsService.findByUserVisible(
-      Number(userId),
-      viewerId ? Number(viewerId) : 0,
-      sort,
-      Number(page),
-      Number(limit),
-    );
-  }
-
-  @Get('search')
-  search(
-    @Query('query') query: string,
-    
-  ): Promise<PostResponseDto[]> {
-    return this.postsService.searchPosts(query);
   }
 }

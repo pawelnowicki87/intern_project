@@ -12,6 +12,11 @@ export class ChatsController {
     return this.chatsService.findAll();
   }
 
+  @Get('user/:userId')
+  findByUser(@Param('userId') userId: number): Promise<ChatResponseDto[]> {
+    return this.chatsService.findByUser(userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: number): Promise<ChatResponseDto> {
     return this.chatsService.findOne(id);

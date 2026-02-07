@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { NotFoundError, InternalError } from '../common/errors/domain-errors';
 import { LikesPostsRepository } from './likes-posts.repository';
 import { CreateLikePostDto } from './dto/create-like-post.dto';
@@ -9,6 +9,8 @@ import { NotificationAction } from '../common/notifications/notification-action'
 
 @Injectable()
 export class LikesPostsService {
+  private readonly logger = new Logger(LikesPostsService.name);
+
   constructor(
     private readonly likesRepo: LikesPostsRepository,
     @Inject(NOTIFICATIONS_SENDER)
@@ -17,15 +19,50 @@ export class LikesPostsService {
 
   private async notifyPostLike(userId: number, postId: number): Promise<void> {
     const like = await this.likesRepo.findOne(userId, postId);
-    const postOwnerId = like?.post?.userId;
-    if (!postOwnerId || postOwnerId === userId) return;
 
-    await this.notificationSender.sendNotification(
-      postOwnerId,
-      userId,
-      NotificationAction.LIKE_POST,
-      postId,
+    if (!like) {
+      this.logger.warn(
+        `Like not found for userId: ${userId}, postId: ${postId} during notification`,
+      );
+      return;
+    }
+
+    if (!like.post) {
+      this.logger.warn(
+        `Post not found in relation for like userId: ${userId}, postId: ${postId}. Check relations.`,
+      );
+      return;
+    }
+
+    const postOwnerId = like.post.userId;
+    if (!postOwnerId) {
+      this.logger.warn(`Post owner ID missing for postId: ${postId}`);
+      return;
+    }
+
+    if (postOwnerId === userId) {
+      this.logger.debug(
+        `User ${userId} liked their own post ${postId}. No notification sent.`,
+      );
+      return;
+    }
+
+    this.logger.log(
+      `Sending LIKE_POST notification to user ${postOwnerId} from user ${userId} for post ${postId}`,
     );
+    try {
+      await this.notificationSender.sendNotification(
+        postOwnerId,
+        userId,
+        NotificationAction.LIKE_POST,
+        postId,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send LIKE_POST notification: ${error.message}`,
+        error.stack,
+      );
+    }
   }
 
   private toResponseDto(like: any): LikePostResponseDto {
@@ -74,7 +111,10 @@ export class LikesPostsService {
     return { deleted: true };
   }
 
-  async toggleLike(userId: number, postId: number): Promise<{ liked: boolean }> {
+  async toggleLike(
+    userId: number,
+    postId: number,
+  ): Promise<{ liked: boolean }> {
     const existingLike = await this.likesRepo.findOne(userId, postId);
 
     if (existingLike) {
@@ -100,11 +140,11 @@ export class LikesPostsService {
   async getPostLikes(postId: number): Promise<LikePostResponseDto[] | null> {
     const likes = await this.likesRepo.findByPostId(postId);
 
-    if(!likes) {
+    if (!likes) {
       throw new InternalError('Failed to count likes');
     }
 
-    return likes.map(like => this.toResponseDto(like));
+    return likes.map((like) => this.toResponseDto(like));
   }
 
   async countByPostId(postId: number): Promise<number> {

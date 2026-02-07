@@ -81,16 +81,16 @@ export class PostsRepository {
   }
 
   async findArchived(): Promise<Post[]> {
-    return this.repo.find({ 
-      where: { status: PostStatus.ARCHIVED},
-      relations: [ 'user', 'assets', 'assets.file', 'likes', 'comments'],
-      order: { createdAt: 'DESC'},
+    return this.repo.find({
+      where: { status: PostStatus.ARCHIVED },
+      relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
+      order: { createdAt: 'DESC' },
     });
   }
 
   async archive(id: number): Promise<Post | null> {
     try {
-      await this.repo.update(id, { status: PostStatus.ARCHIVED});
+      await this.repo.update(id, { status: PostStatus.ARCHIVED });
       return this.findById(id);
     } catch (error) {
       this.logger.error(error.message);
@@ -100,22 +100,22 @@ export class PostsRepository {
 
   async unArchive(id: number): Promise<Post | null> {
     try {
-      await this.repo.update(id, { status: PostStatus.PUBLISHED});
+      await this.repo.update(id, { status: PostStatus.PUBLISHED });
       return this.findById(id);
     } catch (error) {
       this.logger.warn(error.message);
       return null;
     }
-  };
+  }
 
   async findByUserIds(
     allUsersIds: number[],
-    sort: 'asc' | 'desc' = 'desc', 
-    take = 1, 
+    sort: 'asc' | 'desc' = 'desc',
+    take = 1,
     skip = 10,
   ): Promise<Post[]> {
     return this.repo.find({
-      where: { 
+      where: {
         userId: In(allUsersIds),
         status: PostStatus.PUBLISHED,
       },
@@ -124,7 +124,7 @@ export class PostsRepository {
       take,
       skip,
     });
-  } 
+  }
 
   async findByUserId(
     userId: number,
@@ -144,11 +144,9 @@ export class PostsRepository {
     });
   }
 
-  async findMostLikedPublishedIds(
-    take = 10,
-    skip = 0,
-  ): Promise<number[]> {
-    const qb = this.repo.createQueryBuilder('post')
+  async findMostLikedPublishedIds(take = 10, skip = 0): Promise<number[]> {
+    const qb = this.repo
+      .createQueryBuilder('post')
       .leftJoin('post.likes', 'likes')
       .where('post.status = :status', { status: PostStatus.PUBLISHED })
       .select('post.id', 'id')
@@ -163,7 +161,6 @@ export class PostsRepository {
     return raw.map((r: any) => Number(r.id));
   }
 
-
   async findByIdsOrdered(ids: number[]): Promise<Post[]> {
     if (!ids.length) return [];
     const posts = await this.repo.find({
@@ -171,7 +168,7 @@ export class PostsRepository {
       relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
     });
     const order = new Map<number, number>(ids.map((id, idx) => [id, idx]));
-    return posts.sort((a, b) => (order.get(a.id)! - order.get(b.id)!));
+    return posts.sort((a, b) => order.get(a.id)! - order.get(b.id)!);
   }
 
   async searchByQuery(
@@ -183,6 +180,10 @@ export class PostsRepository {
     return this.repo.find({
       where: [
         { body: ILike(`%${query}%`), status: PostStatus.PUBLISHED },
+        {
+          user: { username: ILike(`%${query}%`) },
+          status: PostStatus.PUBLISHED,
+        },
       ],
       relations: ['user', 'assets', 'assets.file', 'likes', 'comments'],
       order: { createdAt: sort.toUpperCase() === 'ASC' ? 'ASC' : 'DESC' },
@@ -212,6 +213,4 @@ export class PostsRepository {
       fileId,
     });
   }
-
-
 }

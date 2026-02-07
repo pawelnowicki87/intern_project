@@ -1,21 +1,20 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
-    transport: Transport.RMQ,
-    options: {
-      urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
-      queue: process.env.NOTIFICATIONS_QUEUE || 'notifications',
-      queueOptions: {
-        durable: true,
-      },
-    },
+  const logger = new Logger('Bootstrap');
+  const app = await NestFactory.create(AppModule);
+
+  app.enableCors({
+    origin: true,
+    credentials: true,
   });
 
-  await app.listen();
+  const port = process.env.PORT || 3003;
+  await app.listen(port);
+  logger.log(`Notifications Consumer Microservice is running on: http://localhost:${port}`);
 }
 
 bootstrap();

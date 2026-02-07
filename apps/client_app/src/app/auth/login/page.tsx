@@ -45,7 +45,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm md:max-w-md lg:max-w-lg">
         <div className="bg-white border border-gray-300 rounded-none md:rounded-sm p-8 md:p-10 mb-3">
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-serif italic mb-2">Instagram</h1>
+            <h1 className="text-4xl md:text-5xl font-serif italic mb-2">Innogram</h1>
           </div>
 
           {errors.root && (

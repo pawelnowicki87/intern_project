@@ -175,10 +175,6 @@ export default function ProfileInfo({ profile }: ProfileInfoProps) {
                     </Link>
                   </>
                 )}
-
-                <button className="p-1.5 hover:bg-gray-100 rounded" type="button">
-                  <UserPlus className="w-5 h-5" />
-                </button>
               </div>
 
               {!isHidden && (

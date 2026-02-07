@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Message } from './entities/message.entity';
 
 @Injectable()
@@ -34,9 +34,25 @@ export class MessagesRepository {
     return this.findById(id);
   }
 
-  async delete(id: number): Promise<boolean> {
-    const result = await this.repo.delete(id);
-    return (result.affected ?? 0) > 0;
+  async countUnread(userId: number): Promise<number> {
+    return this.repo
+      .createQueryBuilder('message')
+      .leftJoin('message.chat', 'chat')
+      .leftJoin('chat.participants', 'participant')
+      .where('message.isRead = :isRead', { isRead: false })
+      .andWhere('message.senderId != :userId', { userId })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('message.receiverId = :userId', { userId }).orWhere(
+            'participant.userId = :userId',
+            { userId },
+          );
+        }),
+      )
+      .getCount();
+  }
+
+  async delete(id: number) {
+    return this.repo.delete(id);
   }
 }
-

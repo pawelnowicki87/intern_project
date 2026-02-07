@@ -1,51 +1,62 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import BottomNav from '../../components/BottomNav';
-import Header from '@/components/Header';
-import Post from './components/Post';
-import Stories from './components/Stories';
-import Suggestions from './components/Suggestions';
-import FeedFilterBar from './components/FeedFilterBar';
-import CreatePostModal from '@/components/CreatePostModal';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { useAuth } from '@/context/AuthContext';
-import { coreApi } from '@/lib/api';
+import { useCallback, useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import BottomNav from "../../components/BottomNav";
+import Header from "@/components/Header";
+import Post from "./components/Post";
+import Stories from "./components/Stories";
+import Suggestions from "./components/Suggestions";
+import FeedFilterBar from "./components/FeedFilterBar";
+import CreatePostModal from "@/components/CreatePostModal";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
+import { coreApi } from "@/lib/api";
 
-export default function FeedPage() {
+function FeedContent() {
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search");
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editPost, setEditPost] = useState<any | null>(null);
-  const [sortBy, setSortBy] = useState<'date' | 'likes'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<"date" | "likes">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const fetchFeed = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     setError(null);
     try {
-      const res = sortBy === 'likes'
-        ? await coreApi.get(`/posts/feed/${user.id}/most-liked`, {
-          params: { page: 1, limit: 10 },
-        })
-        : await coreApi.get(`/posts/feed/${user.id}`, {
-          params: {
-            sort: sortOrder,
-            page: 1,
-            limit: 10,
-          },
+      let res;
+      if (search) {
+        res = await coreApi.get("/posts/search", {
+          params: { query: search },
         });
+      } else {
+        res =
+          sortBy === "likes"
+            ? await coreApi.get(`/posts/feed/${user.id}/most-liked`, {
+                params: { page: 1, limit: 10 },
+              })
+            : await coreApi.get(`/posts/feed/${user.id}`, {
+                params: {
+                  sort: sortOrder,
+                  page: 1,
+                  limit: 10,
+                },
+              });
+      }
       setPosts(res.data ?? []);
     } catch (e) {
-      setError('Failed to load feed');
-      console.error('Feed load error', e);
+      setError("Failed to load feed");
+      console.error("Feed load error", e);
     } finally {
       setLoading(false);
     }
-  }, [user, sortBy, sortOrder]);
+  }, [user, sortBy, sortOrder, search]);
 
   useEffect(() => {
     fetchFeed();
@@ -53,17 +64,17 @@ export default function FeedPage() {
 
   const processedPosts = (() => {
     const list = posts.slice();
-    if (sortBy === 'likes') {
+    if (sortBy === "likes") {
       list.sort((a, b) => {
         const diff = (a.likes ?? 0) - (b.likes ?? 0);
-        return sortOrder === 'asc' ? diff : -diff;
+        return sortOrder === "asc" ? diff : -diff;
       });
     } else {
       list.sort((a, b) => {
         const ad = new Date(a.createdAt).getTime();
         const bd = new Date(b.createdAt).getTime();
         const diff = ad - bd;
-        return sortOrder === 'asc' ? diff : -diff;
+        return sortOrder === "asc" ? diff : -diff;
       });
     }
     return list;
@@ -129,9 +140,19 @@ export default function FeedPage() {
           setEditPost(null);
         }}
         onCreated={fetchFeed}
-        mode={editPost ? 'edit' : 'create'}
+        mode={editPost ? "edit" : "create"}
         initialPost={editPost}
       />
     </ProtectedRoute>
+  );
+}
+
+export default function FeedPage() {
+  return (
+    <Suspense
+      fallback={<div className="flex justify-center p-8">Loading...</div>}
+    >
+      <FeedContent />
+    </Suspense>
   );
 }

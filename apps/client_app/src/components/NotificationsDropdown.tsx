@@ -1,12 +1,12 @@
-'use client';
-import { Bell, Check, X, CheckCheck } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { coreApi, notificationsApi } from '@/lib/api';
-import { navigateForNotification } from './nav';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { NotificationAction } from '@/lib/notification-action';
+"use client";
+import { Bell, Check, X, CheckCheck } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { coreApi, notificationsApi } from "@/lib/api";
+import { navigateForNotification } from "./nav";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { NotificationAction } from "@/lib/notification-action";
 
 type NotificationItem = {
   id: number;
@@ -27,45 +27,49 @@ type UserLite = {
 const formatAction = (action?: NotificationAction | string) => {
   switch (action) {
     case NotificationAction.FOLLOW_REQUEST:
-      return 'sent a follow request';
+      return "sent a follow request";
     case NotificationAction.FOLLOW_ACCEPTED:
-      return 'accepted your request';
+      return "accepted your request";
     case NotificationAction.FOLLOW_REJECTED:
-      return 'rejected your request';
+      return "rejected your request";
+    case NotificationAction.FOLLOW_REQUEST_ACCEPTED:
+      return "Request accepted";
+    case NotificationAction.FOLLOW_REQUEST_REJECTED:
+      return "Request rejected";
     case NotificationAction.MENTION_POST:
-      return 'mentioned you in a post';
+      return "mentioned you in a post";
     case NotificationAction.MENTION_COMMENT:
-      return 'mentioned you in a comment';
+      return "mentioned you in a comment";
     case NotificationAction.COMMENT_POST:
-      return 'commented on your post';
+      return "commented on your post";
     case NotificationAction.COMMENT_REPLY:
-      return 'replied to your comment';
+      return "replied to your comment";
     case NotificationAction.MESSAGE_RECEIVED:
-      return 'sent you a message';
+      return "sent you a message";
     case NotificationAction.MESSAGE_GROUP_RECEIVED:
-      return 'sent a message in a group';
+      return "sent a message in a group";
     case NotificationAction.LIKE_POST:
-      return 'liked your post';
+      return "liked your post";
     case NotificationAction.LIKE_COMMENT:
-      return 'liked your comment';
+      return "liked your comment";
     default:
-      return action ?? 'notification';
+      return action ?? "notification";
   }
 };
 
 const formatTimeAgo = (dateValue: string | Date) => {
   const date =
-    typeof dateValue === 'string'
+    typeof dateValue === "string"
       ? (() => {
-        const raw = dateValue.trim();
-        const hasTZ = /Z|[+-]\d{2}:\d{2}$/.test(raw);
-        const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
-        const normalized = hasTZ ? iso : `${iso}Z`;
-        return new Date(normalized);
-      })()
+          const raw = dateValue.trim();
+          const hasTZ = /Z|[+-]\d{2}:\d{2}$/.test(raw);
+          const iso = raw.includes("T") ? raw : raw.replace(" ", "T");
+          const normalized = hasTZ ? iso : `${iso}Z`;
+          return new Date(normalized);
+        })()
       : dateValue;
   const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (diff < 90) return 'now';
+  if (diff < 90) return "now";
 
   const mins = Math.floor(diff / 60);
   if (mins < 60) return `${mins} min ago`;
@@ -74,16 +78,16 @@ const formatTimeAgo = (dateValue: string | Date) => {
   if (hours < 24) return `${hours} h ago`;
 
   const days = Math.floor(hours / 24);
-  if (days < 7) return days === 1 ? '1 day ago' : `${days} days ago`;
+  if (days < 7) return days === 1 ? "1 day ago" : `${days} days ago`;
 
   const weeks = Math.floor(days / 7);
-  if (weeks < 4) return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+  if (weeks < 4) return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
 
   const months = Math.floor(days / 30);
-  if (months < 12) return months === 1 ? '1 month ago' : `${months} months ago`;
+  if (months < 12) return months === 1 ? "1 month ago" : `${months} months ago`;
 
   const years = Math.floor(days / 365);
-  return years === 1 ? '1 year ago' : `${years} years ago`;
+  return years === 1 ? "1 year ago" : `${years} years ago`;
 };
 
 export default function NotificationsDropdown() {
@@ -146,16 +150,17 @@ export default function NotificationsDropdown() {
   );
 
   const fetchNotifications = useCallback(async () => {
+    console.log("Fetching notifications for user:", user?.id);
     if (!user?.id) return;
     try {
-      const res = await notificationsApi.get(`/notifications/user/${user.id}`);
+      const res = await notificationsApi.get(`/user/${user.id}`);
       const data = Array.isArray(res.data) ? res.data : [];
       setItems(data);
       setLoadError(null);
       await ensureUsersLoaded(data);
-    } catch {
+    } catch (error) {
       setLoadError(
-        'Failed to fetch notifications. Make sure the notifications service is running.',
+        "Failed to fetch notifications. Make sure the notifications service is running.",
       );
       setItems([]);
     }
@@ -197,18 +202,29 @@ export default function NotificationsDropdown() {
 
     try {
       await coreApi.patch(
-        `/follows/${senderId}/${user?.id}/${accept ? 'accept' : 'reject'}`,
+        `/follows/${senderId}/${user?.id}/${accept ? "accept" : "reject"}`,
       );
 
-      // Mark notification as read
-      await notificationsApi.put(`/notifications/${notificationId}`, {
+      const newAction = accept
+        ? NotificationAction.FOLLOW_REQUEST_ACCEPTED
+        : NotificationAction.FOLLOW_REQUEST_REJECTED;
+
+      // Mark notification as read and update action
+      await notificationsApi.put(`/${notificationId}`, {
         isRead: true,
+        action: newAction,
       });
 
-      // Remove the notification from the list
-      setItems((prev) => prev.filter((x) => x.id !== notificationId));
+      // Update the notification in the list
+      setItems((prev) =>
+        prev.map((x) =>
+          x.id === notificationId
+            ? { ...x, isRead: true, action: newAction }
+            : x,
+        ),
+      );
     } catch (error) {
-      console.error('Error handling follow request:', error);
+      console.error("Error handling follow request:", error);
     } finally {
       setProcessingRequest(null);
     }
@@ -221,14 +237,12 @@ export default function NotificationsDropdown() {
       const unreadIds = items.filter((n) => !n.isRead).map((n) => n.id);
 
       await Promise.all(
-        unreadIds.map((id) =>
-          notificationsApi.put(`/notifications/${id}`, { isRead: true }),
-        ),
+        unreadIds.map((id) => notificationsApi.put(`/${id}`, { isRead: true })),
       );
 
       setItems((prev) => prev.map((x) => ({ ...x, isRead: true })));
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      console.error("Error marking all as read:", error);
     }
   };
 
@@ -246,7 +260,7 @@ export default function NotificationsDropdown() {
         <Bell className="w-6 h-6 text-gray-700" />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 min-w-[20px] h-5 px-1.5 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold flex items-center justify-center shadow-lg">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
@@ -292,11 +306,11 @@ export default function NotificationsDropdown() {
                   <div
                     key={n.id}
                     className={[
-                      'relative border-b border-gray-100 transition-all duration-200',
+                      "relative border-b border-gray-100 transition-all duration-200",
                       n.isRead
-                        ? 'bg-white'
-                        : 'bg-gradient-to-r from-blue-50/50 to-purple-50/50',
-                    ].join(' ')}
+                        ? "bg-white"
+                        : "bg-gradient-to-r from-blue-50/50 to-purple-50/50",
+                    ].join(" ")}
                   >
                     {!n.isRead && (
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500" />
@@ -306,10 +320,9 @@ export default function NotificationsDropdown() {
                       onClick={async () => {
                         if (!n.isRead) {
                           try {
-                            await notificationsApi.put(
-                              `/notifications/${n.id}`,
-                              { isRead: true },
-                            );
+                            await notificationsApi.put(`/${n.id}`, {
+                              isRead: true,
+                            });
                             setItems((prev) =>
                               prev.map((x) =>
                                 x.id === n.id ? { ...x, isRead: true } : x,
@@ -346,7 +359,7 @@ export default function NotificationsDropdown() {
                             <span className="font-bold text-gray-900">
                               {usersById[n.senderId]?.username ??
                                 `user_${n.senderId}`}
-                            </span>{' '}
+                            </span>{" "}
                             <span className="text-gray-600">
                               {formatAction(n.action)}
                             </span>
