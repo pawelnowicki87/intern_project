@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { NotFoundError, InternalError } from '../common/errors/domain-errors';
 import { LikesCommentsRepository } from './likes-comments.repository';
 import { CreateLikeCommentDto } from './dto/create-like-comment.dto';
@@ -10,6 +10,8 @@ import { NotificationAction } from '../common/notifications/notification-action'
 
 @Injectable()
 export class LikesCommentsService {
+  private readonly logger = new Logger(LikesCommentsService.name);
+
   constructor(
     private readonly likesRepo: LikesCommentsRepository,
     @Inject(NOTIFICATIONS_SENDER)
@@ -21,6 +23,7 @@ export class LikesCommentsService {
     const commentOwnerId = like?.comment?.userId;
     if (!commentOwnerId || commentOwnerId === userId) return;
 
+    this.logger.log(`Sending LIKE_COMMENT notification to user ${commentOwnerId} from user ${userId} for comment ${commentId}`);
     await this.notificationSender.sendNotification(
       commentOwnerId,
       userId,

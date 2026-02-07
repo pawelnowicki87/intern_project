@@ -58,6 +58,19 @@ export class ChatsRepository {
     }
   }
 
+  async findByUserWithUnread(userId: number): Promise<Chat[]> {
+    return this.repo.createQueryBuilder('chat')
+      .innerJoin('chat.participants', 'p', 'p.userId = :userId', { userId })
+      .leftJoinAndSelect('chat.participants', 'participants')
+      .leftJoinAndSelect('participants.user', 'user')
+      .leftJoinAndSelect('chat.messages', 'messages')
+      .loadRelationCountAndMap('chat.unreadCount', 'chat.messages', 'message', (qb) => 
+        qb.where('message.receiverId = :userId AND message.isRead = false', { userId })
+      )
+      .orderBy('chat.createdAt', 'DESC')
+      .getMany();
+  }
+
   async findDirectChatByParticipants(userIds: number[]): Promise<Chat | null> {
     try {
       const all = await this.findAll();

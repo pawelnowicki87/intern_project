@@ -35,6 +35,14 @@ export class ChatsService {
     return chats.map((chatItem) => this.toResponseDto(chatItem));
   }
 
+  async findByUser(userId: number): Promise<ChatResponseDto[]> {
+    const chats = await this.chatsRepo.findByUserWithUnread(userId);
+    return chats.map((c) => ({
+      ...this.toResponseDto(c),
+      unread: (c as any).unreadCount,
+    }));
+  }
+
   async findOne(id: number): Promise<ChatResponseDto> {
     const chat = await this.chatsRepo.findById(id);
     if (!chat) throw new NotFoundError(`Chat ${id} not found`);

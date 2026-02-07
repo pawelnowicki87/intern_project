@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import { AuthProvider } from '../context/AuthContext';
-import { useEffect } from 'react';
+import { AuthProvider } from "../context/AuthContext";
+import { SocketProvider } from "../context/SocketContext";
+import { useEffect } from "react";
 
 function ThemeInitializer() {
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('theme');
-      if (saved === 'dark') {
-        document.documentElement.classList.add('theme-dark');
+      const saved = localStorage.getItem("theme");
+      if (saved === "dark") {
+        document.documentElement.classList.add("theme-dark");
       } else {
-        document.documentElement.classList.remove('theme-dark');
+        document.documentElement.classList.remove("theme-dark");
       }
     } catch {
       void 0;
@@ -23,8 +24,10 @@ function ThemeInitializer() {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <ThemeInitializer />
-      {children}
+      <SocketProvider>
+        <ThemeInitializer />
+        {children}
+      </SocketProvider>
     </AuthProvider>
   );
 }

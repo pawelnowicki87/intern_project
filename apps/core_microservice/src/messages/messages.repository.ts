@@ -34,9 +34,16 @@ export class MessagesRepository {
     return this.findById(id);
   }
 
-  async delete(id: number): Promise<boolean> {
-    const result = await this.repo.delete(id);
-    return (result.affected ?? 0) > 0;
+  async countUnread(userId: number): Promise<number> {
+    return this.repo.count({
+      where: {
+        receiverId: userId,
+        isRead: false,
+      },
+    });
+  }
+
+  async delete(id: number) {
+    return this.repo.delete(id);
   }
 }
-

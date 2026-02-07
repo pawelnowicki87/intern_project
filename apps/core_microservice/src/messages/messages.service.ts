@@ -101,5 +101,9 @@ export class MessagesService {
   async remove(id: number) {
     return { deleted: await this.messagesRepo.delete(id) };
   }
+
+  async countUnread(userId: number) {
+    return this.messagesRepo.countUnread(userId);
+  }
 }
 

@@ -26,6 +26,7 @@ export class NotificationsRmqAdapter implements INotificationSender {
     };
 
     try {
+      this.logger.log(`Sending notification: ${action} from ${senderId} to ${recipientId}`);
       this.client.emit('notification_created', payload);
     } catch (err: any) {
       this.logger.error(

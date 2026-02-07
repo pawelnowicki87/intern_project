@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Mention, MentionType } from './entity/mention.entity';
@@ -10,6 +10,8 @@ import { NotificationAction } from '../common/notifications/notification-action'
 
 @Injectable()
 export class MentionsService {
+  private readonly logger = new Logger(MentionsService.name);
+
   constructor(
     @InjectRepository(Mention)
     private readonly repo: Repository<Mention>,
@@ -53,6 +55,7 @@ export class MentionsService {
         ? NotificationAction.MENTION_COMMENT
         : NotificationAction.MENTION_POST;
 
+      this.logger.log(`Sending ${action} notification to user ${user.id} from user ${createdByUserId} for source ${sourceId}`);
       await this.notificationSender.sendNotification(
         user.id,
         createdByUserId,

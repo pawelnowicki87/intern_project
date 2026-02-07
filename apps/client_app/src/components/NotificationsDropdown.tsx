@@ -150,13 +150,11 @@ export default function NotificationsDropdown() {
     if (!user?.id) return;
     try {
       const res = await notificationsApi.get(`/user/${user.id}`);
-      console.log("Notifications fetch result:", res.data);
       const data = Array.isArray(res.data) ? res.data : [];
       setItems(data);
       setLoadError(null);
       await ensureUsersLoaded(data);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
       setLoadError(
         "Failed to fetch notifications. Make sure the notifications service is running.",
       );

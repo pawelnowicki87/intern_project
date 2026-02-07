@@ -136,11 +136,9 @@ export default function Page() {
   }, []);
 
   const fetchNotifications = useCallback(async () => {
-    console.log("Fetching notifications page for user:", user?.id);
     if (!user?.id) return;
     try {
       const res = await notificationsApi.get(`/user/${user.id}`);
-      console.log("Notifications page fetch result:", res.data);
       const data = Array.isArray(res.data) ? res.data : [];
       setItems(data);
       setLoadError(null);

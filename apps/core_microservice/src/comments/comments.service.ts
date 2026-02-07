@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { NotFoundError, InternalError, ForbiddenError } from '../common/errors/domain-errors';
+import {
+  NotFoundError,
+  InternalError,
+  ForbiddenError,
+} from '../common/errors/domain-errors';
 import { CommentsRepository } from './comments.repository';
 import { Inject } from '@nestjs/common';
 import { COMMENT_MENTIONS_READER } from './ports/tokens';
@@ -83,13 +87,21 @@ export class CommentsService {
     }
 
     if (typeof data.body === 'string' && data.body.length > 0) {
-      await this.commentMentionsReader.processMentions(data.body, createdComment.id, data.userId);
+      await this.commentMentionsReader.processMentions(
+        data.body,
+        createdComment.id,
+        data.userId,
+      );
     }
 
     const postOwnerId = createdComment.post?.userId ?? null;
     const commenterId = data.userId;
 
-    if (postOwnerId && postOwnerId !== commenterId && postOwnerId !== parentUserId) {
+    if (
+      postOwnerId &&
+      postOwnerId !== commenterId &&
+      postOwnerId !== parentUserId
+    ) {
       await this.notificationSender.sendNotification(
         postOwnerId,
         commenterId,
@@ -110,17 +122,28 @@ export class CommentsService {
     return this.toResponseDto(createdComment);
   }
 
-  async update(id: number, data: UpdateCommentDto): Promise<CommentResponseDto> {
+  async update(
+    id: number,
+    data: UpdateCommentDto,
+  ): Promise<CommentResponseDto> {
     let currentComment: Comment | null = null;
-    const needsCurrentComment = (data.userId !== undefined && data.userId !== null)
-      || (data.parentId !== undefined && data.parentId !== null && (data.postId === undefined || data.postId === null));
+    const needsCurrentComment =
+      (data.userId !== undefined && data.userId !== null) ||
+      (data.parentId !== undefined &&
+        data.parentId !== null &&
+        (data.postId === undefined || data.postId === null));
     if (needsCurrentComment) {
       currentComment = await this.commentsRepo.findById(id);
       if (!currentComment) {
         throw new NotFoundError(`Comment ${id} not found`);
       }
     }
-    if (data.userId !== undefined && data.userId !== null && currentComment && currentComment.userId !== data.userId) {
+    if (
+      data.userId !== undefined &&
+      data.userId !== null &&
+      currentComment &&
+      currentComment.userId !== data.userId
+    ) {
       throw new ForbiddenError('Cannot edit comment owned by another user');
     }
     if (data.parentId !== undefined && data.parentId !== null) {
@@ -144,14 +167,18 @@ export class CommentsService {
     if (!updated) {
       throw new NotFoundError(`Comment ${id} not found`);
     }
-    
+
     const freshComment = await this.commentsRepo.findById(id);
     if (!freshComment) {
       throw new NotFoundError(`Comment ${id} not found after update`);
     }
 
     if (typeof data.body === 'string' && data.body.length > 0) {
-      await this.commentMentionsReader.processMentions(data.body, id, freshComment.userId);
+      await this.commentMentionsReader.processMentions(
+        data.body,
+        id,
+        freshComment.userId,
+      );
     }
 
     return this.toResponseDto(freshComment);
@@ -180,7 +207,9 @@ export class CommentsService {
       const children = byParent.get(currentId) ?? [];
       children.forEach((childId) => queue.push(childId));
     }
-    const likesDeleted = await this.commentsRepo.deleteLikesByCommentIds(Array.from(idsToDelete));
+    const likesDeleted = await this.commentsRepo.deleteLikesByCommentIds(
+      Array.from(idsToDelete),
+    );
     if (!likesDeleted) {
       throw new InternalError('Failed to remove comment likes');
     }
@@ -197,7 +226,9 @@ export class CommentsService {
     const responseList = comments.map((comment) => this.toResponseDto(comment));
 
     const responsesById = new Map<number, CommentResponseDto>();
-    responseList.forEach((response) => responsesById.set(response.id, response));
+    responseList.forEach((response) =>
+      responsesById.set(response.id, response),
+    );
 
     const roots: CommentResponseDto[] = [];
 

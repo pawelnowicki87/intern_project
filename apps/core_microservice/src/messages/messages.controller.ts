@@ -12,6 +12,11 @@ export class MessagesController {
     return this.messagesService.findAll();
   }
 
+  @Get('unread/count/:userId')
+  countUnread(@Param('userId') userId: number) {
+    return this.messagesService.countUnread(userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.messagesService.findOne(id);

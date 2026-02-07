@@ -24,6 +24,6 @@ export class MessageWebsocketAdapter implements IMessageWebsocketReader {
 
   async deleteMessage(id: number): Promise<boolean> {
     const result = await this.messagesService.remove(id);
-    return result.deleted;
+    return result.deleted.affected ? result.deleted.affected > 0 : false;
   }
 }
