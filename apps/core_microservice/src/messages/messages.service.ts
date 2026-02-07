@@ -54,7 +54,6 @@ export class MessagesService {
     const msg = await this.messagesRepo.findById(created.id);
 
     if (msg) {
-      // Notification logic removed as per user request (messages only in chat icon, not bell)
     }
     return this.toResponseDto(msg);
   }
