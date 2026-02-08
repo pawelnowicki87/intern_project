@@ -19,7 +19,7 @@ innogram/
 └── .github/workflows/             # CI/CD pipelines
 ```
 
-## Prerequisites
+## Prerequisitess
 
 - Node.js (v18 or higher)
 - PostgreSQL (v13 or higher)
