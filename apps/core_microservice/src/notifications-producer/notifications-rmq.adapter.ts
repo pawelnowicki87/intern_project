@@ -1,5 +1,5 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { Injectable, Logger } from '@nestjs/common';
+import * as amqp from 'amqplib';
 import { INotificationSender } from './ports/notification-sender.port';
 import { NotificationAction } from '../common/notifications/notification-action';
 
@@ -7,9 +7,34 @@ import { NotificationAction } from '../common/notifications/notification-action'
 export class NotificationsRmqAdapter implements INotificationSender {
   private readonly logger = new Logger(NotificationsRmqAdapter.name);
 
-  constructor(
-    @Inject('NOTIFICATIONS_SERVICE') private readonly client: ClientProxy,
-  ) {}
+  private connection: any = null;
+  private channel: any = null;
+
+
+  private readonly queueName =
+    process.env.NOTIFICATIONS_QUEUE || 'notifications';
+
+  private readonly rabbitUrl =
+    process.env.RABBITMQ_URL ||
+    'amqp://innogram:innogram_password@rabbitmq:5672';
+
+  private async getChannel() {
+    if (this.channel) return this.channel;
+
+    this.logger.log(
+      `Connecting to RabbitMQ at ${this.rabbitUrl.replace(/:[^:@]+@/, ':***@')}`,
+    );
+
+    this.connection = await amqp.connect(this.rabbitUrl);
+    this.channel = await this.connection.createChannel();
+
+    await this.channel.assertQueue(this.queueName, { durable: true });
+
+    this.logger.log(`RabbitMQ channel ready (queue: ${this.queueName})`);
+
+    return this.channel;
+  }
+
 
   async sendNotification(
     recipientId: number,
@@ -26,11 +51,20 @@ export class NotificationsRmqAdapter implements INotificationSender {
     };
 
     try {
-      this.logger.log(`Sending notification: ${action} from ${senderId} to ${recipientId}`);
-      this.client.emit('notification_created', payload);
+      const channel = await this.getChannel();
+
+      channel.sendToQueue(
+        this.queueName,
+        Buffer.from(JSON.stringify(payload)),
+        { persistent: true },
+      );
+
+      this.logger.log(
+        `Notification published to queue '${this.queueName}': ${action}`,
+      );
     } catch (err: any) {
       this.logger.error(
-        `Failed to send notification: ${err?.message || err}`,
+        `Failed to publish notification: ${err?.message || err}`,
         err?.stack,
       );
     }

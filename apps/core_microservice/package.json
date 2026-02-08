@@ -14,6 +14,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node ../../dist/apps/core_microservice/src/main.js",
     "db:migrate": "ts-node -r tsconfig-paths/register src/scripts/migrate.ts",
+    "db:migrate:prod": "node dist/scripts/migrate.js",
     "db:generate": "ts-node -r tsconfig-paths/register src/scripts/generate-migration.ts",
     "db:revert": "ts-node -r tsconfig-paths/register src/scripts/migrate-revert.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

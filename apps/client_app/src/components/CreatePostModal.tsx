@@ -116,7 +116,7 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg w-full max-w-xl max-h[90vh] flex flex-col">
+      <div className="bg-white rounded-lg w-full max-w-xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-3 border-b border-gray-300">
           <button onClick={handleClose} className="p-1">
             <X className="w-6 h-6" />
@@ -146,7 +146,7 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               placeholder={isEdit ? 'Update your caption...' : 'What\'s on your mind?'}
-              className="w-full h-32 resize-none outline-none text-sm"
+              className="w-full h-20 resize-none outline-none text-sm"
               maxLength={2200}
               autoFocus
             />
@@ -182,36 +182,36 @@ export default function CreatePostModal({ isOpen, onClose, onCreated, mode = 'cr
               </div>
             </div>
           )}
-
-          {!isEdit && (
-            <div className="p-4 border-t border-gray-200">
-              <div className="text-sm font-semibold mb-3 text-gray-700">Add to your post</div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <ImageIcon className="w-5 h-5 text-green-500" />
-                  <span className="text-sm font-semibold">Photo</span>
-                </button>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Video className="w-5 h-5 text-red-500" />
-                  <span className="text-sm font-semibold">Video</span>
-                </button>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleMediaSelect}
-                className="hidden"
-              />
-            </div>
-          )}
         </div>
+
+        {!isEdit && (
+          <div className="p-4 border-t border-gray-200 flex-shrink-0">
+            <div className="text-sm font-semibold mb-3 text-gray-700">Add to your post</div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <ImageIcon className="w-5 h-5 text-green-500" />
+                <span className="text-sm font-semibold">Photo</span>
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Video className="w-5 h-5 text-red-500" />
+                <span className="text-sm font-semibold">Video</span>
+              </button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleMediaSelect}
+              className="hidden"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
