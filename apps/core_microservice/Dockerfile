@@ -17,4 +17,4 @@ COPY --from=builder /app/apps/core_microservice/dist ./dist
 COPY package*.json ./
 
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "node dist/scripts/migrate.js && node dist/main.js"]

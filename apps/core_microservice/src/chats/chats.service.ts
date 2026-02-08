@@ -19,6 +19,7 @@ export class ChatsService {
         firstName: participant.user.firstName,
         lastName: participant.user.lastName,
         email: participant.user.email,
+        avatarUrl: participant.user.avatarUrl,
       })),
       messages: chat.messages?.map((message) => ({
         id: message.id,

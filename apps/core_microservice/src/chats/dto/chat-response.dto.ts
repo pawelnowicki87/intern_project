@@ -8,6 +8,7 @@ export class ChatResponseDto {
     firstName: string;
     lastName: string;
     email: string;
+    avatarUrl?: string;
   }[];
   unread?: number;
   messages?: {

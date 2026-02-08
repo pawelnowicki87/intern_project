@@ -16,6 +16,7 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
 
 # IDE
 .vscode/
@@ -95,3 +96,5 @@ temp/
 .dockerignore
 intern_project.tar.gz
 .turbo/
+
+docker-compose.yml

@@ -21,7 +21,7 @@ import { ConfigModule } from '@nestjs/config';
       password: process.env.POSTGRES_PASSWORD || 'innogram_password',
       database: process.env.POSTGRES_DB || 'innogram',
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-      synchronize: true,
+      synchronize: false,
     }),
 
     NotificationsModule,

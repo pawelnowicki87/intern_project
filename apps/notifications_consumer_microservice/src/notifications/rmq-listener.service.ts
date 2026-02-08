@@ -16,7 +16,9 @@ export class NotificationsRmqListener implements OnModuleInit {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   async onModuleInit() {
-    await this.init();
+    setTimeout(() => {
+      this.init();
+    }, 5000);
   }
 
   private async init() {

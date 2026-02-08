@@ -160,8 +160,11 @@ function ChatPageImpl() {
           return {
             id: c.id,
             name,
+            avatar: others[0]?.avatarUrl,
             lastMessage: makePreview(
-              (c.participants ?? []).length > 2 ? "group" : "direct",
+              c.name || (c.participants ?? []).length !== 2
+                ? "group"
+                : "direct",
               last?.body,
               last?.senderId,
               c.participants,
@@ -169,11 +172,15 @@ function ChatPageImpl() {
             ),
             time: formatTime(last?.createdAt),
             unread: c.unread ?? 0,
-            type: (c.participants ?? []).length > 2 ? "group" : "direct",
+            type:
+              c.name || (c.participants ?? []).length !== 2
+                ? "group"
+                : "direct",
             participants: others.map((o: any) => ({
               name:
                 o.username ??
                 [o.firstName, o.lastName].filter(Boolean).join(" "),
+              avatar: o.avatarUrl,
             })),
             rawParticipants: c.participants,
             createdAt: c.createdAt,
@@ -315,8 +322,11 @@ function ChatPageImpl() {
             const mapped: any = {
               id: found.id,
               name,
+              avatar: others[0]?.avatarUrl,
               lastMessage: makePreview(
-                (found.participants ?? []).length > 2 ? "group" : "direct",
+                found.name || (found.participants ?? []).length !== 2
+                  ? "group"
+                  : "direct",
                 last?.body,
                 last?.senderId,
                 found.participants,
@@ -324,11 +334,15 @@ function ChatPageImpl() {
               ),
               time: formatTime(last?.createdAt),
               unread: 0,
-              type: (found.participants ?? []).length > 2 ? "group" : "direct",
+              type:
+                found.name || (found.participants ?? []).length !== 2
+                  ? "group"
+                  : "direct",
               participants: others.map((o: any) => ({
                 name:
                   o.username ??
                   [o.firstName, o.lastName].filter(Boolean).join(" "),
+                avatar: o.avatarUrl,
               })),
               rawParticipants: found.participants,
               createdAt: found.createdAt,
@@ -387,8 +401,11 @@ function ChatPageImpl() {
           const mapped: any = {
             id: c.id,
             name,
+            avatar: others[0]?.avatarUrl,
             lastMessage: makePreview(
-              (withParts.participants ?? []).length > 2 ? "group" : "direct",
+              withParts.name || (withParts.participants ?? []).length !== 2
+                ? "group"
+                : "direct",
               last?.body,
               last?.senderId,
               withParts.participants,
@@ -397,11 +414,14 @@ function ChatPageImpl() {
             time: formatTime(last?.createdAt),
             unread: 0,
             type:
-              (withParts.participants ?? []).length > 2 ? "group" : "direct",
+              withParts.name || (withParts.participants ?? []).length !== 2
+                ? "group"
+                : "direct",
             participants: others.map((o: any) => ({
               name:
                 o.username ??
                 [o.firstName, o.lastName].filter(Boolean).join(" "),
+              avatar: o.avatarUrl,
             })),
             rawParticipants: withParts.participants,
             createdAt: withParts.createdAt ?? c.createdAt,

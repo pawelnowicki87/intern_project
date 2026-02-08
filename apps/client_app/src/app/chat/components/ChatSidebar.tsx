@@ -75,8 +75,18 @@ export default function ChatSidebar({
               role="button"
               tabIndex={0}
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold">{c.name?.[0]?.toUpperCase() ?? 'U'}</span>
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center">
+                {c.avatar ? (
+                  <img
+                    src={c.avatar}
+                    alt={c.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-bold">
+                    {c.name?.[0]?.toUpperCase() ?? 'U'}
+                  </span>
+                )}
               </div>
 
               <div className="flex-1 min-w-0">
