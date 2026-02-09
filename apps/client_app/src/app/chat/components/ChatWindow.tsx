@@ -177,7 +177,11 @@ export default function ChatWindow({
     load();
 
     const token = getAccessToken() ?? '';
-    const endpoint = process.env.NEXT_PUBLIC_CORE_SERVICE_URL ?? 'http://localhost:3001';
+    const endpoint =
+      process.env.NEXT_PUBLIC_CORE_SERVICE_URL ??
+      (typeof window !== 'undefined'
+        ? `${window.location.protocol}//${window.location.hostname}:3001`
+        : 'http://localhost:3001');
 
     const s = io(endpoint, {
       auth: { token },
