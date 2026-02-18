@@ -213,8 +213,7 @@ function ChatPageImpl() {
   useEffect(() => {
     if (!user || chats.length === 0) return;
     const token = getAccessToken() ?? "";
-    const endpoint =
-      process.env.NEXT_PUBLIC_CORE_SERVICE_URL ?? "http://localhost:3001";
+    const endpoint = process.env.NEXT_PUBLIC_CORE_SERVICE_URL!;
     if (!socketRef.current) {
       const s = io(endpoint, {
         auth: { token },
