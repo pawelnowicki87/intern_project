@@ -1,110 +1,134 @@
-# Innogram - Social Media Application
+A modern social media platform built as a microservices-based monorepo powered by Turbo.
 
-A modern social media application built with microservices architecture.
+## What is included
 
-## Project Structure
+- **Core microservice** — main domain logic (posts, comments, messages, likes, follows, and more).
+- **Auth microservice** — user authentication and authorization.
+- **Notifications consumer microservice** — asynchronous notifications processing.
+- **Client app (Next.js)** — frontend web application.
 
-```
-innogram/
+## Technology stack
+
+- **Node.js + TypeScript**
+- **NestJS** (backend microservices)
+- **Next.js** (frontend)
+- **PostgreSQL**
+- **RabbitMQ**
+- **Turbo** (monorepo task runner)
+- **Docker / Docker Compose**
+
+## Repository structure
+
+```txt
+.
 ├── apps/
-│   ├── core_microservice/          # NestJS API Gateway & Business Logic
-│   ├── auth_microservice/          # Express.js Authentication Service
-│   ├── notifications_consumer_microservice/  # NestJS Notifications Service
-│   └── client_app/                 # Next.js Frontend Application
-├── packages/
-│   ├── shared/                     # Shared utilities and constants
-│   └── types/                      # Shared TypeScript types
-├── scripts/                       # Build and deployment scripts
-├── docker/                        # Docker configurations
-└── .github/workflows/             # CI/CD pipelines
+│   ├── core_microservice/                # NestJS core domain API
+│   ├── auth_microservice/                # Authentication service
+│   ├── notifications_consumer_microservice/  # Notifications consumer service
+│   └── client_app/                       # Next.js frontend application
+├── .github/workflows/                    # CI/CD pipelines
+├── docker-compose.local.yml
+├── docker-compose.prod.yml
+└── turbo.json
 ```
 
-## Prerequisitess
+## Quick start (local development)
 
-- Node.js (v18 or higher)
-- PostgreSQL (v13 or higher)
-- Redis (v6 or higher)
-- Docker (optional)
+### Requirements
 
-## Quick Start
+- Node.js 18+
+- npm 9+
+- Docker + Docker Compose
+- PostgreSQL 13+
+- Redis 6+
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### Install dependencies
 
-2. **Start infrastructure services:**
-   ```bash
-   npm run docker:up
-   ```
+```bash
+npm install
+```
 
-3. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+### Start infrastructure services
 
-4. **Run database migrations:**
-   ```bash
-   npm run db:migrate
-   ```
+```bash
+npm run docker:up
+```
 
-5. **Start development servers:**
-   ```bash
-   npm run dev
-   ```
+### Configure environment variables
 
-## Available Scripts
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-- `npm run dev` - Start all services in development mode
-- `npm run build` - Build all services
-- `npm run test` - Run tests for all services
-- `npm run lint` - Lint all services
-- `npm run type-check` - Type check all services
-- `npm run docker:up` - Start infrastructure services
-- `npm run docker:down` - Stop infrastructure services
+### Run database migrations
+
+```bash
+npm run db:migrate
+```
+
+### Start development servers
+
+```bash
+npm run dev
+```
+
+## Available scripts
+
+```bash
+npm run dev         # run development mode for all workspaces
+npm run build       # build all workspaces
+npm run test        # run tests
+npm run lint        # run lint checks
+npm run type-check  # run TypeScript checks
+npm run docker:up   # start Docker Compose services
+npm run docker:down # stop Docker Compose services
+npm run db:migrate  # run DB migrations (core_microservice)
+```
 
 ## Services
 
-### Core Microservice (Port 3001)
-- NestJS API Gateway
-- Main business logic
-- Database operations
-- Real-time features
+- **Core microservice** (port `3001`)
+  - NestJS API gateway
+  - Main business logic
+  - Database operations
+  - Real-time features
 
-### Authentication Microservice (Port 3002)
-- Express.js service
-- JWT token management
-- OAuth 2.0 integration
-- Session management
+- **Authentication microservice** (port `3002`)
+  - Express.js service
+  - JWT token management
+  - OAuth 2.0 integration
+  - Session management
 
-### Notifications Consumer (Port 3003)
-- NestJS service
-- Message processing
-- Email notifications
-- Real-time notifications
+- **Notifications consumer** (port `3003`)
+  - NestJS service
+  - Message processing
+  - Email notifications
+  - Real-time notifications
 
-### Client Application (Port 3000)
-- Next.js frontend
-- React components
-- User interface
-- Real-time updates
+- **Client application** (port `3000`)
+  - Next.js frontend
+  - React components
+  - User interface
+  - Real-time updates
 
-## Development Workflow
+- **PostgreSQL** (port `5433`)
+- **RabbitMQ** (ports `5672` / `15672`) — AMQP / management UI
 
-1. Each feature should be focused and testable
-2. Follow microservices architecture patterns
-3. Implement features incrementally
-4. Write tests for each component
+## Development workflow
+
+1. Each feature should be focused and testable.
+2. Follow microservices architecture patterns.
+3. Implement features incrementally.
+4. Write tests for each component.
 
 ## Contributing
 
-1. Create a feature branch: `git checkout -b feature/INO-XXX`
-2. Make your changes
-3. Run tests: `npm run test`
-4. Run linting: `npm run lint`
-5. Create a Pull Request
+1. Create a feature branch: `git checkout -b feature/INO-XXX`.
+2. Implement your changes and run tests/linting (`npm run test`, `npm run lint`).
+3. Commit with a clear message.
+4. Open a Pull Request.
 
 ## License
 
-MIT
+This project is licensed under the **MIT License**. See `LICENSE` for details.
