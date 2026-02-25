@@ -8,17 +8,27 @@ export class NotificationsRmqListener implements OnModuleInit {
   private readonly logger = new Logger(NotificationsRmqListener.name);
   private connection: any = null;
   private channel: any = null;
+  private reconnectTimer: NodeJS.Timeout | null = null;
   private readonly queueName =
     process.env.NOTIFICATIONS_QUEUE || 'notifications';
   private readonly url =
     process.env.RABBITMQ_URL ||
-    'amqp://innogram:innogram_password@localhost:5672';
+    'amqp://innogram:innogram_password@rabbitmq:5672';
+  private readonly reconnectDelayMs = 5000;
   constructor(private readonly notificationsService: NotificationsService) {}
 
   async onModuleInit() {
-    setTimeout(() => {
+    this.scheduleReconnect(this.reconnectDelayMs);
+  }
+
+  private scheduleReconnect(delayMs = this.reconnectDelayMs) {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+    }
+
+    this.reconnectTimer = setTimeout(() => {
       this.init();
-    }, 5000);
+    }, delayMs);
   }
 
   private async init() {
@@ -43,6 +53,17 @@ export class NotificationsRmqListener implements OnModuleInit {
         `Successfully connected to RabbitMQ. Waiting for messages in '${this.queueName}'...`,
       );
 
+      this.connection.on('close', () => {
+        this.logger.warn('RabbitMQ connection closed. Reconnecting...');
+        this.connection = null;
+        this.channel = null;
+        this.scheduleReconnect();
+      });
+
+      this.connection.on('error', (error: Error) => {
+        this.logger.error(`RabbitMQ connection error: ${error.message}`);
+      });
+
       await this.channel.consume(this.queueName, (msg) => this.handle(msg), {
         noAck: false,
       });
@@ -50,6 +71,9 @@ export class NotificationsRmqListener implements OnModuleInit {
       this.logger.error(
         `Failed to start RabbitMQ listener: ${err?.message || err}`,
       );
+      this.connection = null;
+      this.channel = null;
+      this.scheduleReconnect();
     }
   }
 
